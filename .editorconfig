@@ -1,0 +1,48 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Constant fields → k_PascalCase (Unity e-book convention)
+dotnet_naming_symbols.constant_fields.applicable_kinds           = field
+dotnet_naming_symbols.constant_fields.required_modifiers         = const
+
+dotnet_naming_style.k_pascal_case.capitalization                 = pascal_case
+dotnet_naming_style.k_pascal_case.required_prefix                = k_
+
+dotnet_naming_rule.constants_k_pascal.symbols                    = constant_fields
+dotnet_naming_rule.constants_k_pascal.style                      = k_pascal_case
+dotnet_naming_rule.constants_k_pascal.severity                   = suggestion
+
+# Private instance fields → _camelCase
+dotnet_naming_symbols.private_fields.applicable_kinds            = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities  = private
+
+dotnet_naming_style.underscore_camel.capitalization              = camel_case
+dotnet_naming_style.underscore_camel.required_prefix             = _
+
+dotnet_naming_rule.private_fields_underscore.symbols             = private_fields
+dotnet_naming_rule.private_fields_underscore.style               = underscore_camel
+dotnet_naming_rule.private_fields_underscore.severity            = suggestion
+
+# Static private fields → s_camelCase
+dotnet_naming_symbols.static_private_fields.applicable_kinds            = field
+dotnet_naming_symbols.static_private_fields.applicable_accessibilities  = private
+dotnet_naming_symbols.static_private_fields.required_modifiers          = static
+
+dotnet_naming_style.s_camel.capitalization                       = camel_case
+dotnet_naming_style.s_camel.required_prefix                      = s_
+
+dotnet_naming_rule.static_private_fields_s.symbols               = static_private_fields
+dotnet_naming_rule.static_private_fields_s.style                 = s_camel
+dotnet_naming_rule.static_private_fields_s.severity              = suggestion
+
+# --------------------------------------------------------
+# Rider (ReSharper) Specific Rules
+# --------------------------------------------------------
+resharper_csharp_naming_rule.enum_member = AaBb
