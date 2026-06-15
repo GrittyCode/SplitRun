@@ -16,5 +16,8 @@ namespace SplitRun.Constants
 
         // Minimum interval between accepted swipe inputs (milliseconds)
         public const float k_SwipeThrottleMs    = 150f;
+
+        // Minimum pixel distance a touch must travel to register as a swipe
+        public const float k_SwipeMinDistancePx = 50f;
     }
 }
