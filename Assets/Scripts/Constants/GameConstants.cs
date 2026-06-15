@@ -7,6 +7,19 @@ namespace SplitRun.Constants
         public const int   k_LaneCenter         = 1;
         public const int   k_LaneRight          = 2;
 
+        public const float k_LaneXLeft          = -2f;
+        public const float k_LaneXCenter        =  0f;
+        public const float k_LaneXRight         =  2f;
+
+        public const float k_LaneMoveDuration   = 0.15f;
+
+        public const float k_JumpDuration       = 0.6f;
+        public const float k_SlideDuration      = 0.5f;
+        public const float k_JumpHeight         = 2f;
+
+        // Negative — slide lowers the character below the ground-level origin
+        public const float k_SlideYOffset       = -0.5f;
+
         public const int   k_MaxHp              = 3;
 
         // HP value at which the danger BGM kicks in
@@ -14,10 +27,6 @@ namespace SplitRun.Constants
 
         public const float k_BaseRunSpeed       = 8f;
 
-        // Minimum interval between accepted swipe inputs (milliseconds)
-        public const float k_SwipeThrottleMs    = 150f;
-
-        // Minimum pixel distance a touch must travel to register as a swipe
         public const float k_SwipeMinDistancePx = 50f;
     }
 }

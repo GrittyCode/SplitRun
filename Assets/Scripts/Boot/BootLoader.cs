@@ -25,7 +25,6 @@ namespace SplitRun.Boot
         /// <summary>
         /// Runs once after all VContainer injections complete.
         /// Initializes services in dependency order, then loads the Game scene for testing.
-        /// TODO(boot): replace with Title scene transition once Title/Lobby flow is implemented in Phase 4
         /// </summary>
         public async UniTask StartAsync(CancellationToken ct)
         {
@@ -36,6 +35,7 @@ namespace SplitRun.Boot
 
             Debug.Log("[BootLoader] Boot init complete — loading Game scene");
 
+            // TODO(boot): load Title scene instead of Game scene
             await SceneManager.LoadSceneAsync("Game").ToUniTask(cancellationToken: ct);
         }
     }

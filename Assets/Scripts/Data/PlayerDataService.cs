@@ -10,7 +10,7 @@ namespace SplitRun.Data
 {
     public class PlayerDataService : IDisposable
     {
-        private const string SAVE_FILE = "player_data.json";
+        private const string k_SaveFile = "player_data.json";
 
         private readonly ReactiveProperty<int>   _coins              = new ReactiveProperty<int>(0);
         private readonly ReactiveProperty<int>   _bestDistance       = new ReactiveProperty<int>(0);
@@ -27,7 +27,7 @@ namespace SplitRun.Data
         /// <summary>Loads persisted player data from local JSON into reactive state.</summary>
         public void Load()
         {
-            SaveData data = LocalJsonStorage.Load<SaveData>(SAVE_FILE);
+            SaveData data = LocalJsonStorage.Load<SaveData>(k_SaveFile);
 
             _coins.Value              = data.Coins;
             _bestDistance.Value       = data.BestDistance;
@@ -50,7 +50,7 @@ namespace SplitRun.Data
                 UnlockedTrails     = _unlockedTrails.Value,
             };
 
-            LocalJsonStorage.Save(SAVE_FILE, data);
+            LocalJsonStorage.Save(k_SaveFile, data);
             Debug.Log($"[PlayerDataService] Saved — coins: {data.Coins}, best: {data.BestDistance}m");
         }
 
@@ -64,7 +64,6 @@ namespace SplitRun.Data
         }
 
         // TODO(shop): AddCoins(int amount), SpendCoins(int amount), Unlock(int unlockId)
-        // Implement when ShopService is added in Phase 6
 
         public void Dispose()
         {

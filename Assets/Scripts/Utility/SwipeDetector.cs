@@ -1,7 +1,10 @@
+using System;
+
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 
 using R3;
+using VContainer.Unity;
 
 using SplitRun.Constants;
 
@@ -9,16 +12,16 @@ using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace SplitRun.Utility
 {
-    public class SwipeDetector : MonoBehaviour
+    // Registered as an entry point in GameLifetimeScope — requires no scene GameObject.
+    public class SwipeDetector : IStartable, IDisposable
     {
         private readonly Subject<SwipeDirection> _onSwipe = new Subject<SwipeDirection>();
         public Observable<SwipeDirection> OnSwipe => _onSwipe;
 
         private Vector2 _touchStartPosition;
 
-        private void OnEnable()
+        public void Start()
         {
-            // TouchSimulation maps mouse input to touch events in the Unity Editor
 #if UNITY_EDITOR
             TouchSimulation.Enable();
 #endif
@@ -27,7 +30,7 @@ namespace SplitRun.Utility
             Touch.onFingerUp   += OnFingerUp;
         }
 
-        private void OnDisable()
+        public void Dispose()
         {
             Touch.onFingerDown -= OnFingerDown;
             Touch.onFingerUp   -= OnFingerUp;
@@ -35,10 +38,6 @@ namespace SplitRun.Utility
 #if UNITY_EDITOR
             TouchSimulation.Disable();
 #endif
-        }
-
-        private void OnDestroy()
-        {
             _onSwipe.Dispose();
         }
 
@@ -54,8 +53,7 @@ namespace SplitRun.Utility
             if (delta.magnitude < GameConstants.k_SwipeMinDistancePx)
                 return;
 
-            SwipeDirection direction = ResolveDirection(delta);
-            _onSwipe.OnNext(direction);
+            _onSwipe.OnNext(ResolveDirection(delta));
         }
 
         private static SwipeDirection ResolveDirection(Vector2 delta)

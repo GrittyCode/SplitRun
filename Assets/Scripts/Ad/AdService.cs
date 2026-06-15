@@ -1,4 +1,5 @@
 using UnityEngine;
+
 using GoogleMobileAds.Api;
 
 namespace SplitRun.Ad
@@ -16,8 +17,6 @@ namespace SplitRun.Ad
             Debug.Log("[AdService] AdMob initialized");
         }
 
-        // TODO(ad): UniTask<bool> ShowRewardedAdAsync(CancellationToken ct)
-        // Load rewarded ad unit, present it on request, and return true if the user earns the reward.
-        // Bridge AdMob's event callbacks to UniTask via UniTaskCompletionSource.
+        // TODO(ad): implement ShowRewardedAdAsync(CancellationToken) via UniTaskCompletionSource
     }
 }

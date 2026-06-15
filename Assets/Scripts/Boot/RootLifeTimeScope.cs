@@ -20,8 +20,6 @@ namespace SplitRun.Boot
         {
             builder.Register<PlayerDataService>(Lifetime.Singleton);
             builder.Register<AdService>(Lifetime.Singleton);
-
-            // BootLoader runs StartAsync once after all singletons are resolved
             builder.RegisterEntryPoint<BootLoader>();
         }
     }
