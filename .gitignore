@@ -77,3 +77,10 @@ $RECYCLE.BIN/
 # Sensitive config — API Keys (AdMob App ID, etc.)
 # =============================================================================
 Assets/Resources/Config/
+
+# =============================================================================
+# Asset Store content (paid + free) — EULA prohibits redistribution
+# Each publisher's imported folder lives under Assets/AssetStore/<Publisher>/
+# Required purchases/imports are documented in README — not committed here
+# =============================================================================
+Assets/AssetStore/
