@@ -17,6 +17,10 @@ namespace SplitRun.Character
         private readonly ReactiveProperty<SkillState>    _skillState    = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<VerticalState> _verticalState = new ReactiveProperty<VerticalState>(VerticalState.Ground);
 
+        // No multi-client duplicate-report risk locally, but kept in lockstep with
+        // ServerCharacter so both ICharacter implementations behave identically.
+        private float _lastCollisionTime = float.NegativeInfinity;
+
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _lane;
         public ReadOnlyReactiveProperty<int>           HpReactive            => _hp;
         public ReadOnlyReactiveProperty<SkillState>    SkillStateReactive    => _skillState;
@@ -55,6 +59,17 @@ namespace SplitRun.Character
         {
             if (_verticalState.Value != VerticalState.Ground) return;
             SetVerticalStateAsync(VerticalState.Sliding, GameConstants.k_SlideDuration);
+        }
+
+        public void ReportCollision()
+        {
+            if (Time.time - _lastCollisionTime < GameConstants.k_CollisionDebounceDuration) return;
+            _lastCollisionTime = Time.time;
+
+            // TODO(skill): route to SkillProcessor.ProcessCollision(this) before decrementing — skip decrement entirely if the skill blocks the hit
+            _hp.Value = Mathf.Max(0, _hp.Value - 1);
+
+            Debug.Log($"[LocalCharacter] Collision reported — HP: {_hp.Value}");
         }
 
         private async UniTaskVoid SetVerticalStateAsync(VerticalState state, float duration)

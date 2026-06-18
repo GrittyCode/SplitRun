@@ -43,6 +43,7 @@ namespace SplitRun.Game
         private void BindLaneInput()
         {
             _swipeDetector.OnSwipe
+                .Where(_ => IsRunning())
                 .Where(IsLaneSwipe)
                 .Where(_ => _laneInputCooldown <= 0f)
                 .Subscribe(dir =>
@@ -56,16 +57,20 @@ namespace SplitRun.Game
         private void BindJumpSlideInput()
         {
             _swipeDetector.OnSwipe
+                .Where(_ => IsRunning())
                 .Where(dir => dir == SwipeDirection.Up)
                 .Subscribe(_ => _gameService.RequestJump())
                 .AddTo(ref _disposables);
 
             _swipeDetector.OnSwipe
+                .Where(_ => IsRunning())
                 .Where(dir => dir == SwipeDirection.Down)
                 .Subscribe(_ => _gameService.RequestSlide())
                 .AddTo(ref _disposables);
         }
 
+        private bool IsRunning() => _gameService.Phase.CurrentValue == GamePhase.Running;
+        
         private static bool IsLaneSwipe(SwipeDirection dir)
             => dir is SwipeDirection.Left or SwipeDirection.Right;
 

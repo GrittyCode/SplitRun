@@ -18,5 +18,8 @@ namespace SplitRun.Character
 
         /// <summary>Requests a slide action.</summary>
         void RequestSlide();
+
+        /// <summary>Reports a physics collision with an obstacle. Called by CollisionReporter, never by player input.</summary>
+        void ReportCollision();
     }
 }

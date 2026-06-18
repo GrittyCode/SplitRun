@@ -9,25 +9,25 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // Resolves ICharacter via GetComponent — works for both ServerCharacter and LocalCharacter.
     // Owns no game logic and makes no network calls. Drives the Animator (trigger dispatch +
-    // per-skin clip-speed compensation) and the DOTween position tweens in response to
-    // ICharacter's reactive state — the two concerns that previously lived in CharacterVisuals.
+    // per-skin clip-speed compensation) and the DOTween position tweens
     public class CharacterAnimationDriver : MonoBehaviour
     {
-        private ICharacter    _character;
-        private Animator      _animator;
-        private AnimationClip _rollClip;
-        private AnimationClip _jumpOutClip;
-        private Tween         _laneTween;
-        private Tween         _verticalTween;
+        private ICharacter      _character;
+        private Animator        _animator;
+        private CapsuleCollider _hitboxCollider;
+        private AnimationClip   _rollClip;
+        private AnimationClip   _jumpOutClip;
+        private Tween           _laneTween;
+        private Tween           _verticalTween;
 
         private void Start()
         {
-            _character   = GetComponent<ICharacter>();
-            _animator    = GetComponent<Animator>();
-            _rollClip    = ResolveOverrideClip(AnimatorConstants.k_ClipNameRoll);
-            _jumpOutClip = ResolveOverrideClip(AnimatorConstants.k_ClipNameJumpOut);
+            _character      = GetComponent<ICharacter>();
+            _animator       = GetComponent<Animator>();
+            _hitboxCollider = GetComponentInChildren<CapsuleCollider>();
+            _rollClip       = ResolveOverrideClip(AnimatorConstants.k_ClipNameRoll);
+            _jumpOutClip    = ResolveOverrideClip(AnimatorConstants.k_ClipNameJumpOut);
 
             SetInitialPosition();
             SubscribeToStateChanges();
@@ -134,6 +134,7 @@ namespace SplitRun.Character
         {
             ApplySpeedCompensation(_rollClip, GameConstants.k_SlideDuration);
             _animator.SetTrigger(AnimatorConstants.k_TriggerSlide);
+            ShrinkHitboxForSlide();
         }
 
         private void SnapToGround()
@@ -142,11 +143,39 @@ namespace SplitRun.Character
             // of skin, matching the Jump_Out → Run transition's Has Exit Time = 1 in the Editor.
             ApplySpeedCompensation(_jumpOutClip, GameConstants.k_JumpLandRecoveryDuration);
             _animator.SetTrigger(AnimatorConstants.k_TriggerLand);
+            RestoreHitboxToStanding();
 
             // Safety fallback — snaps Y to 0 if server resets state before the animation completes.
             Vector3 pos = transform.localPosition;
             pos.y = 0f;
             transform.localPosition = pos;
+        }
+
+        // Lets the character pass under OBS_Wall_Horizontal_Top's gap — see
+        // 05_design_principles.md, "Character Hitbox Fairness". Restored on every
+        // transition back to Ground, including from Jumping, so it's never left shrunk.
+        private void ShrinkHitboxForSlide()
+        {
+            if (_hitboxCollider == null) return;
+
+            _hitboxCollider.radius = CharacterConstants.k_SlideColliderRadius;
+            _hitboxCollider.height = CharacterConstants.k_SlideColliderHeight;
+
+            Vector3 center = _hitboxCollider.center;
+            center.y = CharacterConstants.k_SlideColliderCenterY;
+            _hitboxCollider.center = center;
+        }
+
+        private void RestoreHitboxToStanding()
+        {
+            if (_hitboxCollider == null) return;
+
+            _hitboxCollider.radius = CharacterConstants.k_ColliderRadius;
+            _hitboxCollider.height = CharacterConstants.k_ColliderHeight;
+
+            Vector3 center = _hitboxCollider.center;
+            center.y = CharacterConstants.k_ColliderCenterY;
+            _hitboxCollider.center = center;
         }
 
         private void OnHpChanged(int hp)

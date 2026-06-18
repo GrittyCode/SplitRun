@@ -89,6 +89,14 @@ namespace SplitRun.Game
             character.HpReactive
                 .Subscribe(hp => _currentHp.Value = hp)
                 .AddTo(ref _characterDisposables);
+
+            // ReactiveProperty skips re-emission when the value is unchanged, so HP
+            // staying at 0 across multiple writes never calls EndRun twice.
+            character.HpReactive
+                .Where(hp => hp <= 0)
+                .Where(_ => _phase.Value == GamePhase.Running)
+                .Subscribe(_ => EndRun(_currentDistance.Value))
+                .AddTo(ref _characterDisposables);
         }
 
         private void OnCharacterDespawned(ICharacter character)

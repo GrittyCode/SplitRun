@@ -49,6 +49,9 @@ namespace SplitRun.Character
             NetworkVariableWritePermission.Server
         );
 
+        // Server-only — guards against P1 and P2 clients both reporting the same physics trigger.
+        private float _lastCollisionTime = float.NegativeInfinity;
+
         // Services and UI subscribe to these, never to NetworkVariables directly.
         private readonly ReactiveProperty<int>           _laneReactive          = new ReactiveProperty<int>(GameConstants.k_LaneCenter);
         private readonly ReactiveProperty<int>           _hpReactive            = new ReactiveProperty<int>(GameConstants.k_MaxHp);
@@ -97,10 +100,20 @@ namespace SplitRun.Character
         public void RequestJump()                    => JumpServerRpc();
         public void RequestSlide()                   => SlideServerRpc();
 
+        // ICharacter entry point for CollisionReporter — delegates to the existing RPC
+        // rather than exposing a second public surface for the same event.
+        public void ReportCollision() => ReportCollisionServerRpc();
+
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void ReportCollisionServerRpc()
         {
-            // TODO(collision): route to SkillProcessor.ProcessCollision(this), then decrement _hp.Value if skill did not block
+            if (Time.time - _lastCollisionTime < GameConstants.k_CollisionDebounceDuration) return;
+            _lastCollisionTime = Time.time;
+
+            // TODO(skill): route to SkillProcessor.ProcessCollision(this) before decrementing — skip decrement entirely if the skill blocks the hit
+            _hp.Value = Mathf.Max(0, _hp.Value - 1);
+
+            Debug.Log($"[ServerCharacter] Collision reported — HP: {_hp.Value}");
         }
 
         [Rpc(SendTo.ClientsAndHost)]
