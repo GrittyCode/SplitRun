@@ -17,6 +17,10 @@ namespace SplitRun.Constants
         public const float k_SlideDuration      = 0.5f;
         public const float k_JumpHeight         = 2f;
 
+        // Cosmetic only — does not gate input. Jump_Out's playback speed is compensated
+        // so the landing-recovery clip always takes this long regardless of skin.
+        public const float k_JumpLandRecoveryDuration = 0.15f;
+
         // Negative — slide lowers the character below the ground-level origin
         public const float k_SlideYOffset       = -0.5f;
 

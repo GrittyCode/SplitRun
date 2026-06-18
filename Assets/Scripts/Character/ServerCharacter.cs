@@ -10,7 +10,7 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // Network state container only — delegates visuals to CharacterVisuals and physics to CollisionReporter.
+    // Network state container only — delegates visuals to CharacterAnimationDriver and physics to CollisionReporter.
     public class ServerCharacter : NetworkBehaviour, ICharacter
     {
         private readonly NetworkVariable<int> _currentLane = new NetworkVariable<int>(
@@ -106,13 +106,13 @@ namespace SplitRun.Character
         [Rpc(SendTo.ClientsAndHost)]
         public void TriggerSkillEffectClientRpc(SkillType skillType)
         {
-            // TODO(skill): forward to CharacterVisuals.PlaySkillEffect(skillType)
+            // TODO(skill): forward to CharacterAnimationDriver.PlaySkillEffect(skillType)
         }
 
         [Rpc(SendTo.ClientsAndHost)]
         public void TriggerZoneTransitionClientRpc(int zoneIndex)
         {
-            // TODO(chunk): forward to CharacterVisuals.PlayZoneTransition(zoneIndex)
+            // TODO(chunk): forward to CharacterAnimationDriver.PlayZoneTransition(zoneIndex)
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
