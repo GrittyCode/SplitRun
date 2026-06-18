@@ -4,7 +4,6 @@ namespace SplitRun.Character
     {
         None,
         Shield,
-        Revival,
         Dash,
     }
 }
