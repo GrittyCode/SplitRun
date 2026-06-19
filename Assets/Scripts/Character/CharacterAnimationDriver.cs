@@ -2,62 +2,36 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
-using DG.Tweening;
 using R3;
 
 using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // Owns no game logic and makes no network calls. Drives the Animator (trigger dispatch +
-    // per-skin clip-speed compensation) and the DOTween position tweens
+    // Drives the Animator only — trigger dispatch and per-skin clip-speed compensation.
+    // Owns no Transform, physics, or tween state. See CharacterMovementDriver for those.
     public class CharacterAnimationDriver : MonoBehaviour
     {
-        private ICharacter      _character;
-        private Animator        _animator;
-        private CapsuleCollider _hitboxCollider;
-        private AnimationClip   _rollClip;
-        private AnimationClip   _jumpOutClip;
-        private Tween           _laneTween;
-        private Tween           _verticalTween;
+        private ICharacter    _character;
+        private Animator      _animator;
+        private AnimationClip _rollClip;
+        private AnimationClip _jumpOutClip;
 
         private void Start()
         {
-            _character      = GetComponent<ICharacter>();
-            _animator       = GetComponent<Animator>();
-            _hitboxCollider = GetComponentInChildren<CapsuleCollider>();
-            _rollClip       = ResolveOverrideClip(AnimatorConstants.k_ClipNameRoll);
-            _jumpOutClip    = ResolveOverrideClip(AnimatorConstants.k_ClipNameJumpOut);
+            _character   = GetComponent<ICharacter>();
+            _animator    = GetComponent<Animator>();
+            _rollClip    = ResolveOverrideClip(AnimatorConstants.k_ClipNameRoll);
+            _jumpOutClip = ResolveOverrideClip(AnimatorConstants.k_ClipNameJumpOut);
 
-            SetInitialPosition();
             SubscribeToStateChanges();
-        }
-
-        private void OnDestroy()
-        {
-            _laneTween?.Kill();
-            _verticalTween?.Kill();
-        }
-
-        private void SetInitialPosition()
-        {
-            Vector3 pos = transform.localPosition;
-            pos.x = GetLaneX(_character.LaneReactive.CurrentValue);
-            transform.localPosition = pos;
         }
 
         private void SubscribeToStateChanges()
         {
-            // Skip(1) avoids animating the value emitted on subscription.
-            // SetInitialPosition() already places the character correctly at spawn.
-            _character.LaneReactive
-                .Skip(1)
-                .Subscribe(lane => AnimateLaneChange(lane))
-                .AddTo(this);
-
             _character.VerticalStateReactive
                 .Skip(1)
-                .Subscribe(state => AnimateVerticalState(state))
+                .Subscribe(state => OnVerticalStateChanged(state))
                 .AddTo(this);
 
             // ReactiveProperty skips re-emission when the value is unchanged, so HP
@@ -68,6 +42,31 @@ namespace SplitRun.Character
                 .AddTo(this);
 
             // TODO(skill): subscribe to SkillStateReactive for skill idle VFX
+        }
+
+        private void OnVerticalStateChanged(VerticalState state)
+        {
+            switch (state)
+            {
+                case VerticalState.Jumping:
+                    _animator.SetTrigger(AnimatorConstants.k_TriggerJump);
+                    break;
+                case VerticalState.Sliding:
+                    ApplySpeedCompensation(_rollClip, GameConstants.k_SlideDuration);
+                    _animator.SetTrigger(AnimatorConstants.k_TriggerSlide);
+                    break;
+                case VerticalState.Ground:
+                    // Compensated so Jump_Out always finishes in k_JumpLandRecoveryDuration
+                    // regardless of skin, matching Jump_Out → Run Has Exit Time = 1 in the Editor.
+                    ApplySpeedCompensation(_jumpOutClip, GameConstants.k_JumpLandRecoveryDuration);
+                    _animator.SetTrigger(AnimatorConstants.k_TriggerLand);
+                    break;
+            }
+        }
+
+        private void OnHpChanged(int hp)
+        {
+            _animator.SetTrigger(hp <= 0 ? AnimatorConstants.k_TriggerLose : AnimatorConstants.k_TriggerHit);
         }
 
         // Looks up the actual per-skin clip from the AnimatorOverrideController instead of
@@ -94,95 +93,6 @@ namespace SplitRun.Character
             return null;
         }
 
-        private void AnimateLaneChange(int lane)
-        {
-            _laneTween?.Kill();
-            _laneTween = transform
-                .DOLocalMoveX(GetLaneX(lane), GameConstants.k_LaneMoveDuration)
-                .SetEase(Ease.OutQuad);
-        }
-
-        private void AnimateVerticalState(VerticalState state)
-        {
-            _verticalTween?.Kill();
-
-            switch (state)
-            {
-                case VerticalState.Jumping:
-                    AnimateJump();
-                    break;
-                case VerticalState.Sliding:
-                    AnimateSlide();
-                    break;
-                case VerticalState.Ground:
-                    SnapToGround();
-                    break;
-            }
-        }
-
-        private void AnimateJump()
-        {
-            _animator.SetTrigger(AnimatorConstants.k_TriggerJump);
-
-            float halfDuration = GameConstants.k_JumpDuration * 0.5f;
-            _verticalTween = DOTween.Sequence()
-                .Append(transform.DOLocalMoveY(GameConstants.k_JumpHeight, halfDuration).SetEase(Ease.OutQuad))
-                .Append(transform.DOLocalMoveY(0f, halfDuration).SetEase(Ease.InQuad));
-        }
-
-        private void AnimateSlide()
-        {
-            ApplySpeedCompensation(_rollClip, GameConstants.k_SlideDuration);
-            _animator.SetTrigger(AnimatorConstants.k_TriggerSlide);
-            ShrinkHitboxForSlide();
-        }
-
-        private void SnapToGround()
-        {
-            // Compensated so Jump_Out always finishes in k_JumpLandRecoveryDuration regardless
-            // of skin, matching the Jump_Out → Run transition's Has Exit Time = 1 in the Editor.
-            ApplySpeedCompensation(_jumpOutClip, GameConstants.k_JumpLandRecoveryDuration);
-            _animator.SetTrigger(AnimatorConstants.k_TriggerLand);
-            RestoreHitboxToStanding();
-
-            // Safety fallback — snaps Y to 0 if server resets state before the animation completes.
-            Vector3 pos = transform.localPosition;
-            pos.y = 0f;
-            transform.localPosition = pos;
-        }
-
-        // Lets the character pass under OBS_Wall_Horizontal_Top's gap — see
-        // 05_design_principles.md, "Character Hitbox Fairness". Restored on every
-        // transition back to Ground, including from Jumping, so it's never left shrunk.
-        private void ShrinkHitboxForSlide()
-        {
-            if (_hitboxCollider == null) return;
-
-            _hitboxCollider.radius = CharacterConstants.k_SlideColliderRadius;
-            _hitboxCollider.height = CharacterConstants.k_SlideColliderHeight;
-
-            Vector3 center = _hitboxCollider.center;
-            center.y = CharacterConstants.k_SlideColliderCenterY;
-            _hitboxCollider.center = center;
-        }
-
-        private void RestoreHitboxToStanding()
-        {
-            if (_hitboxCollider == null) return;
-
-            _hitboxCollider.radius = CharacterConstants.k_ColliderRadius;
-            _hitboxCollider.height = CharacterConstants.k_ColliderHeight;
-
-            Vector3 center = _hitboxCollider.center;
-            center.y = CharacterConstants.k_ColliderCenterY;
-            _hitboxCollider.center = center;
-        }
-
-        private void OnHpChanged(int hp)
-        {
-            _animator.SetTrigger(hp <= 0 ? AnimatorConstants.k_TriggerLose : AnimatorConstants.k_TriggerHit);
-        }
-
         private void ApplySpeedCompensation(AnimationClip clip, float desiredDuration)
         {
             if (clip == null) return;
@@ -191,12 +101,5 @@ namespace SplitRun.Character
             float speed = clip.length / desiredDuration;
             _animator.SetFloat(AnimatorConstants.k_ParamSpeed, speed);
         }
-
-        private static float GetLaneX(int laneIndex) => laneIndex switch
-        {
-            GameConstants.k_LaneLeft  => GameConstants.k_LaneXLeft,
-            GameConstants.k_LaneRight => GameConstants.k_LaneXRight,
-            _                         => GameConstants.k_LaneXCenter,
-        };
     }
 }

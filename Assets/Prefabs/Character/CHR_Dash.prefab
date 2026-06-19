@@ -494,6 +494,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 961441663495087639}
+  - component: {fileID: 4109049505598271518}
+  - component: {fileID: 4272543854319592312}
   - component: {fileID: 6608916789120171117}
   - component: {fileID: 3507816367538977266}
   - component: {fileID: 5272824054564151456}
@@ -525,6 +527,30 @@ Transform:
   - {fileID: 7831701254386344795}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4109049505598271518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 440344192457309357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d7b2df467d5441a84298e196a4faee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterMovementDriver
+--- !u!114 &4272543854319592312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 440344192457309357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71583cdeaec4442109f3f8ac9d85d297, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterAnimationDriver
 --- !u!95 &6608916789120171117
 Animator:
   serializedVersion: 7

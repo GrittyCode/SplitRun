@@ -16,19 +16,31 @@ namespace SplitRun.Character
         private readonly ReactiveProperty<int>           _hp            = new ReactiveProperty<int>(GameConstants.k_MaxHp);
         private readonly ReactiveProperty<SkillState>    _skillState    = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<VerticalState> _verticalState = new ReactiveProperty<VerticalState>(VerticalState.Ground);
+        private readonly ReactiveProperty<float>         _distance      = new ReactiveProperty<float>(0f);
+        private readonly ReactiveProperty<float>         _speed         = new ReactiveProperty<float>(GameConstants.k_BaseRunSpeed);
 
         // No multi-client duplicate-report risk locally, but kept in lockstep with
         // ServerCharacter so both ICharacter implementations behave identically.
         private float _lastCollisionTime = float.NegativeInfinity;
+        private bool  _isRunning;
 
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _lane;
         public ReadOnlyReactiveProperty<int>           HpReactive            => _hp;
         public ReadOnlyReactiveProperty<SkillState>    SkillStateReactive    => _skillState;
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalState;
+        public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distance;
+        public ReadOnlyReactiveProperty<float>         SpeedReactive         => _speed;
+        public Transform                               CharacterTransform   => transform;
 
         private void Start()
         {
             CharacterEvents.NotifySpawned(this);
+        }
+
+        private void Update()
+        {
+            if (!_isRunning) return;
+            _distance.Value += _speed.CurrentValue * Time.deltaTime;
         }
 
         private void OnDestroy()
@@ -38,6 +50,8 @@ namespace SplitRun.Character
             _hp.Dispose();
             _skillState.Dispose();
             _verticalState.Dispose();
+            _distance.Dispose();
+            _speed.Dispose();
         }
 
         public void RequestLaneChange(int direction)
@@ -60,6 +74,8 @@ namespace SplitRun.Character
             if (_verticalState.Value != VerticalState.Ground) return;
             SetVerticalStateAsync(VerticalState.Sliding, GameConstants.k_SlideDuration);
         }
+
+        public void SetRunning(bool isRunning) => _isRunning = isRunning;
 
         public void ReportCollision()
         {

@@ -2432,6 +2432,7 @@ GameObject:
   - component: {fileID: 608626413114641032}
   - component: {fileID: 2357677448150742872}
   - component: {fileID: 5122055614628499934}
+  - component: {fileID: 7094754875544141589}
   - component: {fileID: 4781267745506117510}
   - component: {fileID: 5178678487333872453}
   m_Layer: 6
@@ -2496,7 +2497,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 229378787
+  GlobalObjectIdHash: 3101046651
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2521,6 +2522,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71583cdeaec4442109f3f8ac9d85d297, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterVisuals
+--- !u!114 &7094754875544141589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6186180105037138504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d7b2df467d5441a84298e196a4faee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterMovementDriver
 --- !u!114 &4781267745506117510
 MonoBehaviour:
   m_ObjectHideFlags: 0

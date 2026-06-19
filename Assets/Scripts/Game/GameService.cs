@@ -63,6 +63,7 @@ namespace SplitRun.Game
         public void StartRun()
         {
             _phase.Value = GamePhase.Running;
+            _character?.SetRunning(true);
             Debug.Log("[GameService] Run started");
         }
 
@@ -71,6 +72,7 @@ namespace SplitRun.Game
         {
             _currentDistance.Value = finalDistance;
             _phase.Value           = GamePhase.GameOver;
+            _character?.SetRunning(false);
 
             // TODO(data): inject PlayerDataService and call UpdateBestDistance((int)finalDistance)
             Debug.Log($"[GameService] Run ended — distance: {finalDistance:F0}m");
@@ -85,9 +87,22 @@ namespace SplitRun.Game
         {
             _character = character;
 
-            // Mirror character HP into GameService so UI and services read from one place.
+            // Handles the race where StartRun() already ran before the character spawned —
+            // applying current Phase here is a no-op for the common Lobby case.
+            character.SetRunning(_phase.Value == GamePhase.Running);
+
+            // Mirror character HP/Distance/Speed into GameService so UI and services
+            // read from one place, same pattern for all three.
             character.HpReactive
                 .Subscribe(hp => _currentHp.Value = hp)
+                .AddTo(ref _characterDisposables);
+
+            character.DistanceReactive
+                .Subscribe(distance => _currentDistance.Value = distance)
+                .AddTo(ref _characterDisposables);
+
+            character.SpeedReactive
+                .Subscribe(speed => _speed.Value = speed)
                 .AddTo(ref _characterDisposables);
 
             // ReactiveProperty skips re-emission when the value is unchanged, so HP
