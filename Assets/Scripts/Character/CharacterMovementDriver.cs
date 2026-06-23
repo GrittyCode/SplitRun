@@ -34,7 +34,7 @@ namespace SplitRun.Character
         private void SetInitialPosition()
         {
             Vector3 pos = transform.localPosition;
-            pos.x = GetLaneX(_character.LaneReactive.CurrentValue);
+            pos.x = GameConstants.GetLaneX(_character.LaneReactive.CurrentValue);
             pos.z = _character.DistanceReactive.CurrentValue;
             transform.localPosition = pos;
         }
@@ -66,7 +66,7 @@ namespace SplitRun.Character
         {
             _laneTween?.Kill();
             _laneTween = transform
-                .DOLocalMoveX(GetLaneX(lane), GameConstants.k_LaneMoveDuration)
+                .DOLocalMoveX(GameConstants.GetLaneX(lane), GameConstants.k_LaneMoveDuration)
                 .SetEase(Ease.OutQuad);
         }
 
@@ -138,12 +138,5 @@ namespace SplitRun.Character
             pos.z = distance;
             transform.localPosition = pos;
         }
-
-        private static float GetLaneX(int laneIndex) => laneIndex switch
-        {
-            GameConstants.k_LaneLeft  => GameConstants.k_LaneXLeft,
-            GameConstants.k_LaneRight => GameConstants.k_LaneXRight,
-            _                         => GameConstants.k_LaneXCenter,
-        };
     }
 }

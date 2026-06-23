@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using R3;
 
 using SplitRun.Constants;
@@ -22,6 +23,7 @@ namespace SplitRun.Character
         // No multi-client duplicate-report risk locally, but kept in lockstep with
         // ServerCharacter so both ICharacter implementations behave identically.
         private float _lastCollisionTime = float.NegativeInfinity;
+        private Tween _hitStunTween;
         private bool  _isRunning;
 
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _lane;
@@ -46,6 +48,9 @@ namespace SplitRun.Character
         private void OnDestroy()
         {
             CharacterEvents.NotifyDespawned(this);
+
+            _hitStunTween?.Kill();
+
             _lane.Dispose();
             _hp.Dispose();
             _skillState.Dispose();
@@ -85,6 +90,8 @@ namespace SplitRun.Character
             // TODO(skill): route to SkillProcessor.ProcessCollision(this) before decrementing — skip decrement entirely if the skill blocks the hit
             _hp.Value = Mathf.Max(0, _hp.Value - 1);
 
+            if (_hp.Value > 0) ApplyHitStun();
+
             Debug.Log($"[LocalCharacter] Collision reported — HP: {_hp.Value}");
         }
 
@@ -102,6 +109,17 @@ namespace SplitRun.Character
             }
 
             _verticalState.Value = VerticalState.Ground;
+        }
+
+        // TODO(chunk): recover to the zone-scaled speed once ZoneConstants multiplier is wired — currently always k_BaseRunSpeed
+        private void ApplyHitStun()
+        {
+            _hitStunTween?.Kill();
+            _speed.Value = 0f;
+
+            _hitStunTween = DOTween
+                .To(() => _speed.Value, v => _speed.Value = v, GameConstants.k_BaseRunSpeed, GameConstants.k_HitStunDuration)
+                .SetEase(Ease.OutQuad);
         }
     }
 }

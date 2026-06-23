@@ -246,6 +246,57 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &369355957
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 369355959}
+  - component: {fileID: 369355958}
+  m_Layer: 0
+  m_Name: '[ObstacleSpawner]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &369355958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 369355957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7fee8c1d7cb420b98ee8ad3448257e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Game.ObstacleSpawner
+  _obstaclePrefabs:
+  - {fileID: 5603094826596627435, guid: b95eb78842a684b37b3bf193957ec138, type: 3}
+  - {fileID: 4745425313228328179, guid: 2c6af118feeda442995b09c7524c6b19, type: 3}
+  - {fileID: 4745425313228328179, guid: 62f0fe5e801ab4c019786e78fd8bbf79, type: 3}
+  - {fileID: 6894070676269305151, guid: f5cb309e9875443e4858a149ae9f4b90, type: 3}
+  - {fileID: 4745425313228328179, guid: 197c2e3fdbdd54b03b424013903ade89, type: 3}
+  - {fileID: 5603094826596627435, guid: bb30c56d690ca49398a0cba5e0895675, type: 3}
+--- !u!4 &369355959
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 369355957}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &719122289
 GameObject:
   m_ObjectHideFlags: 0
@@ -353,7 +404,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.5, y: 2, z: 0}
-  m_LocalScale: {x: 1, y: 4, z: 1000}
+  m_LocalScale: {x: 1, y: 10, z: 1000}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -406,6 +457,7 @@ MonoBehaviour:
     TypeName: SplitRun.Boot.RootLifetimeScope
   autoRun: 1
   autoInjectGameObjects: []
+  _obstacleSpawner: {fileID: 369355958}
 --- !u!1 &1359656977
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,7 +565,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.5, y: 2, z: 0}
-  m_LocalScale: {x: 1, y: 4, z: 1000}
+  m_LocalScale: {x: 1, y: 10, z: 1000}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -692,7 +744,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 80
+  field of view: 90
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -787,7 +839,8 @@ SceneRoots:
   m_Roots:
   - {fileID: 2079835156}
   - {fileID: 73383402}
-  - {fileID: 1190504452}
   - {fileID: 1544940522}
   - {fileID: 1359656981}
   - {fileID: 719122293}
+  - {fileID: 1190504452}
+  - {fileID: 369355959}

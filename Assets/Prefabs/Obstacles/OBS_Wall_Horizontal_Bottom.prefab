@@ -48,6 +48,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Obstacle.Obstacle
   _obstacleType: 2
+  _placement: 1
+  _anchor: 0
 --- !u!33 &6899715466115962838
 MeshFilter:
   m_ObjectHideFlags: 0

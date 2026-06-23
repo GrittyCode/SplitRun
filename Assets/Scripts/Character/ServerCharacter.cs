@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using R3;
 using Unity.Netcode;
 
@@ -58,6 +59,9 @@ namespace SplitRun.Character
         // Server-only — guards against P1 and P2 clients both reporting the same physics trigger.
         private float _lastCollisionTime = float.NegativeInfinity;
 
+        // Server-only — tweens _speed.Value from 0 back to k_BaseRunSpeed after a hit.
+        private Tween _hitStunTween;
+
         // Server-only — gates Update()'s distance accumulation. Mirrored as a plain field
         // rather than a NetworkVariable since only the server's own Update() ever reads it.
         private bool _isRunning;
@@ -104,6 +108,8 @@ namespace SplitRun.Character
         {
             CharacterEvents.NotifyDespawned(this);
 
+            _hitStunTween?.Kill();
+
             _hp.OnValueChanged            -= OnHpChanged;
             _currentLane.OnValueChanged   -= OnLaneChanged;
             _skillState.OnValueChanged    -= OnSkillStateChanged;
@@ -147,6 +153,8 @@ namespace SplitRun.Character
 
             // TODO(skill): route to SkillProcessor.ProcessCollision(this) before decrementing — skip decrement entirely if the skill blocks the hit
             _hp.Value = Mathf.Max(0, _hp.Value - 1);
+
+            if (_hp.Value > 0) ApplyHitStun();
 
             Debug.Log($"[ServerCharacter] Collision reported — HP: {_hp.Value}");
         }
@@ -202,6 +210,17 @@ namespace SplitRun.Character
             }
 
             _verticalState.Value = VerticalState.Ground;
+        }
+
+        // TODO(chunk): recover to the zone-scaled speed once ZoneConstants multiplier is wired — currently always k_BaseRunSpeed
+        private void ApplyHitStun()
+        {
+            _hitStunTween?.Kill();
+            _speed.Value = 0f;
+
+            _hitStunTween = DOTween
+                .To(() => _speed.Value, v => _speed.Value = v, GameConstants.k_BaseRunSpeed, GameConstants.k_HitStunDuration)
+                .SetEase(Ease.OutQuad);
         }
 
         private void OnHpChanged(int prev, int next)                                => _hpReactive.Value = next;

@@ -47,7 +47,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c48b09a5bd088486aac43ae60f680514, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Obstacle.Obstacle
-  _obstacleType: 0
+  _placement: 1
+  _anchor: 1
 --- !u!65 &8569493526699310385
 BoxCollider:
   m_ObjectHideFlags: 0

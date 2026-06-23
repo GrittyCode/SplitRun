@@ -1,3 +1,5 @@
+using UnityEngine;
+
 using VContainer;
 using VContainer.Unity;
 
@@ -7,16 +9,22 @@ namespace SplitRun.Game
 {
     public class GameLifetimeScope : LifetimeScope
     {
+        [SerializeField] private ObstacleSpawner _obstacleSpawner;
+
         protected override void Configure(IContainerBuilder builder)
         {
-            // AsSelf() makes GameService resolvable by concrete type for injection into GameInput.
+            // AsSelf() makes GameService resolvable by concrete type for GameInput injection.
             builder.RegisterEntryPoint<GameService>().AsSelf();
 
             builder.RegisterEntryPoint<SwipeDetector>().AsSelf();
             builder.RegisterEntryPoint<GameInput>();
 
+            // ObstacleSpawner is a MonoBehaviour placed in the scene — inject GameService into it.
+            // Null-guard allows the scene to run without ObstacleSpawner during isolated tests.
+            if (_obstacleSpawner != null)
+                builder.RegisterComponent(_obstacleSpawner);
+
             // TODO(netcode): builder.Register<NetworkService>(Lifetime.Singleton)
-            // TODO(chunk): register ChunkSpawner via RegisterComponent after adding [SerializeField] field
 
             builder.RegisterEntryPoint<GameEntryPoint>();
         }
