@@ -8,9 +8,17 @@ namespace SplitRun.Game
     // Attached directly to the scene's Main Camera. Not VContainer-registered — subscribes to
     // CharacterEvents directly since the target (a dynamically Netcode-spawned or locally-spawned
     // ICharacter) doesn't exist at scene load time for a [SerializeField] reference.
+    [RequireComponent(typeof(Camera))]
     public class CameraFollow : MonoBehaviour
     {
+        private Camera _camera;
         private Transform _target;
+
+        private void Awake()
+        {
+            _camera = GetComponent<Camera>();
+            _camera.fieldOfView = CameraConstants.k_CameraFov;
+        }
 
         private void OnEnable()
         {
@@ -38,7 +46,6 @@ namespace SplitRun.Game
 
             // Direct pitch instead of LookAt — angle is independent of camera position,
             // so tuning Y/Z offsets never accidentally changes the viewing angle.
-            // Lower pitch = more horizontal = stronger vanishing point convergence.
             transform.rotation = Quaternion.Euler(CameraConstants.k_CameraPitchAngle, 0f, 0f);
         }
 
