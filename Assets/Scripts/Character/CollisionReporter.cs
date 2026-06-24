@@ -1,4 +1,5 @@
 using UnityEngine;
+
 using SplitRun.Obstacle;
 
 namespace SplitRun.Character
@@ -13,13 +14,10 @@ namespace SplitRun.Character
             _character = GetComponentInParent<ICharacter>();
         }
 
+        // Every obstacle keeps its single BoxCollider on the root alongside TrackObstacle
         private void OnTriggerEnter(Collider other)
         {
-            // GetComponentInParent: composite coop colliders live on child cubes, so the
-            // TrackObstacle sits one level up. For single obstacles (collider on the root)
-            // this returns the obstacle itself — one path covers both.
-            TrackObstacle obstacle = other.GetComponentInParent<TrackObstacle>();
-            if (obstacle == null) return;
+            if (!other.TryGetComponent(out TrackObstacle obstacle)) return;
 
             obstacle.Impacted();
             _character.ReportCollision();

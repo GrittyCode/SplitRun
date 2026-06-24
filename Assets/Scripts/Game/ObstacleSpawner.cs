@@ -10,9 +10,6 @@ using SplitRun.Obstacle;
 
 namespace SplitRun.Game
 {
-    // MonoBehaviour placed in the Game scene and registered via GameLifetimeScope.RegisterComponent.
-    // Holds one ObstaclePool per prefab variant, spawns independent obstacles at a fixed Z
-    // interval ahead of the character, and returns them to their pool once they fall behind.
     public class ObstacleSpawner : MonoBehaviour
     {
         [SerializeField] private TrackObstacle[] _obstaclePrefabs;
@@ -37,9 +34,8 @@ namespace SplitRun.Game
                 pool.Dispose();
         }
 
-        // Each prefab carries its own placement and anchor on its TrackObstacle, so a
-        // prefab can never be wired with a mismatched footprint by hand and the spawner
-        // needs no parallel config.
+        // Each prefab carries its own footprint on its TrackObstacle, so a prefab can never be
+        // wired with a mismatched hitbox by hand and the spawner needs no parallel config.
         private void InitializePools()
         {
             foreach (TrackObstacle prefab in _obstaclePrefabs)
@@ -107,7 +103,6 @@ namespace SplitRun.Game
         }
 
         // TODO(netcode): server must select prefab/lane and broadcast via ClientRpc — this
-        // local Random path desyncs across clients and moves server-side in Phase 4.
         private void SpawnNext(float spawnZ)
         {
             if (_pools.Count == 0) return;
@@ -120,32 +115,19 @@ namespace SplitRun.Game
             _active.Enqueue(new ActiveObstacle(instance, _pools[poolIndex], spawnZ));
         }
 
+        // Y stays 0 — the footprint's collider center bakes the ground/ceiling anchor, so the
+        // spawner only chooses the lane (single-lane footprints) or the center (full-width).
         private void PlaceObstacle(TrackObstacle instance, float spawnZ)
         {
-            Vector3 position = instance.transform.position;
+            float x = IsFullWidth(instance.Footprint)
+                ? GameConstants.k_LaneXCenter
+                : GameConstants.GetLaneX(Random.Range(GameConstants.k_LaneLeft, GameConstants.k_LaneCount));
 
-            position.x = instance.Placement == ObstaclePlacement.RandomLane
-                ? GameConstants.GetLaneX(Random.Range(GameConstants.k_LaneLeft, GameConstants.k_LaneCount))
-                : GameConstants.k_LaneXCenter;
-
-            position.z = spawnZ;
-
-            // Manual-anchored prefabs (composite coop) keep their authored Y; all others
-            // derive Y from Scale so prefabs can author Pos Y = 0.
-            if (instance.Anchor != ObstacleAnchor.Manual)
-                position.y = GetAnchoredY(instance);
-
-            instance.transform.position = position;
+            instance.transform.position = new Vector3(x, 0f, spawnZ);
         }
 
-        private static float GetAnchoredY(TrackObstacle instance)
-        {
-            float halfHeight = instance.transform.localScale.y * 0.5f;
-
-            return instance.Anchor == ObstacleAnchor.Ceiling
-                ? GameConstants.k_SlideClearanceHeight + halfHeight
-                : halfHeight;
-        }
+        private static bool IsFullWidth(ObstacleFootprint footprint) =>
+            footprint == ObstacleFootprint.WideJump || footprint == ObstacleFootprint.WideSlide;
 
         private readonly struct ActiveObstacle
         {

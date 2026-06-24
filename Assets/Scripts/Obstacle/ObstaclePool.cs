@@ -4,9 +4,8 @@ using UnityEngine;
 
 namespace SplitRun.Obstacle
 {
-    // Object pool for a single obstacle prefab variant. ObstacleSpawner creates one pool
-    // per non-null prefab. Each obstacle (single or composite coop) carries exactly one
-    // root TrackObstacle, so Rent() restores it directly with no child lookup.
+    // Object pool for a single obstacle prefab variant. ObstacleSpawner creates one pool per
+    // non-null prefab. Every obstacle carries exactly one root TrackObstacle
     public class ObstaclePool
     {
         private readonly TrackObstacle _prefab;
@@ -21,8 +20,8 @@ namespace SplitRun.Obstacle
             Prewarm(initialSize);
         }
 
-        // Returns an idle instance (or creates one when the idle queue is empty) and
-        // restores it. ResetState() re-activates the GameObject.
+        // Returns an idle instance (or creates one when the idle queue is empty) and restores
+        // it. ResetState() re-activates the GameObject.
         public TrackObstacle Rent()
         {
             TrackObstacle instance = _idle.Count > 0 ? _idle.Dequeue() : CreateInstance();
@@ -38,8 +37,8 @@ namespace SplitRun.Obstacle
             _idle.Enqueue(instance);
         }
 
-        // Destroys all idle instances. Active instances are children of the spawner's
-        // transform and are destroyed when the spawner GameObject is destroyed.
+        // Destroys all idle instances. Active instances are children of the spawner's transform
+        // and are destroyed when the spawner GameObject is destroyed.
         public void Dispose()
         {
             while (_idle.Count > 0)
