@@ -3,6 +3,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
+using SplitRun.Environment;
 using SplitRun.Utility;
 
 namespace SplitRun.Game
@@ -10,6 +11,7 @@ namespace SplitRun.Game
     public class GameLifetimeScope : LifetimeScope
     {
         [SerializeField] private ObstacleSpawner _obstacleSpawner;
+        [SerializeField] private TrackScroller   _trackScroller;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -19,10 +21,13 @@ namespace SplitRun.Game
             builder.RegisterEntryPoint<SwipeDetector>().AsSelf();
             builder.RegisterEntryPoint<GameInput>();
 
-            // ObstacleSpawner is a MonoBehaviour placed in the scene — inject GameService into it.
-            // Null-guard allows the scene to run without ObstacleSpawner during isolated tests.
-            if (_obstacleSpawner != null)
+            // MonoBehaviours placed in the scene — registered so GameService is injected into
+            // them. Null-guarded so the scene still runs in isolated tests with either absent.
+            if (_obstacleSpawner)
                 builder.RegisterComponent(_obstacleSpawner);
+
+            if (_trackScroller)
+                builder.RegisterComponent(_trackScroller);
 
             // TODO(netcode): builder.Register<NetworkService>(Lifetime.Singleton)
 

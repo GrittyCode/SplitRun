@@ -1,0 +1,161 @@
+using System.Collections.Generic;
+
+using UnityEngine;
+
+using R3;
+using VContainer;
+
+using SplitRun.Constants;
+using SplitRun.Game;
+
+namespace SplitRun.Environment
+{
+    // Cosmetic endless ground: tiles one segment prefab edge-to-edge ahead of the character
+    // and recycles it behind. Carries no gameplay rules and is independent of obstacle spawning.
+    public class TrackScroller : MonoBehaviour
+    {
+        [SerializeField] private Transform _segmentPrefab;
+
+        [Inject] private GameService _gameService;
+
+        private readonly Queue<ActiveSegment> _active = new Queue<ActiveSegment>();
+        private readonly Queue<Transform>     _idle   = new Queue<Transform>();
+
+        private float _segmentLengthZ;
+        private float _segmentMinZ;
+
+        private float _nextSegmentZ;
+        private bool  _isRunning;
+
+        private void Start()
+        {
+            if (!_segmentPrefab)
+            {
+                Debug.LogWarning("[TrackScroller] No segment prefab assigned — track disabled.");
+                return;
+            }
+
+            if (!TryMeasureSegment()) return;
+
+            BindToGameService();
+        }
+
+        private bool TryMeasureSegment()
+        {
+            Transform probe = Instantiate(_segmentPrefab, transform);
+            probe.position  = Vector3.zero;
+
+            bool measured = TryGetWorldBoundsZ(probe, out float lengthZ, out float minZ);
+            Destroy(probe.gameObject);
+
+            if (!measured || lengthZ <= 0f)
+            {
+                Debug.LogError("[TrackScroller] Segment prefab has no renderers to measure — track disabled.");
+                return false;
+            }
+
+            _segmentLengthZ = lengthZ;
+            _segmentMinZ    = minZ;
+            return true;
+        }
+
+        private static bool TryGetWorldBoundsZ(Transform root, out float lengthZ, out float minZ)
+        {
+            lengthZ = 0f;
+            minZ    = 0f;
+
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) return false;
+
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+                bounds.Encapsulate(renderers[i].bounds);
+
+            lengthZ = bounds.size.z;
+            minZ    = bounds.min.z;
+            return true;
+        }
+
+        private void BindToGameService()
+        {
+            _gameService.Phase
+                .Subscribe(OnPhaseChanged)
+                .AddTo(this);
+
+            _gameService.CurrentDistance
+                .Where(_ => _isRunning)
+                .Subscribe(OnDistanceChanged)
+                .AddTo(this);
+        }
+
+        private void OnPhaseChanged(GamePhase phase)
+        {
+            if (phase != GamePhase.Running) return;
+
+            _isRunning    = true;
+            _nextSegmentZ = SnapToBoundary(-TrackConstants.k_TrackRecycleBehindDistance);
+
+            FillAhead(0f);
+        }
+
+        private void OnDistanceChanged(float characterZ)
+        {
+            // Recycle first so freed segments are reused by FillAhead in the same frame.
+            RecycleBehind(characterZ);
+            FillAhead(characterZ);
+        }
+
+        private void FillAhead(float characterZ)
+        {
+            float frontier = characterZ + TrackConstants.k_TrackFillAheadDistance;
+
+            while (_nextSegmentZ < frontier)
+            {
+                PlaceSegment(_nextSegmentZ);
+                _nextSegmentZ += _segmentLengthZ;
+            }
+        }
+
+        private void RecycleBehind(float characterZ)
+        {
+            float threshold = characterZ - TrackConstants.k_TrackRecycleBehindDistance;
+
+            // Far edge, not near edge — a still-visible segment is never pulled from under the camera.
+            while (_active.Count > 0 && _active.Peek().NearZ + _segmentLengthZ < threshold)
+            {
+                ActiveSegment segment = _active.Dequeue();
+                segment.Instance.gameObject.SetActive(false);
+                _idle.Enqueue(segment.Instance);
+            }
+        }
+
+        private void PlaceSegment(float nearZ)
+        {
+            // Offset by the measured min so the mesh near edge lands on nearZ regardless of pivot.
+            Transform segment = RentSegment();
+            segment.position  = new Vector3(0f, 0f, nearZ - _segmentMinZ);
+            _active.Enqueue(new ActiveSegment(segment, nearZ));
+        }
+
+        private Transform RentSegment()
+        {
+            Transform segment = _idle.Count > 0 ? _idle.Dequeue() : Instantiate(_segmentPrefab, transform);
+            segment.gameObject.SetActive(true);
+            return segment;
+        }
+
+        private float SnapToBoundary(float z) => Mathf.Floor(z / _segmentLengthZ) * _segmentLengthZ;
+
+        private readonly struct ActiveSegment
+        {
+            public Transform Instance { get; }
+            public float     NearZ    { get; }
+
+            public ActiveSegment(Transform instance, float nearZ)
+            {
+                Instance = instance;
+                NearZ    = nearZ;
+            }
+        }
+    }
+}
