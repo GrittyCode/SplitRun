@@ -9,16 +9,19 @@ using SplitRun.Obstacle;
 
 namespace SplitRun.EditorTools
 {
-    // Scaffolds a new obstacle or environment segment directly as a named prefab asset, so authoring
-    // always starts from the correct skeleton (identity root, required components, expected children).
+    // Scaffolds a new obstacle, environment segment, or backdrop directly as a named prefab asset,
+    // so authoring always starts from the correct skeleton (identity root, required components,
+    // expected children).
     public static class SplitRunCreateMenu
     {
         private const string k_ObstacleFolder      = "Assets/Prefabs/Obstacles";
         private const string k_SegmentFolder       = "Assets/Prefabs/Environment";
         private const string k_ObstacleDefaultName = "OBS_New";
         private const string k_SegmentDefaultName  = "ENV_TrackSegment";
+        private const string k_BackdropDefaultName = "ENV_Backdrop";
         private const string k_ModelChildName      = "Model";
         private const string k_FloorChildName      = "Floor";
+        private const string k_SilhouetteChildName = "Silhouette";
         private const string k_FloorPlaneName      = "FloorPlane";
         private const string k_FloorFieldName      = "_floor";
 
@@ -63,6 +66,26 @@ namespace SplitRun.EditorTools
                 foreach (string groupName in k_SegmentGroups)
                     CreateChild(groupName, root.transform);
 
+                SaveAsPrefab(root, path);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [MenuItem("SplitRun/Create Backdrop", priority = 2)]
+        private static void CreateBackdrop()
+        {
+            string path = EditorUtility.SaveFilePanelInProject(
+                "Create Backdrop", k_BackdropDefaultName, "prefab", "Name the backdrop prefab.", k_SegmentFolder);
+            if (string.IsNullOrEmpty(path)) return;
+
+            GameObject root = new GameObject(Path.GetFileNameWithoutExtension(path));
+            try
+            {
+                root.AddComponent<BackdropFollower>();
+                CreateChild(k_SilhouetteChildName, root.transform);
                 SaveAsPrefab(root, path);
             }
             finally

@@ -135,10 +135,6 @@ namespace SplitRun.Character
         public void RequestJump()                    => JumpServerRpc();
         public void RequestSlide()                   => SlideServerRpc();
 
-        // Direct call, not an RPC — every peer's local GameService calls this on its own
-        // local ICharacter reference. Update()'s IsServer guard above is what actually
-        // keeps this server-authoritative; a non-host peer setting _isRunning locally
-        // never produces a NetworkVariable write.
         public void SetRunning(bool isRunning) => _isRunning = isRunning;
 
         // ICharacter entry point for CollisionReporter — delegates to the existing RPC

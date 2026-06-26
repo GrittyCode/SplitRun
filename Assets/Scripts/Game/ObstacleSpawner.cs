@@ -102,7 +102,8 @@ namespace SplitRun.Game
             }
         }
 
-        // TODO(netcode): server must select prefab/lane and broadcast via ClientRpc — this
+        // TODO(netcode): server must select prefab/lane and broadcast via ClientRpc — local
+        // Random desyncs clients.
         private void SpawnNext(float spawnZ)
         {
             if (_pools.Count == 0) return;

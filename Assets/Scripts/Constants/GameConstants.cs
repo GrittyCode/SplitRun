@@ -48,8 +48,8 @@ namespace SplitRun.Constants
         public const float k_ObstacleDespawnBehindDistance  = 20f;
         public const int   k_ObstaclePoolSizePerPrefab      = 4;
 
-        // Ceiling-anchored obstacles place their base this far above the floor — the gap a
-        // sliding character passes through. Sits above k_SlideColliderHeight for margin.
+        // Slide-bar base height — the head-height gap a sliding character passes through.
+        // Above k_SlideColliderHeight (0.65) so a standing character is still blocked.
         public const float k_SlideClearanceHeight           = 0.75f;
 
         // Shared by CharacterMovementDriver (character lane tween) and ObstacleSpawner

@@ -58,10 +58,8 @@ namespace SplitRun.Obstacle
             gameObject.SetActive(true);
         }
 
-        // A non-identity root Transform breaks the "footprint = fixed hitbox" guarantee: scale and
-        // rotation multiply into the stamped collider, and a moved root offsets the floor/gizmo
-        // reference. Surfaced as a warning by OnValidate and the custom inspector — not enforced,
-        // so an in-progress edit is never silently overwritten.
+        // Warn-only, never auto-corrected: a non-identity root would multiply into the stamped
+        // collider, but silently resetting it mid-edit would clobber the author's in-progress work.
         public bool IsRootTransformValid()
         {
             const float k_Tolerance = 0.0001f;

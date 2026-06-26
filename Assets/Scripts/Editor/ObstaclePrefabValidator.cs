@@ -9,10 +9,9 @@ using SplitRun.Obstacle;
 
 namespace SplitRun.EditorTools
 {
-    // Guards the "footprint = fixed hitbox" invariant: an obstacle prefab whose root Transform
-    // is not identity would multiply that Scale/Rotation into its stamped BoxCollider. Both the
-    // build and Play-mode entry are blocked when any such prefab exists. Offenders surface two
-    // ways: a clickable console error per prefab, and a modeless window with per-row Ping.
+    // Guards the "footprint = fixed hitbox" invariant: a non-identity root multiplies its
+    // Scale/Rotation into the stamped collider, so build and Play entry are blocked while any
+    // such prefab exists.
     [InitializeOnLoad]
     public class ObstaclePrefabValidator : IPreprocessBuildWithReport
     {
