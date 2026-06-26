@@ -24,13 +24,7 @@ namespace SplitRun.EditorTools
 
         private void OnGUI()
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.HelpBox(
-                "These obstacle prefabs have a non-identity root Transform, which multiplies " +
-                "into the stamped collider. Reset each root to Scale (1,1,1) / Rotation (0,0,0) " +
-                "and move all visual scale/rotation to the child Model. Delete duplicate prefabs " +
-                "instead of keeping redundant copies.",
-                MessageType.Error);
+            PruneDestroyed();
 
             EditorGUILayout.Space();
 
@@ -45,15 +39,26 @@ namespace SplitRun.EditorTools
                 return;
             }
 
+            EditorGUILayout.HelpBox(
+                "These obstacle prefabs have a non-identity root Transform, which multiplies into the " +
+                "stamped collider. Reset each root to Scale (1,1,1) / Rotation (0,0,0) and move all " +
+                "visual scale/rotation to the child Model.",
+                MessageType.Error);
+
+            EditorGUILayout.Space();
+
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
+            foreach (GameObject prefab in _invalid)
+                DrawRow(prefab);
+            EditorGUILayout.EndScrollView();
+        }
+
+        private void PruneDestroyed()
+        {
             for (int i = _invalid.Count - 1; i >= 0; i--)
             {
-                GameObject prefab = _invalid[i];
-                if (prefab == null) { _invalid.RemoveAt(i); continue; }
-
-                DrawRow(prefab);
+                if (!_invalid[i]) _invalid.RemoveAt(i);
             }
-            EditorGUILayout.EndScrollView();
         }
 
         private void DrawRow(GameObject prefab)

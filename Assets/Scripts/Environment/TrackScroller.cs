@@ -45,18 +45,32 @@ namespace SplitRun.Environment
             Transform probe = Instantiate(_segmentPrefab, transform);
             probe.position  = Vector3.zero;
 
-            bool measured = TryGetWorldBoundsZ(probe, out float lengthZ, out float minZ);
+            // Prefer the TrackSegment Floor child so overhanging decoration never lengthens the
+            // recycle step; fall back to combined renderer bounds for a prefab without the component.
+            bool measured = TryMeasureFloor(probe, out float lengthZ, out float minZ)
+                         || TryGetWorldBoundsZ(probe, out lengthZ, out minZ);
+
             Destroy(probe.gameObject);
 
             if (!measured || lengthZ <= 0f)
             {
-                Debug.LogError("[TrackScroller] Segment prefab has no renderers to measure — track disabled.");
+                Debug.LogError("[TrackScroller] Segment prefab has no measurable floor or renderers — track disabled.");
                 return false;
             }
 
             _segmentLengthZ = lengthZ;
             _segmentMinZ    = minZ;
             return true;
+        }
+
+        private static bool TryMeasureFloor(Transform probe, out float lengthZ, out float minZ)
+        {
+            lengthZ = 0f;
+            minZ    = 0f;
+
+            if (!probe.TryGetComponent(out TrackSegment segment)) return false;
+
+            return segment.TryGetFloorMetrics(out lengthZ, out minZ);
         }
 
         private static bool TryGetWorldBoundsZ(Transform root, out float lengthZ, out float minZ)

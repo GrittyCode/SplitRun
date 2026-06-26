@@ -23,6 +23,9 @@ namespace SplitRun.EditorTools
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
+        [MenuItem("SplitRun/Validate Obstacle Prefabs", priority = 20)]
+        private static void Validate() => ObstacleValidationWindow.ShowFor(CollectInvalidObstaclePrefabs());
+
         public void OnPreprocessBuild(BuildReport report)
         {
             List<GameObject> invalid = CollectInvalidObstaclePrefabs();
