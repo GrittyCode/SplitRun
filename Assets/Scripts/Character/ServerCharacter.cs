@@ -11,7 +11,6 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // Network state container only — delegates visuals to CharacterAnimationDriver and physics to CollisionReporter.
     public class ServerCharacter : NetworkBehaviour, ICharacter
     {
         private readonly NetworkVariable<int> _currentLane = new NetworkVariable<int>(
@@ -56,23 +55,13 @@ namespace SplitRun.Character
             NetworkVariableWritePermission.Server
         );
 
-        // Server-only — guards against P1 and P2 clients both reporting the same physics trigger.
-        private float _lastCollisionTime = float.NegativeInfinity;
-
-        // Server-only — tweens _speed.Value from 0 back to k_BaseRunSpeed after a hit.
-        private Tween _hitStunTween;
-
-        // Server-only — gates Update()'s distance accumulation. Mirrored as a plain field
-        // rather than a NetworkVariable since only the server's own Update() ever reads it.
-        private bool _isRunning;
-
-        // Services and UI subscribe to these, never to NetworkVariables directly.
         private readonly ReactiveProperty<int>           _laneReactive          = new ReactiveProperty<int>(GameConstants.k_LaneCenter);
         private readonly ReactiveProperty<int>           _hpReactive            = new ReactiveProperty<int>(GameConstants.k_MaxHp);
         private readonly ReactiveProperty<SkillState>    _skillStateReactive    = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<VerticalState> _verticalStateReactive = new ReactiveProperty<VerticalState>(VerticalState.Ground);
         private readonly ReactiveProperty<float>         _distanceReactive      = new ReactiveProperty<float>(0f);
         private readonly ReactiveProperty<float>         _speedReactive         = new ReactiveProperty<float>(GameConstants.k_BaseRunSpeed);
+        private readonly Subject<Unit>                   _onHit                 = new Subject<Unit>();
 
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _laneReactive;
         public ReadOnlyReactiveProperty<int>           HpReactive            => _hpReactive;
@@ -80,7 +69,14 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalStateReactive;
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distanceReactive;
         public ReadOnlyReactiveProperty<float>         SpeedReactive         => _speedReactive;
-        public Transform                               CharacterTransform   => transform;
+        public Observable<Unit>                        OnHit                 => _onHit;
+        public Transform                               CharacterTransform    => transform;
+
+        private float _lastCollisionTime = float.NegativeInfinity;
+        private float _preHitSpeed;
+        private Tween _hitStunTween;
+        private bool  _isRunning;
+        private bool  _isHitStunActive;
 
         public override void OnNetworkSpawn()
         {
@@ -123,29 +119,32 @@ namespace SplitRun.Character
             _verticalStateReactive.Dispose();
             _distanceReactive.Dispose();
             _speedReactive.Dispose();
+            _onHit.Dispose();
         }
 
         private void Update()
         {
             if (!IsServer || !_isRunning) return;
+
             _distance.Value += _speed.Value * Time.deltaTime;
+
+            if (!_isHitStunActive)
+                _speed.Value = Mathf.Min(_speed.Value + GameConstants.k_SpeedAcceleration * Time.deltaTime, GameConstants.k_MaxRunSpeed);
         }
 
         public void RequestLaneChange(int direction) => ChangeLaneServerRpc(direction);
         public void RequestJump()                    => JumpServerRpc();
         public void RequestSlide()                   => SlideServerRpc();
-
-        public void SetRunning(bool isRunning) => _isRunning = isRunning;
-
-        // ICharacter entry point for CollisionReporter — delegates to the existing RPC
-        // rather than exposing a second public surface for the same event.
-        public void ReportCollision() => ReportCollisionServerRpc();
+        public void SetRunning(bool isRunning)       => _isRunning = isRunning;
+        public void ReportCollision()                => ReportCollisionServerRpc();
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void ReportCollisionServerRpc()
         {
             if (Time.time - _lastCollisionTime < GameConstants.k_CollisionDebounceDuration) return;
             _lastCollisionTime = Time.time;
+
+            _onHit.OnNext(Unit.Default);
 
             // TODO(skill): route to SkillProcessor.ProcessCollision(this) before decrementing — skip decrement entirely if the skill blocks the hit
             _hp.Value = Mathf.Max(0, _hp.Value - 1);
@@ -170,12 +169,11 @@ namespace SplitRun.Character
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void ChangeLaneServerRpc(int direction)
         {
-            int next = Mathf.Clamp(
+            _currentLane.Value = Mathf.Clamp(
                 _currentLane.Value + direction,
                 GameConstants.k_LaneLeft,
                 GameConstants.k_LaneRight
             );
-            _currentLane.Value = next;
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -208,15 +206,19 @@ namespace SplitRun.Character
             _verticalState.Value = VerticalState.Ground;
         }
 
-        // TODO(chunk): recover to the zone-scaled speed once ZoneConstants multiplier is wired — currently always k_BaseRunSpeed
         private void ApplyHitStun()
         {
             _hitStunTween?.Kill();
-            _speed.Value = 0f;
+
+            _preHitSpeed     = _speed.Value;
+            _speed.Value     = 0f;
+            _isHitStunActive = true;
 
             _hitStunTween = DOTween
-                .To(() => _speed.Value, v => _speed.Value = v, GameConstants.k_BaseRunSpeed, GameConstants.k_HitStunDuration)
-                .SetEase(Ease.OutQuad);
+                .To(() => _speed.Value, v => _speed.Value = v, _preHitSpeed, GameConstants.k_HitStunDuration)
+                .SetEase(Ease.OutQuad)
+                .SetDelay(ObstacleConstants.k_ImpactDuration)
+                .OnComplete(() => _isHitStunActive = false);
         }
 
         private void OnHpChanged(int prev, int next)                                => _hpReactive.Value = next;

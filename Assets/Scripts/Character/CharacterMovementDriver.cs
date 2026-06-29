@@ -7,8 +7,8 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // Drives all Transform position changes and CapsuleCollider hitbox resizing.
-    // Lane tween (X), jump arc (Y), forward position sync (Z), slide hitbox shrink.
+    // Drives Transform position changes and CapsuleCollider hitbox resizing.
+    // Lane (X), jump arc (Y), forward sync (Z), slide hitbox.
     public class CharacterMovementDriver : MonoBehaviour
     {
         private ICharacter      _character;
@@ -41,8 +41,6 @@ namespace SplitRun.Character
 
         private void SubscribeToStateChanges()
         {
-            // Skip(1) avoids tweening the value emitted on subscription.
-            // SetInitialPosition() already places the character correctly at spawn.
             _character.LaneReactive
                 .Skip(1)
                 .Subscribe(lane => AnimateLaneChange(lane))
@@ -53,11 +51,7 @@ namespace SplitRun.Character
                 .Subscribe(state => OnVerticalStateChanged(state))
                 .AddTo(this);
 
-            // No Skip(1) — every Distance change (including the very first server tick)
-            // must move the character forward. No tween here; the simulation tick itself
-            // is already a continuous value, so a direct set is correct.
             _character.DistanceReactive
-                .Skip(1)
                 .Subscribe(distance => SetForwardPosition(distance))
                 .AddTo(this);
         }
@@ -99,15 +93,11 @@ namespace SplitRun.Character
 
         private void SnapToGround()
         {
-            // Safety fallback — snaps Y to 0 if server resets state before the animation completes.
             Vector3 pos = transform.localPosition;
             pos.y = 0f;
             transform.localPosition = pos;
         }
 
-        // Lets the character pass under OBS_Wall_Horizontal_Top's gap — see
-        // 05_design_principles.md, "Character Hitbox Fairness". Restored on every
-        // transition back to Ground, including from Jumping, so it's never left shrunk.
         private void ShrinkHitboxForSlide()
         {
             if (_hitboxCollider == null) return;

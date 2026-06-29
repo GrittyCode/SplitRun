@@ -10,8 +10,6 @@ using SplitRun.Constants;
 
 namespace SplitRun.Game
 {
-    // Tracks the active ICharacter via CharacterEvents and exposes action requests
-    // so other systems never reference ServerCharacter or LocalCharacter directly.
     public class GameService : IStartable, IDisposable
     {
         private ICharacter    _character;
@@ -22,8 +20,7 @@ namespace SplitRun.Game
         private readonly ReactiveProperty<float>     _currentDistance = new ReactiveProperty<float>(0f);
         private readonly ReactiveProperty<int>       _currentHp       = new ReactiveProperty<int>(GameConstants.k_MaxHp);
         private readonly ReactiveProperty<float>     _speed           = new ReactiveProperty<float>(GameConstants.k_BaseRunSpeed);
-
-        private readonly Subject<int> _onZoneEntered = new Subject<int>();
+        private readonly Subject<int>                _onZoneEntered   = new Subject<int>();
 
         public ReadOnlyReactiveProperty<GamePhase> Phase           => _phase;
         public ReadOnlyReactiveProperty<float>     CurrentDistance => _currentDistance;
@@ -78,7 +75,6 @@ namespace SplitRun.Game
             Debug.Log($"[GameService] Run ended — distance: {finalDistance:F0}m");
         }
 
-        // Callers (GameInput, etc.) never hold a reference to ICharacter directly.
         public void RequestLaneChange(int direction) => _character?.RequestLaneChange(direction);
         public void RequestJump()                    => _character?.RequestJump();
         public void RequestSlide()                   => _character?.RequestSlide();
@@ -86,13 +82,8 @@ namespace SplitRun.Game
         private void OnCharacterSpawned(ICharacter character)
         {
             _character = character;
-
-            // Handles the race where StartRun() already ran before the character spawned —
-            // applying current Phase here is a no-op for the common Lobby case.
             character.SetRunning(_phase.Value == GamePhase.Running);
 
-            // Mirror character HP/Distance/Speed into GameService so UI and services
-            // read from one place, same pattern for all three.
             character.HpReactive
                 .Subscribe(hp => _currentHp.Value = hp)
                 .AddTo(ref _characterDisposables);
@@ -105,11 +96,9 @@ namespace SplitRun.Game
                 .Subscribe(speed => _speed.Value = speed)
                 .AddTo(ref _characterDisposables);
 
-            // ReactiveProperty skips re-emission when the value is unchanged, so HP
-            // staying at 0 across multiple writes never calls EndRun twice.
+            // ReactiveProperty skips re-emission when value is unchanged — EndRun never fires twice.
             character.HpReactive
-                .Where(hp => hp <= 0)
-                .Where(_ => _phase.Value == GamePhase.Running)
+                .Where(hp => hp <= 0 && _phase.Value == GamePhase.Running)
                 .Subscribe(_ => EndRun(_currentDistance.Value))
                 .AddTo(ref _characterDisposables);
         }

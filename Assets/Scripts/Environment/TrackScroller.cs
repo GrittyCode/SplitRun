@@ -7,7 +7,6 @@ using VContainer;
 
 using SplitRun.Constants;
 using SplitRun.Game;
-using SplitRun.LevelDesign;
 
 namespace SplitRun.Environment
 {
@@ -22,12 +21,9 @@ namespace SplitRun.Environment
         private readonly Queue<Transform>     _idle   = new Queue<Transform>();
 
         private Transform _segmentPrefab;
-
-        private float _segmentLengthZ;
-        private float _segmentMinZ;
-
-        private float _nextSegmentZ;
-        private bool  _isRunning;
+        private float     _segmentLengthZ;
+        private float     _segmentMinZ;
+        private float     _nextSegmentZ;
 
         private void Start()
         {
@@ -41,7 +37,16 @@ namespace SplitRun.Environment
 
             if (!TryMeasureSegment()) return;
 
-            BindToGameService();
+            _gameService.Phase
+                .Where(phase => phase == GamePhase.Running)
+                .Take(1)
+                .Subscribe(_ => OnRunStarted())
+                .AddTo(this);
+
+            _gameService.CurrentDistance
+                .Skip(1)
+                .Subscribe(OnDistanceChanged)
+                .AddTo(this);
         }
 
         private bool TryMeasureSegment()
@@ -49,8 +54,6 @@ namespace SplitRun.Environment
             Transform probe = Instantiate(_segmentPrefab, transform);
             probe.position  = Vector3.zero;
 
-            // Prefer the TrackSegment Floor child so overhanging decoration never lengthens the
-            // recycle step; fall back to combined renderer bounds for a prefab without the component.
             bool measured = TryMeasureFloor(probe, out float lengthZ, out float minZ)
                          || TryGetWorldBoundsZ(probe, out lengthZ, out minZ);
 
@@ -94,31 +97,14 @@ namespace SplitRun.Environment
             return true;
         }
 
-        private void BindToGameService()
+        private void OnRunStarted()
         {
-            _gameService.Phase
-                .Subscribe(OnPhaseChanged)
-                .AddTo(this);
-
-            _gameService.CurrentDistance
-                .Where(_ => _isRunning)
-                .Subscribe(OnDistanceChanged)
-                .AddTo(this);
-        }
-
-        private void OnPhaseChanged(GamePhase phase)
-        {
-            if (phase != GamePhase.Running) return;
-
-            _isRunning    = true;
             _nextSegmentZ = SnapToBoundary(-TrackConstants.k_TrackRecycleBehindDistance);
-
             FillAhead(0f);
         }
 
         private void OnDistanceChanged(float characterZ)
         {
-            // Recycle first so freed segments are reused by FillAhead in the same frame.
             RecycleBehind(characterZ);
             FillAhead(characterZ);
         }
@@ -138,7 +124,6 @@ namespace SplitRun.Environment
         {
             float threshold = characterZ - TrackConstants.k_TrackRecycleBehindDistance;
 
-            // Far edge, not near edge — a still-visible segment is never pulled from under the camera.
             while (_active.Count > 0 && _active.Peek().NearZ + _segmentLengthZ < threshold)
             {
                 ActiveSegment segment = _active.Dequeue();

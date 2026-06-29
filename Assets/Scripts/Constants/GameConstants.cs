@@ -28,13 +28,19 @@ namespace SplitRun.Constants
         // Discards duplicate collision reports arriving within this window of the first.
         public const float k_CollisionDebounceDuration = 0.3f;
 
-        // Speed is zeroed on collision, then eased back to k_BaseRunSpeed over this duration.
-        public const float k_HitStunDuration    = 0.4f;
+        // Speed is held at 0 for the obstacle impact animation, then eased back to the
+        // pre-hit speed over this duration.
+        public const float k_HitStunDuration    = 0.7f;
 
         public const float k_BaseRunSpeed       = 8f;
 
-        public const float k_SwipeMinDistancePx = 50f;
+        // Speed increases by this amount per second during a run — reaches k_MaxRunSpeed in ~30s.
+        public const float k_SpeedAcceleration  = 0.4f;
 
+        // Hard cap so the run never becomes unplayable at extreme distances.
+        public const float k_MaxRunSpeed        = 20f;
+
+        public const float k_SwipeMinDistancePx = 50f;
 
         // Physics layer obstacles live on. Character HitBox × this must be enabled in the
         // Layer Collision Matrix for OnTriggerEnter to fire (Project Settings → Physics).

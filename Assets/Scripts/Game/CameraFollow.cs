@@ -1,23 +1,22 @@
 using UnityEngine;
 
+using R3;
+
 using SplitRun.Character;
 using SplitRun.Constants;
 
 namespace SplitRun.Game
 {
     // Attached directly to the scene's Main Camera. Not VContainer-registered — subscribes to
-    // CharacterEvents directly since the target (a dynamically Netcode-spawned or locally-spawned
-    // ICharacter) doesn't exist at scene load time for a [SerializeField] reference.
+    // CharacterEvents directly since the target doesn't exist at scene load time.
     [RequireComponent(typeof(Camera))]
     public class CameraFollow : MonoBehaviour
     {
-        private Camera _camera;
-        private Transform _target;
+        private float _trackedDistance;
 
         private void Awake()
         {
-            _camera = GetComponent<Camera>();
-            _camera.fieldOfView = CameraConstants.k_CameraFov;
+            GetComponent<Camera>().fieldOfView = CameraConstants.k_CameraFov;
         }
 
         private void OnEnable()
@@ -34,26 +33,29 @@ namespace SplitRun.Game
 
         private void LateUpdate()
         {
-            if (!_target) return;
-
-            // Only Z tracks the character — X and Y are fixed so lane changes and
-            // jumps never sway the camera. See 05_design_principles.md, "Camera Design".
+            // X and Y fixed — lane changes and jumps never sway the camera.
             transform.position = new Vector3(
                 0f,
                 CameraConstants.k_CameraOffsetY,
-                _target.position.z + CameraConstants.k_CameraOffsetZ
+                _trackedDistance + CameraConstants.k_CameraOffsetZ
             );
 
-            // Direct pitch instead of LookAt — angle is independent of camera position,
-            // so tuning Y/Z offsets never accidentally changes the viewing angle.
+            // Direct pitch instead of LookAt — tuning offsets never changes the viewing angle.
             transform.rotation = Quaternion.Euler(CameraConstants.k_CameraPitchAngle, 0f, 0f);
         }
 
-        private void OnCharacterSpawned(ICharacter character) => _target = character.CharacterTransform;
+        private void OnCharacterSpawned(ICharacter character)
+        {
+            // Track authoritative distance instead of Transform.position.z so visual-only
+            // knockback offset on the character never pulls the camera backward.
+            character.DistanceReactive
+                .Subscribe(distance => _trackedDistance = distance)
+                .AddTo(this);
+        }
 
         private void OnCharacterDespawned(ICharacter character)
         {
-            if (_target == character.CharacterTransform) _target = null;
+            _trackedDistance = 0f;
         }
     }
 }

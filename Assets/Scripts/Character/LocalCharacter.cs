@@ -19,12 +19,7 @@ namespace SplitRun.Character
         private readonly ReactiveProperty<VerticalState> _verticalState = new ReactiveProperty<VerticalState>(VerticalState.Ground);
         private readonly ReactiveProperty<float>         _distance      = new ReactiveProperty<float>(0f);
         private readonly ReactiveProperty<float>         _speed         = new ReactiveProperty<float>(GameConstants.k_BaseRunSpeed);
-
-        // No multi-client duplicate-report risk locally, but kept in lockstep with
-        // ServerCharacter so both ICharacter implementations behave identically.
-        private float _lastCollisionTime = float.NegativeInfinity;
-        private Tween _hitStunTween;
-        private bool  _isRunning;
+        private readonly Subject<Unit>                   _onHit         = new Subject<Unit>();
 
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _lane;
         public ReadOnlyReactiveProperty<int>           HpReactive            => _hp;
@@ -32,17 +27,25 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalState;
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distance;
         public ReadOnlyReactiveProperty<float>         SpeedReactive         => _speed;
-        public Transform                               CharacterTransform   => transform;
+        public Observable<Unit>                        OnHit                 => _onHit;
+        public Transform                               CharacterTransform    => transform;
 
-        private void Start()
-        {
-            CharacterEvents.NotifySpawned(this);
-        }
+        private float _lastCollisionTime = float.NegativeInfinity;
+        private float _preHitSpeed;
+        private Tween _hitStunTween;
+        private bool  _isRunning;
+        private bool  _isHitStunActive;
+
+        private void Start()  => CharacterEvents.NotifySpawned(this);
 
         private void Update()
         {
             if (!_isRunning) return;
+
             _distance.Value += _speed.CurrentValue * Time.deltaTime;
+
+            if (!_isHitStunActive)
+                _speed.Value = Mathf.Min(_speed.Value + GameConstants.k_SpeedAcceleration * Time.deltaTime, GameConstants.k_MaxRunSpeed);
         }
 
         private void OnDestroy()
@@ -57,6 +60,7 @@ namespace SplitRun.Character
             _verticalState.Dispose();
             _distance.Dispose();
             _speed.Dispose();
+            _onHit.Dispose();
         }
 
         public void RequestLaneChange(int direction)
@@ -87,6 +91,8 @@ namespace SplitRun.Character
             if (Time.time - _lastCollisionTime < GameConstants.k_CollisionDebounceDuration) return;
             _lastCollisionTime = Time.time;
 
+            _onHit.OnNext(Unit.Default);
+
             // TODO(skill): route to SkillProcessor.ProcessCollision(this) before decrementing — skip decrement entirely if the skill blocks the hit
             _hp.Value = Mathf.Max(0, _hp.Value - 1);
 
@@ -111,15 +117,19 @@ namespace SplitRun.Character
             _verticalState.Value = VerticalState.Ground;
         }
 
-        // TODO(chunk): recover to the zone-scaled speed once ZoneConstants multiplier is wired — currently always k_BaseRunSpeed
         private void ApplyHitStun()
         {
             _hitStunTween?.Kill();
-            _speed.Value = 0f;
+
+            _preHitSpeed     = _speed.Value;
+            _speed.Value     = 0f;
+            _isHitStunActive = true;
 
             _hitStunTween = DOTween
-                .To(() => _speed.Value, v => _speed.Value = v, GameConstants.k_BaseRunSpeed, GameConstants.k_HitStunDuration)
-                .SetEase(Ease.OutQuad);
+                .To(() => _speed.Value, v => _speed.Value = v, _preHitSpeed, GameConstants.k_HitStunDuration)
+                .SetEase(Ease.OutQuad)
+                .SetDelay(ObstacleConstants.k_ImpactDuration)
+                .OnComplete(() => _isHitStunActive = false);
         }
     }
 }

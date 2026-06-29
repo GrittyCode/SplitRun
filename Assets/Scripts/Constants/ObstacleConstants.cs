@@ -14,7 +14,7 @@ namespace SplitRun.Constants
         public const float k_WideWidth      = 6f;
 
         // Running-direction thickness — obstacles are walls, not volumes.
-        public const float k_Depth          = 1f;
+        public const float k_Depth          = 1.2f;
 
         // Above the jump apex (head ~3.2) so a Vertical wall cannot be jumped over.
         public const float k_VerticalHeight = 3.5f;

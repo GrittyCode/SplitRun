@@ -4,7 +4,6 @@ using R3;
 
 namespace SplitRun.Character
 {
-    // Implemented by ServerCharacter (networked) and LocalCharacter (local prototype).
     public interface ICharacter
     {
         ReadOnlyReactiveProperty<int>           LaneReactive          { get; }
@@ -14,9 +13,10 @@ namespace SplitRun.Character
         ReadOnlyReactiveProperty<float>         DistanceReactive      { get; }
         ReadOnlyReactiveProperty<float>         SpeedReactive         { get; }
 
-        // Exposed so CameraFollow can track world position without depending on
-        // ServerCharacter/LocalCharacter directly — same dependency-inversion reason
-        // CharacterAnimationDriver resolves against this interface instead of a concrete type.
+        // Fires the moment a collision clears debounce — before HP changes propagate.
+        // Subscribers needing immediate visual response (knockback, flash) use this.
+        Observable<Unit> OnHit { get; }
+
         Transform CharacterTransform { get; }
 
         /// <summary>Requests a lane change. direction: -1 = left, +1 = right.</summary>
