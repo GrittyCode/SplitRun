@@ -310,13 +310,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7fee8c1d7cb420b98ee8ad3448257e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Game.ObstacleSpawner
-  _obstaclePrefabs:
-  - {fileID: 679887241234062020, guid: 1a7361cbdd9124d60ba769d8ceaa53d8, type: 3}
-  - {fileID: 80126097897752694, guid: 95b4bb3f2243e4a699d14ece41291e06, type: 3}
-  - {fileID: 4680316699033745128, guid: 12cf6ec11c7034f0b88ae3b360bc92c0, type: 3}
-  - {fileID: 5232407177211393092, guid: 935f9e6a4e54f40c5b6fb66d2635234a, type: 3}
-  - {fileID: 679887241234062020, guid: c76ce04c9f46148eea49d2be4c8fb699, type: 3}
-  - {fileID: 80126097897752694, guid: 70e1eab42ceb5495db2718c53ff0d2b1, type: 3}
 --- !u!4 &369355959
 Transform:
   m_ObjectHideFlags: 0
@@ -325,12 +318,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 369355957}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1019863747}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &427929037
 GameObject:
@@ -557,6 +550,39 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 914782496}
   m_CullTransparentMesh: 1
+--- !u!1 &1019863746
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1019863747}
+  m_Layer: 0
+  m_Name: '[Spawner]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1019863747
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1019863746}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 369355959}
+  - {fileID: 1067704000}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1067703999
 GameObject:
   m_ObjectHideFlags: 0
@@ -582,12 +608,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1067703999}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1019863747}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1067704001
 MonoBehaviour:
@@ -601,7 +627,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22f7ba1fc2ad48b4b76a2f8fa6617273, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Environment.TrackScroller
-  _segmentPrefab: {fileID: 603369157715575038, guid: 32112bf36052e40698e4c4fb53040688, type: 3}
 --- !u!1 &1190504451
 GameObject:
   m_ObjectHideFlags: 0
@@ -653,71 +678,8 @@ MonoBehaviour:
   _obstacleSpawner: {fileID: 369355958}
   _trackScroller: {fileID: 1067704001}
   _hudView: {fileID: 1515105712}
---- !u!1001 &1471584345
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 6932490465967522764, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_Name
-      value: ENV_Backdrop_Desert
-      objectReference: {fileID: 0}
-    - target: {fileID: 8277475992140903867, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: _baselineY
-      value: -35
-      objectReference: {fileID: 0}
-    - target: {fileID: 8277475992140903867, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: _forwardOffsetZ
-      value: 140
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -13.13503
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -43.64396
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8440142345061103450, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 0087182eaf30049ac929fed9388d4a71, type: 3}
+  _levelProfile: {fileID: 11400000, guid: 60e613ad778f94655b7d90863f57c9f5, type: 2}
+  _worldTheme: {fileID: 11400000, guid: 64f6fbd287c644864bad70843cb5509c, type: 2}
 --- !u!1 &1515105707
 GameObject:
   m_ObjectHideFlags: 0
@@ -1385,8 +1347,6 @@ SceneRoots:
   - {fileID: 2079835156}
   - {fileID: 73383402}
   - {fileID: 1190504452}
-  - {fileID: 369355959}
-  - {fileID: 1067704000}
+  - {fileID: 1019863747}
   - {fileID: 1515105711}
-  - {fileID: 1471584345}
   - {fileID: 2033898074}

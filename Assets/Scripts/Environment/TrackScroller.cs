@@ -7,6 +7,7 @@ using VContainer;
 
 using SplitRun.Constants;
 using SplitRun.Game;
+using SplitRun.LevelDesign;
 
 namespace SplitRun.Environment
 {
@@ -14,12 +15,13 @@ namespace SplitRun.Environment
     // and recycles it behind. Carries no gameplay rules and is independent of obstacle spawning.
     public class TrackScroller : MonoBehaviour
     {
-        [SerializeField] private Transform _segmentPrefab;
-
-        [Inject] private GameService _gameService;
+        [Inject] private GameService       _gameService;
+        [Inject] private WorldThemeProfile _theme;
 
         private readonly Queue<ActiveSegment> _active = new Queue<ActiveSegment>();
         private readonly Queue<Transform>     _idle   = new Queue<Transform>();
+
+        private Transform _segmentPrefab;
 
         private float _segmentLengthZ;
         private float _segmentMinZ;
@@ -29,11 +31,13 @@ namespace SplitRun.Environment
 
         private void Start()
         {
-            if (!_segmentPrefab)
+            if (!_theme || !_theme.SegmentPrefab)
             {
-                Debug.LogWarning("[TrackScroller] No segment prefab assigned — track disabled.");
+                Debug.LogWarning("[TrackScroller] No theme segment prefab assigned — track disabled.");
                 return;
             }
+
+            _segmentPrefab = _theme.SegmentPrefab;
 
             if (!TryMeasureSegment()) return;
 
