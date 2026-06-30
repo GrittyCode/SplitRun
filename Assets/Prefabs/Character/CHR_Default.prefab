@@ -2461,7 +2461,7 @@ GameObject:
   - component: {fileID: 2357677448150742872}
   - component: {fileID: 5122055614628499934}
   - component: {fileID: 7094754875544141589}
-  - component: {fileID: 4781267745506117510}
+  - component: {fileID: 4865133018203948901}
   m_Layer: 6
   m_Name: CHR_Default
   m_TagString: Untagged
@@ -2524,7 +2524,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3101046651
+  GlobalObjectIdHash: 229378787
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2561,7 +2561,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d7b2df467d5441a84298e196a4faee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterMovementDriver
---- !u!114 &4781267745506117510
+--- !u!114 &4865133018203948901
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2570,10 +2570,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 6186180105037138504}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e7ba52fecd1e4ab49a864fd09860b26, type: 3}
+  m_Script: {fileID: 11500000, guid: e3493b0dc5ed4f0aa5ca1704458d29d3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.ServerCharacter
-  ShowTopMostFoldoutHeaderGroup: 1
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.LocalCharacter
+  _characterType: 2
 --- !u!1 &6497229245195524701
 GameObject:
   m_ObjectHideFlags: 0

@@ -28,6 +28,9 @@ namespace SplitRun.Character
         /// <summary>Requests a slide action.</summary>
         void RequestSlide();
 
+        /// <summary>Requests skill activation. No-op unless the skill is Ready.</summary>
+        void ActivateSkill();
+
         /// <summary>Reports a physics collision with an obstacle. Called by CollisionReporter, never by player input.</summary>
         void ReportCollision();
 

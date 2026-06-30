@@ -20,14 +20,16 @@ namespace SplitRun.Obstacle
 
         private BoxCollider _collider;
         private Vector3     _initialScale;
+        private Quaternion  _initialRotation;
         private Tween       _impactTween;
 
         public ObstacleFootprint Footprint => _footprint;
 
         private void Awake()
         {
-            _collider     = GetComponent<BoxCollider>();
-            _initialScale = transform.localScale;
+            _collider        = GetComponent<BoxCollider>();
+            _initialScale    = transform.localScale;
+            _initialRotation = transform.localRotation;
         }
 
         private void OnDestroy() => _impactTween?.Kill();
@@ -40,20 +42,25 @@ namespace SplitRun.Obstacle
 
             _collider.enabled = false;
 
-            _impactTween = transform
-                .DOScale(Vector3.zero, ObstacleConstants.k_ImpactDuration)
-                .SetEase(Ease.InBack)
+            Vector3 flyOffset = new Vector3(0f, ObstacleConstants.k_ImpactFlyUp, ObstacleConstants.k_ImpactFlyForward);
+            Vector3 spin      = new Vector3(ObstacleConstants.k_ImpactSpinDegrees, ObstacleConstants.k_ImpactSpinDegrees * 0.5f, 0f);
+
+            _impactTween = DOTween.Sequence()
+                .Join(transform.DOBlendableMoveBy(flyOffset, ObstacleConstants.k_ImpactFlyDuration).SetEase(Ease.OutQuad))
+                .Join(transform.DOLocalRotate(spin, ObstacleConstants.k_ImpactFlyDuration, RotateMode.FastBeyond360).SetEase(Ease.OutQuad))
+                .Join(transform.DOScale(Vector3.zero, ObstacleConstants.k_ImpactFlyDuration).SetEase(Ease.InQuad))
                 .OnComplete(() => gameObject.SetActive(false));
         }
 
         // Called by ObstaclePool.Rent() on pool reuse — restores an instance blown away on a
-        // previous use of this pooled object.
+        // previous use. The spawner resets position on rent but never rotation, so restore it here.
         public void ResetState()
         {
             _impactTween?.Kill();
 
-            transform.localScale = _initialScale;
-            _collider.enabled    = true;
+            transform.localScale    = _initialScale;
+            transform.localRotation = _initialRotation;
+            _collider.enabled       = true;
 
             gameObject.SetActive(true);
         }

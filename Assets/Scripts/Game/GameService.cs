@@ -78,6 +78,7 @@ namespace SplitRun.Game
         public void RequestLaneChange(int direction) => _character?.RequestLaneChange(direction);
         public void RequestJump()                    => _character?.RequestJump();
         public void RequestSlide()                   => _character?.RequestSlide();
+        public void RequestSkill()                   => _character?.ActivateSkill();
 
         private void OnCharacterSpawned(ICharacter character)
         {

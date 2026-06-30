@@ -30,6 +30,7 @@ namespace SplitRun.Game
         {
             BindLaneInput();
             BindJumpSlideInput();
+            BindSkillInput();
         }
 
         public void Tick()
@@ -69,8 +70,16 @@ namespace SplitRun.Game
                 .AddTo(ref _disposables);
         }
 
+        private void BindSkillInput()
+        {
+            _swipeDetector.OnDoubleTap
+                .Where(_ => IsRunning())
+                .Subscribe(_ => _gameService.RequestSkill())
+                .AddTo(ref _disposables);
+        }
+
         private bool IsRunning() => _gameService.Phase.CurrentValue == GamePhase.Running;
-        
+
         private static bool IsLaneSwipe(SwipeDirection dir)
             => dir is SwipeDirection.Left or SwipeDirection.Right;
 

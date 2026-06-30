@@ -1,9 +1,5 @@
-using System;
-
 using UnityEngine;
 
-using Cysharp.Threading.Tasks;
-using DG.Tweening;
 using R3;
 using Unity.Netcode;
 
@@ -11,7 +7,7 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    public class ServerCharacter : NetworkBehaviour, ICharacter
+    public class ServerCharacter : NetworkBehaviour, ICharacter, ICharacterState
     {
         private readonly NetworkVariable<int> _currentLane = new NetworkVariable<int>(
             GameConstants.k_LaneCenter,
@@ -61,7 +57,8 @@ namespace SplitRun.Character
         private readonly ReactiveProperty<VerticalState> _verticalStateReactive = new ReactiveProperty<VerticalState>(VerticalState.Ground);
         private readonly ReactiveProperty<float>         _distanceReactive      = new ReactiveProperty<float>(0f);
         private readonly ReactiveProperty<float>         _speedReactive         = new ReactiveProperty<float>(GameConstants.k_BaseRunSpeed);
-        private readonly Subject<Unit>                   _onHit                 = new Subject<Unit>();
+
+        private CharacterCore _core;
 
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _laneReactive;
         public ReadOnlyReactiveProperty<int>           HpReactive            => _hpReactive;
@@ -69,14 +66,15 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalStateReactive;
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distanceReactive;
         public ReadOnlyReactiveProperty<float>         SpeedReactive         => _speedReactive;
-        public Observable<Unit>                        OnHit                 => _onHit;
+        public Observable<Unit>                        OnHit                 => _core.OnHit;
         public Transform                               CharacterTransform    => transform;
 
-        private float _lastCollisionTime = float.NegativeInfinity;
-        private float _preHitSpeed;
-        private Tween _hitStunTween;
-        private bool  _isRunning;
-        private bool  _isHitStunActive;
+        int ICharacterState.Lane               { get => _currentLane.Value;   set => _currentLane.Value = value; }
+        int ICharacterState.Hp                 { get => _hp.Value;            set => _hp.Value = value; }
+        float ICharacterState.Distance         { get => _distance.Value;      set => _distance.Value = value; }
+        float ICharacterState.Speed            { get => _speed.Value;         set => _speed.Value = value; }
+        SkillState ICharacterState.Skill       { get => _skillState.Value;    set => _skillState.Value = value; }
+        VerticalState ICharacterState.Vertical { get => _verticalState.Value; set => _verticalState.Value = value; }
 
         public override void OnNetworkSpawn()
         {
@@ -95,7 +93,7 @@ namespace SplitRun.Character
             _distanceReactive.Value      = _distance.Value;
             _speedReactive.Value         = _speed.Value;
 
-            Debug.Log($"[ServerCharacter] Spawned — IsServer: {IsServer}, IsOwner: {IsOwner}");
+            _core = new CharacterCore(this, _charType.Value, destroyCancellationToken);
 
             CharacterEvents.NotifySpawned(this);
         }
@@ -104,7 +102,7 @@ namespace SplitRun.Character
         {
             CharacterEvents.NotifyDespawned(this);
 
-            _hitStunTween?.Kill();
+            _core?.Dispose();
 
             _hp.OnValueChanged            -= OnHpChanged;
             _currentLane.OnValueChanged   -= OnLaneChanged;
@@ -119,40 +117,23 @@ namespace SplitRun.Character
             _verticalStateReactive.Dispose();
             _distanceReactive.Dispose();
             _speedReactive.Dispose();
-            _onHit.Dispose();
         }
 
         private void Update()
         {
-            if (!IsServer || !_isRunning) return;
-
-            _distance.Value += _speed.Value * Time.deltaTime;
-
-            if (!_isHitStunActive)
-                _speed.Value = Mathf.Min(_speed.Value + GameConstants.k_SpeedAcceleration * Time.deltaTime, GameConstants.k_MaxRunSpeed);
+            if (!IsServer) return;
+            _core.Tick(Time.deltaTime);
         }
 
         public void RequestLaneChange(int direction) => ChangeLaneServerRpc(direction);
         public void RequestJump()                    => JumpServerRpc();
         public void RequestSlide()                   => SlideServerRpc();
-        public void SetRunning(bool isRunning)       => _isRunning = isRunning;
+        public void ActivateSkill()                  => ActivateSkillServerRpc();
         public void ReportCollision()                => ReportCollisionServerRpc();
+        public void SetRunning(bool isRunning)       => _core?.SetRunning(isRunning);
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        public void ReportCollisionServerRpc()
-        {
-            if (Time.time - _lastCollisionTime < GameConstants.k_CollisionDebounceDuration) return;
-            _lastCollisionTime = Time.time;
-
-            _onHit.OnNext(Unit.Default);
-
-            // TODO(skill): route to SkillProcessor.ProcessCollision(this) before decrementing — skip decrement entirely if the skill blocks the hit
-            _hp.Value = Mathf.Max(0, _hp.Value - 1);
-
-            if (_hp.Value > 0) ApplyHitStun();
-
-            Debug.Log($"[ServerCharacter] Collision reported — HP: {_hp.Value}");
-        }
+        public void ReportCollisionServerRpc() => _core.ReportCollision();
 
         [Rpc(SendTo.ClientsAndHost)]
         public void TriggerSkillEffectClientRpc(SkillType skillType)
@@ -167,59 +148,16 @@ namespace SplitRun.Character
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void ChangeLaneServerRpc(int direction)
-        {
-            _currentLane.Value = Mathf.Clamp(
-                _currentLane.Value + direction,
-                GameConstants.k_LaneLeft,
-                GameConstants.k_LaneRight
-            );
-        }
+        private void ChangeLaneServerRpc(int direction) => _core.ChangeLane(direction);
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void JumpServerRpc()
-        {
-            if (_verticalState.Value != VerticalState.Ground) return;
-            SetVerticalStateAsync(VerticalState.Jumping, GameConstants.k_JumpDuration);
-        }
+        private void JumpServerRpc() => _core.Jump();
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void SlideServerRpc()
-        {
-            if (_verticalState.Value != VerticalState.Ground) return;
-            SetVerticalStateAsync(VerticalState.Sliding, GameConstants.k_SlideDuration);
-        }
+        private void SlideServerRpc() => _core.Slide();
 
-        private async UniTaskVoid SetVerticalStateAsync(VerticalState state, float duration)
-        {
-            _verticalState.Value = state;
-
-            try
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(duration), cancellationToken: this.GetCancellationTokenOnDestroy());
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-
-            _verticalState.Value = VerticalState.Ground;
-        }
-
-        private void ApplyHitStun()
-        {
-            _hitStunTween?.Kill();
-
-            _preHitSpeed     = _speed.Value;
-            _speed.Value     = 0f;
-            _isHitStunActive = true;
-
-            _hitStunTween = DOTween
-                .To(() => _speed.Value, v => _speed.Value = v, _preHitSpeed, GameConstants.k_HitStunDuration)
-                .SetEase(Ease.OutQuad)
-                .SetDelay(ObstacleConstants.k_ImpactDuration)
-                .OnComplete(() => _isHitStunActive = false);
-        }
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void ActivateSkillServerRpc() => _core.ActivateSkill();
 
         private void OnHpChanged(int prev, int next)                                => _hpReactive.Value = next;
         private void OnLaneChanged(int prev, int next)                              => _laneReactive.Value = next;

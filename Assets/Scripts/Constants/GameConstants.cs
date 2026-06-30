@@ -42,6 +42,9 @@ namespace SplitRun.Constants
 
         public const float k_SwipeMinDistancePx = 50f;
 
+        // Two taps within this window count as a double tap (skill activation).
+        public const float k_DoubleTapWindow    = 0.3f;
+
         // Physics layer obstacles live on. Character HitBox × this must be enabled in the
         // Layer Collision Matrix for OnTriggerEnter to fire (Project Settings → Physics).
         public const string k_ObstacleLayerName = "Obstacle";

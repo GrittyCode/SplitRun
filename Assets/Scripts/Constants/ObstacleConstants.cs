@@ -5,6 +5,14 @@ namespace SplitRun.Constants
         // Obstacle blow-away tween duration on collision.
         public const float k_ImpactDuration = 0.3f;
 
+        // --- Impact blow-away motion ---
+
+        // On hit the obstacle launches forward (+Z) and up (+Y) while tumbling and shrinking.
+        public const float k_ImpactFlyForward  = 12f;
+        public const float k_ImpactFlyUp       = 8f;
+        public const float k_ImpactSpinDegrees = 540f;
+        public const float k_ImpactFlyDuration = 0.5f;
+
         // --- Collider footprint dimensions ---
 
         // One-lane occupancy, kept under the 2-unit lane spacing so it never clips a neighbour.

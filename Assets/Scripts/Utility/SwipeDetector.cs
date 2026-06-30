@@ -15,10 +15,14 @@ namespace SplitRun.Utility
     // Registered as an entry point in GameLifetimeScope — requires no scene GameObject.
     public class SwipeDetector : IStartable, IDisposable
     {
-        private readonly Subject<SwipeDirection> _onSwipe = new Subject<SwipeDirection>();
-        public Observable<SwipeDirection> OnSwipe => _onSwipe;
+        private readonly Subject<SwipeDirection> _onSwipe     = new Subject<SwipeDirection>();
+        private readonly Subject<Unit>           _onDoubleTap = new Subject<Unit>();
+
+        public Observable<SwipeDirection> OnSwipe     => _onSwipe;
+        public Observable<Unit>           OnDoubleTap => _onDoubleTap;
 
         private Vector2 _touchStartPosition;
+        private float   _lastTapTime = float.NegativeInfinity;
 
         public void Start()
         {
@@ -39,6 +43,7 @@ namespace SplitRun.Utility
             TouchSimulation.Disable();
 #endif
             _onSwipe.Dispose();
+            _onDoubleTap.Dispose();
         }
 
         private void OnFingerDown(Finger finger)
@@ -51,9 +56,26 @@ namespace SplitRun.Utility
             Vector2 delta = finger.currentTouch.screenPosition - _touchStartPosition;
 
             if (delta.magnitude < GameConstants.k_SwipeMinDistancePx)
+            {
+                DetectDoubleTap();
                 return;
+            }
 
             _onSwipe.OnNext(ResolveDirection(delta));
+        }
+
+        private void DetectDoubleTap()
+        {
+            float now = Time.time;
+
+            if (now - _lastTapTime <= GameConstants.k_DoubleTapWindow)
+            {
+                _onDoubleTap.OnNext(Unit.Default);
+                _lastTapTime = float.NegativeInfinity;
+                return;
+            }
+
+            _lastTapTime = now;
         }
 
         private static SwipeDirection ResolveDirection(Vector2 delta)
