@@ -68,6 +68,7 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<float>         SpeedReactive         => _speedReactive;
         public Observable<Unit>                        OnHit                 => _core.OnHit;
         public Transform                               CharacterTransform    => transform;
+        public SkillType                               ActiveSkill           => _core != null ? _core.ActiveSkill : SkillType.None;
 
         int ICharacterState.Lane               { get => _currentLane.Value;   set => _currentLane.Value = value; }
         int ICharacterState.Hp                 { get => _hp.Value;            set => _hp.Value = value; }

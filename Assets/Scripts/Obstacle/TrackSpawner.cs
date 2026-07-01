@@ -1,28 +1,36 @@
 using System.Collections.Generic;
+
 using UnityEngine;
+
 using R3;
 using VContainer;
+
 using SplitRun.Constants;
 using SplitRun.Environment;
-using SplitRun.LevelDesign;
 using SplitRun.Game;
+using SplitRun.Item;
+using SplitRun.LevelDesign;
 
 namespace SplitRun.Obstacle
 {
-    public class ObstacleSpawner : MonoBehaviour
+    public class TrackSpawner : MonoBehaviour
     {
-        [Inject] private GameService _gameService;
+        [Inject] private GameService        _gameService;
         [Inject] private LevelDesignProfile _levelProfile;
-        [Inject] private WorldThemeProfile _theme;
+        [Inject] private WorldThemeProfile  _theme;
+        [Inject] private ItemService        _itemService;
 
-        private readonly List<ObstaclePool> _pools = new List<ObstaclePool>();
-        private readonly Queue<ActiveObstacle> _active = new Queue<ActiveObstacle>();
+        private readonly List<ObstaclePool>     _pools  = new List<ObstaclePool>();
+        private readonly Queue<ActiveObstacle>  _active = new Queue<ActiveObstacle>();
 
         private readonly Dictionary<ObstacleFootprint, List<int>> _poolsByFootprint =
             new Dictionary<ObstacleFootprint, List<int>>();
 
+        private readonly bool[] _laneOccupied = new bool[GameConstants.k_LaneCount];
+        private readonly int[]  _freeLanes    = new int[GameConstants.k_LaneCount];
+
         private float _nextSpawnZ;
-        private bool _isRunning;
+        private bool  _isRunning;
 
         private void Start()
         {
@@ -42,14 +50,14 @@ namespace SplitRun.Obstacle
         {
             if (!_theme)
             {
-                Debug.LogWarning("[ObstacleSpawner] No world theme — spawning disabled.");
+                Debug.LogWarning("[TrackSpawner] No world theme — spawning disabled.");
                 return;
             }
 
             foreach (FootprintPrefabs set in _theme.ObstaclePrefabs)
                 RegisterPrefabSet(set);
 
-            Debug.Log($"[ObstacleSpawner] {_pools.Count} pool(s) initialized");
+            Debug.Log($"[TrackSpawner] {_pools.Count} pool(s) initialized");
         }
 
         private void RegisterPrefabSet(FootprintPrefabs set)
@@ -61,7 +69,7 @@ namespace SplitRun.Obstacle
                 if (!prefab) continue;
 
                 if (prefab.Footprint != set.Footprint)
-                    Debug.LogWarning($"[ObstacleSpawner] '{prefab.name}' footprint {prefab.Footprint} " +
+                    Debug.LogWarning($"[TrackSpawner] '{prefab.name}' footprint {prefab.Footprint} " +
                                      $"does not match its theme slot {set.Footprint}.");
 
                 int poolIndex = _pools.Count;
@@ -97,7 +105,7 @@ namespace SplitRun.Obstacle
         {
             if (phase != GamePhase.Running) return;
 
-            _isRunning = true;
+            _isRunning  = true;
             _nextSpawnZ = GameConstants.k_ObstacleSpacing;
 
             FillLookAhead(0f);
@@ -131,18 +139,27 @@ namespace SplitRun.Obstacle
             }
         }
 
-        // One weighted roll over both single obstacles and coop patterns: difficulty is read at the
-        // obstacle's own spawn Z (where the player meets it), not the character's current Z.
-        // TODO(netcode): server must select the slot contents and broadcast via ClientRpc — local
-        // Random desyncs clients.
+        // Obstacles are placed first so lane occupancy is known; items then fill the gap to the
+        // next slot in a free lane, guaranteeing pickups never sit on an obstacle.
         private void SpawnSlot(float spawnZ)
         {
-            if (_pools.Count == 0 || !_levelProfile || !_levelProfile.HasBands) return;
+            ClearOccupancy();
 
+            if (_pools.Count > 0 && _levelProfile && _levelProfile.HasBands)
+                SpawnObstacles(spawnZ);
+
+            PlaceItems(spawnZ);
+        }
+
+        // One weighted roll over both single obstacles and coop patterns: difficulty is read at the
+        // obstacle's own spawn Z (where the player meets it), not the character's current Z.
+        // TODO(netcode): server must select the slot contents and broadcast via ClientRpc.
+        private void SpawnObstacles(float spawnZ)
+        {
             ObstacleBand band = _levelProfile.ResolveBand(spawnZ);
 
             float singleTotal = AvailableSingleTotal(band);
-            float total = singleTotal + AvailableCoopTotal(band);
+            float total       = singleTotal + AvailableCoopTotal(band);
             if (total <= 0f) return;
 
             float roll = Random.value * total;
@@ -236,6 +253,67 @@ namespace SplitRun.Obstacle
             instance.transform.position = new Vector3(GameConstants.GetLaneX(lane), 0f, spawnZ);
 
             _active.Enqueue(new ActiveObstacle(instance, _pools[poolIndex], spawnZ));
+            MarkOccupied(footprint, lane);
+        }
+
+        private void PlaceItems(float spawnZ)
+        {
+            if (_itemService == null || !_levelProfile) return;
+
+            float chance = ItemConstants.k_CoinLineChance * _levelProfile.CoinSpawnMultiplier;
+            if (Random.value > chance) return;
+
+            int lane = PickFreeLane();
+            if (lane < 0) return;
+
+            float laneX = GameConstants.GetLaneX(lane);
+
+            if (Random.value < ItemConstants.k_MagnetChance)
+            {
+                float magnetZ = spawnZ + GameConstants.k_ObstacleSpacing * 0.5f;
+                _itemService.Spawn(ItemType.Magnet, new Vector3(laneX, ItemConstants.k_ItemHoverHeight, magnetZ));
+                return;
+            }
+
+            PlaceCoinLine(laneX, spawnZ);
+        }
+
+        private void PlaceCoinLine(float laneX, float spawnZ)
+        {
+            float start = spawnZ + ItemConstants.k_CoinLineMargin;
+            float end   = spawnZ + GameConstants.k_ObstacleSpacing - ItemConstants.k_CoinLineMargin;
+
+            for (float z = start; z <= end; z += ItemConstants.k_CoinSpacing)
+                _itemService.Spawn(ItemType.Coin, new Vector3(laneX, ItemConstants.k_ItemHoverHeight, z));
+        }
+
+        private int PickFreeLane()
+        {
+            int count = 0;
+            for (int lane = 0; lane < GameConstants.k_LaneCount; lane++)
+            {
+                if (!_laneOccupied[lane]) _freeLanes[count++] = lane;
+            }
+
+            return count == 0 ? -1 : _freeLanes[Random.Range(0, count)];
+        }
+
+        private void ClearOccupancy()
+        {
+            for (int i = 0; i < _laneOccupied.Length; i++)
+                _laneOccupied[i] = false;
+        }
+
+        private void MarkOccupied(ObstacleFootprint footprint, int lane)
+        {
+            if (IsFullWidth(footprint))
+            {
+                for (int i = 0; i < _laneOccupied.Length; i++)
+                    _laneOccupied[i] = true;
+                return;
+            }
+
+            _laneOccupied[lane] = true;
         }
 
         private bool HasPool(ObstacleFootprint footprint) =>
@@ -264,14 +342,14 @@ namespace SplitRun.Obstacle
         private readonly struct ActiveObstacle
         {
             public TrackObstacle Instance { get; }
-            public ObstaclePool Pool { get; }
-            public float SpawnZ { get; }
+            public ObstaclePool  Pool     { get; }
+            public float         SpawnZ   { get; }
 
             public ActiveObstacle(TrackObstacle instance, ObstaclePool pool, float spawnZ)
             {
                 Instance = instance;
-                Pool = pool;
-                SpawnZ = spawnZ;
+                Pool     = pool;
+                SpawnZ   = spawnZ;
             }
         }
     }

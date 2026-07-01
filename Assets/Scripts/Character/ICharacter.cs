@@ -19,6 +19,9 @@ namespace SplitRun.Character
 
         Transform CharacterTransform { get; }
 
+        /// <summary>The skill this character was created with. SkillType.None for Default.</summary>
+        SkillType ActiveSkill { get; }
+
         /// <summary>Requests a lane change. direction: -1 = left, +1 = right.</summary>
         void RequestLaneChange(int direction);
 

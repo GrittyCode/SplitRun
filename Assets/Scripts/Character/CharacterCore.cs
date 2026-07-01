@@ -42,7 +42,8 @@ namespace SplitRun.Character
             _skill             = SkillFactory.Create(characterType, this);
         }
 
-        public Observable<Unit> OnHit => _onHit;
+        public Observable<Unit> OnHit       => _onHit;
+        public SkillType        ActiveSkill => _skill.Type;
 
         public void Tick(float deltaTime)
         {

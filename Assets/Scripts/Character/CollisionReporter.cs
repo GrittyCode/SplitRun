@@ -1,5 +1,6 @@
 using UnityEngine;
 
+using SplitRun.Item;
 using SplitRun.Obstacle;
 
 namespace SplitRun.Character
@@ -14,13 +15,18 @@ namespace SplitRun.Character
             _character = GetComponentInParent<ICharacter>();
         }
 
-        // Every obstacle keeps its single BoxCollider on the root alongside TrackObstacle
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.TryGetComponent(out TrackObstacle obstacle)) return;
+            if (other.TryGetComponent(out TrackObstacle obstacle))
+            {
+                obstacle.Impacted();
+                _character.ReportCollision();
+                return;
+            }
 
-            obstacle.Impacted();
-            _character.ReportCollision();
+            if (other.TryGetComponent(out ItemPickup item))
+                ItemEvents.NotifyCollected(item);
         }
     }
 }
+
