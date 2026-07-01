@@ -3,7 +3,6 @@ using System;
 namespace SplitRun.Item
 {
     // Bridges the runtime-spawned character's trigger (outside the DI graph) to ItemService.
-    // CollisionReporter raises OnCollected; ItemService subscribes. Mirror of CharacterEvents.
     public static class ItemEvents
     {
         public static event Action<ItemPickup> OnCollected;

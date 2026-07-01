@@ -14,12 +14,14 @@ namespace SplitRun.Game
 {
     public class GameLifetimeScope : LifetimeScope
     {
+        [Header("Scene Components")]
         [SerializeField] private TrackSpawner   _trackSpawner;
         [SerializeField] private TrackScroller  _trackScroller;
         [SerializeField] private GameHUDView    _hudView;
         [SerializeField] private ItemBuffView   _itemBuffView;
         [SerializeField] private SkillGaugeView _skillGaugeView;
 
+        [Header("Scriptable Objects")]
         [SerializeField] private LevelDesignProfile _levelProfile;
         [SerializeField] private WorldThemeProfile  _worldTheme;
         [SerializeField] private ItemCatalog        _itemCatalog;
@@ -33,8 +35,9 @@ namespace SplitRun.Game
             builder.RegisterEntryPoint<SwipeDetector>().AsSelf();
             builder.RegisterEntryPoint<GameInput>();
 
-            // AsSelf() so TrackSpawner and the HUD views resolve ItemService by concrete type.
             builder.RegisterInstance(_itemCatalog);
+
+            // AsSelf() so TrackSpawner and the HUD views resolve ItemService by concrete type.
             builder.RegisterEntryPoint<ItemService>().AsSelf();
 
             if (_hudIconLibrary)
@@ -48,22 +51,11 @@ namespace SplitRun.Game
             if (_worldTheme)
                 builder.RegisterInstance(_worldTheme);
 
-            // MonoBehaviours placed in the scene — registered so dependencies are injected into
-            // them. Null-guarded so the scene still runs in isolated tests with any absent.
-            if (_trackSpawner)
-                builder.RegisterComponent(_trackSpawner);
-
-            if (_trackScroller)
-                builder.RegisterComponent(_trackScroller);
-
-            if (_hudView)
-                builder.RegisterComponent(_hudView);
-
-            if (_itemBuffView)
-                builder.RegisterComponent(_itemBuffView);
-
-            if (_skillGaugeView)
-                builder.RegisterComponent(_skillGaugeView);
+            builder.RegisterComponent(_trackSpawner);
+            builder.RegisterComponent(_trackScroller);
+            builder.RegisterComponent(_hudView);
+            builder.RegisterComponent(_itemBuffView);
+            builder.RegisterComponent(_skillGaugeView);
 
             builder.RegisterEntryPoint<WorldBuilder>();
 

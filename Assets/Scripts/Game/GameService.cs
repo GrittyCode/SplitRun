@@ -1,7 +1,5 @@
 using System;
 
-using UnityEngine;
-
 using R3;
 using VContainer.Unity;
 
@@ -21,16 +19,15 @@ namespace SplitRun.Game
         private readonly ReactiveProperty<int>        _currentHp        = new ReactiveProperty<int>(GameConstants.k_MaxHp);
         private readonly ReactiveProperty<float>      _speed            = new ReactiveProperty<float>(GameConstants.k_BaseRunSpeed);
         private readonly ReactiveProperty<SkillState> _skillState       = new ReactiveProperty<SkillState>(SkillState.Ready);
+        private readonly ReactiveProperty<SkillType>  _activeSkill      = new ReactiveProperty<SkillType>(SkillType.None);
         private readonly Subject<int>                 _onZoneEntered    = new Subject<int>();
-
-        private SkillType _activeSkill = SkillType.None;
 
         public ReadOnlyReactiveProperty<GamePhase>  Phase             => _phase;
         public ReadOnlyReactiveProperty<float>      CurrentDistance   => _currentDistance;
         public ReadOnlyReactiveProperty<int>        CurrentHp         => _currentHp;
         public ReadOnlyReactiveProperty<float>      Speed             => _speed;
         public ReadOnlyReactiveProperty<SkillState> CurrentSkillState => _skillState;
-        public SkillType                            ActiveSkill       => _activeSkill;
+        public ReadOnlyReactiveProperty<SkillType>  ActiveSkill       => _activeSkill;
         public Observable<int>                      OnZoneEntered     => _onZoneEntered;
 
         public void Start()
@@ -42,8 +39,6 @@ namespace SplitRun.Game
             _currentHp.Value       = GameConstants.k_MaxHp;
             _speed.Value           = GameConstants.k_BaseRunSpeed;
             _phase.Value           = GamePhase.Lobby;
-
-            Debug.Log("[GameService] Initialized");
         }
 
         public void Dispose()
@@ -59,6 +54,7 @@ namespace SplitRun.Game
             _currentHp.Dispose();
             _speed.Dispose();
             _skillState.Dispose();
+            _activeSkill.Dispose();
             _onZoneEntered.Dispose();
         }
 
@@ -67,7 +63,6 @@ namespace SplitRun.Game
         {
             _phase.Value = GamePhase.Running;
             _character?.SetRunning(true);
-            Debug.Log("[GameService] Run started");
         }
 
         /// <summary>Transitions phase to GameOver and locks in the final distance.</summary>
@@ -78,7 +73,6 @@ namespace SplitRun.Game
             _character?.SetRunning(false);
 
             // TODO(data): inject PlayerDataService and call UpdateBestDistance((int)finalDistance)
-            Debug.Log($"[GameService] Run ended — distance: {finalDistance:F0}m");
         }
 
         public void RequestLaneChange(int direction) => _character?.RequestLaneChange(direction);
@@ -86,10 +80,12 @@ namespace SplitRun.Game
         public void RequestSlide()                   => _character?.RequestSlide();
         public void RequestSkill()                   => _character?.ActivateSkill();
 
+        // The character is spawned at runtime outside the DI graph, so GameService mirrors its
+        // reactives here to give injected views a stable seam across spawn/despawn.
         private void OnCharacterSpawned(ICharacter character)
         {
-            _character   = character;
-            _activeSkill = character.ActiveSkill;
+            _character         = character;
+            _activeSkill.Value = character.ActiveSkill;
             character.SetRunning(_phase.Value == GamePhase.Running);
 
             character.HpReactive
@@ -113,19 +109,15 @@ namespace SplitRun.Game
                 .Where(hp => hp <= 0 && _phase.Value == GamePhase.Running)
                 .Subscribe(_ => EndRun(_currentDistance.Value))
                 .AddTo(ref _characterDisposables);
-
-            // Re-push so the gauge shows the idle Ready state.
-            _skillState.OnNext(character.SkillStateReactive.CurrentValue);
-
         }
 
         private void OnCharacterDespawned(ICharacter character)
         {
             if (_character != character) return;
 
-            _character        = null;
-            _activeSkill      = SkillType.None;
-            _skillState.Value = SkillState.Ready;
+            _character         = null;
+            _activeSkill.Value = SkillType.None;
+            _skillState.Value  = SkillState.Ready;
             _characterDisposables.Dispose();
         }
     }

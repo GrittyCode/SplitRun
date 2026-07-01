@@ -3,9 +3,8 @@ using UnityEngine.UI;
 
 namespace SplitRun.UI.Game
 {
-    // Presentation only: an icon and a 0..1 fill with a color. Bar vs radial is an Inspector Image
-    // setting, so one component backs both the buff bar and the skill gauge. SetVisible deactivates
-    // this object — keep the driving view on a separate always-active parent.
+    // SetVisible deactivates this GameObject, so the driving view must live on a separate
+    // always-active parent — a deactivated view can't re-enable its own indicator.
     public class TimedIndicator : MonoBehaviour
     {
         [SerializeField] private Image _icon;

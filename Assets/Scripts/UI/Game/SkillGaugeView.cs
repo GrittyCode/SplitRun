@@ -32,8 +32,9 @@ namespace SplitRun.UI.Game
 
         private void Start()
         {
-            _gameService.CurrentSkillState
-                .Subscribe(state => OnStateChanged(state))
+            _gameService.ActiveSkill
+                .CombineLatest(_gameService.CurrentSkillState, (skill, state) => (skill, state))
+                .Subscribe(pair => OnStateChanged(pair.skill, pair.state))
                 .AddTo(this);
         }
 
@@ -47,9 +48,9 @@ namespace SplitRun.UI.Game
             if (_remaining <= 0f) _isCounting = false;
         }
 
-        private void OnStateChanged(SkillState state)
+        private void OnStateChanged(SkillType skill, SkillState state)
         {
-            _skill = _gameService.ActiveSkill;
+            _skill = skill;
 
             if (_skill == SkillType.None)
             {

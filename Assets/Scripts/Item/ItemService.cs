@@ -12,8 +12,7 @@ using SplitRun.Game;
 
 namespace SplitRun.Item
 {
-    // Owns the full run lifetime of pickups: pooling, placement (via Spawn), the active
-    // registry, magnet pull, trailing despawn, and collection. Coins are local UI state.
+    // Owns the pickup run lifetime (pool, placement, magnet, despawn, collection); coins are local UI state.
     public sealed class ItemService : IStartable, ITickable, IDisposable
     {
         private readonly ItemCatalog _catalog;
@@ -116,7 +115,6 @@ namespace SplitRun.Item
         private void OnItemCollected(ItemPickup item)
         {
             if (!_active.Remove(item)) return;
-            _pulled.Remove(item);
 
             switch (item.Type)
             {
@@ -125,12 +123,10 @@ namespace SplitRun.Item
                     break;
                 case ItemType.Magnet:
                     _magnetSeconds = ItemConstants.k_MagnetDuration;
-                    Debug.Log($"[ItemService] Magnet active for {ItemConstants.k_MagnetDuration}s");
                     break;
             }
 
-            item.Collect();
-            Enqueue(item);
+            Recycle(item);
         }
 
         private void UpdateMagnet(float deltaTime)

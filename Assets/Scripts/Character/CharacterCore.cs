@@ -11,9 +11,7 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // All character gameplay rules live here. ServerCharacter and LocalCharacter are thin
-    // adapters that supply an ICharacterState (NetworkVariable- or ReactiveProperty-backed)
-    // and forward input. Skills hold this core and call its effect methods directly.
+    // Storage-agnostic core: adapters supply an ICharacterState (NetworkVariable- or ReactiveProperty-backed).
     public sealed class CharacterCore : IDisposable
     {
         private readonly ICharacterState   _state;

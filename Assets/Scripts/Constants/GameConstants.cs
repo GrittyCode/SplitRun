@@ -22,9 +22,6 @@ namespace SplitRun.Constants
 
         public const int   k_MaxHp              = 3;
 
-        // HP value at which the danger BGM kicks in.
-        public const int   k_DangerHpThreshold  = 1;
-
         // Discards duplicate collision reports arriving within this window of the first.
         public const float k_CollisionDebounceDuration = 0.3f;
 

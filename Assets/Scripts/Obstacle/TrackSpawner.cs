@@ -56,8 +56,6 @@ namespace SplitRun.Obstacle
 
             foreach (FootprintPrefabs set in _theme.ObstaclePrefabs)
                 RegisterPrefabSet(set);
-
-            Debug.Log($"[TrackSpawner] {_pools.Count} pool(s) initialized");
         }
 
         private void RegisterPrefabSet(FootprintPrefabs set)
