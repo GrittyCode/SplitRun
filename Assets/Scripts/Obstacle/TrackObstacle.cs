@@ -10,8 +10,7 @@ using UnityEditor;
 
 namespace SplitRun.Obstacle
 {
-    // ExecuteAlways so the editor-time auto-floor runs while authoring; all that logic is guarded
-    // out of play mode and stripped from player builds via UNITY_EDITOR.
+    // ExecuteAlways only for the editor-time auto-floor; all of it is guarded out of play mode.
     [ExecuteAlways]
     [RequireComponent(typeof(BoxCollider))]
     public class TrackObstacle : MonoBehaviour
@@ -34,8 +33,7 @@ namespace SplitRun.Obstacle
 
         private void OnDestroy() => _impactTween?.Kill();
 
-        // Collider disabled before the tween starts so an overlapping trigger in the same
-        // physics step can never fire Impacted() a second time.
+        // Collider disabled first so an overlapping trigger in the same physics step can't re-fire Impacted().
         public void Impacted()
         {
             _impactTween?.Kill();
@@ -52,8 +50,7 @@ namespace SplitRun.Obstacle
                 .OnComplete(() => gameObject.SetActive(false));
         }
 
-        // Called by ObstaclePool.Rent() on pool reuse — restores an instance blown away on a
-        // previous use. The spawner resets position on rent but never rotation, so restore it here.
+        // Restores rotation blown away on a previous use — the spawner resets position only.
         public void ResetState()
         {
             _impactTween?.Kill();
@@ -65,8 +62,7 @@ namespace SplitRun.Obstacle
             gameObject.SetActive(true);
         }
 
-        // Warn-only, never auto-corrected: a non-identity root would multiply into the stamped
-        // collider, but silently resetting it mid-edit would clobber the author's in-progress work.
+        // Warn-only: auto-resetting would clobber the author's in-progress edit.
         public bool IsRootTransformValid()
         {
             const float k_Tolerance = 0.0001f;

@@ -20,11 +20,10 @@ namespace SplitRun.Obstacle
         [Inject] private WorldThemeProfile  _theme;
         [Inject] private ItemService        _itemService;
 
-        private readonly List<ObstaclePool>     _pools  = new List<ObstaclePool>();
-        private readonly Queue<ActiveObstacle>  _active = new Queue<ActiveObstacle>();
+        private readonly Dictionary<ObstacleFootprint, List<ObstaclePool>> _pools =
+            new Dictionary<ObstacleFootprint, List<ObstaclePool>>();
 
-        private readonly Dictionary<ObstacleFootprint, List<int>> _poolsByFootprint =
-            new Dictionary<ObstacleFootprint, List<int>>();
+        private readonly Queue<ActiveObstacle> _active = new Queue<ActiveObstacle>();
 
         private readonly bool[] _laneOccupied = new bool[GameConstants.k_LaneCount];
         private readonly int[]  _freeLanes    = new int[GameConstants.k_LaneCount];
@@ -40,12 +39,14 @@ namespace SplitRun.Obstacle
 
         private void OnDestroy()
         {
-            foreach (ObstaclePool pool in _pools)
-                pool.Dispose();
+            foreach (List<ObstaclePool> pools in _pools.Values)
+            {
+                foreach (ObstaclePool pool in pools)
+                    pool.Dispose();
+            }
         }
 
-        // Pools are built from the active theme's footprint-to-prefab map, so the level profile
-        // stays theme-agnostic: it weights footprints, the theme supplies the meshes.
+        // Pools come from the theme's footprint→prefab map, so the level profile stays theme-agnostic.
         private void InitializePools()
         {
             if (!_theme)
@@ -70,21 +71,14 @@ namespace SplitRun.Obstacle
                     Debug.LogWarning($"[TrackSpawner] '{prefab.name}' footprint {prefab.Footprint} " +
                                      $"does not match its theme slot {set.Footprint}.");
 
-                int poolIndex = _pools.Count;
-                _pools.Add(new ObstaclePool(prefab, transform, GameConstants.k_ObstaclePoolSizePerPrefab));
-                RegisterFootprint(set.Footprint, poolIndex);
-            }
-        }
+                if (!_pools.TryGetValue(set.Footprint, out List<ObstaclePool> pools))
+                {
+                    pools = new List<ObstaclePool>();
+                    _pools[set.Footprint] = pools;
+                }
 
-        private void RegisterFootprint(ObstacleFootprint footprint, int poolIndex)
-        {
-            if (!_poolsByFootprint.TryGetValue(footprint, out List<int> indices))
-            {
-                indices = new List<int>();
-                _poolsByFootprint[footprint] = indices;
+                pools.Add(new ObstaclePool(prefab, transform, GameConstants.k_ObstaclePoolSizePerPrefab));
             }
-
-            indices.Add(poolIndex);
         }
 
         private void BindToGameService()
@@ -137,8 +131,7 @@ namespace SplitRun.Obstacle
             }
         }
 
-        // Obstacles are placed first so lane occupancy is known; items then fill the gap to the
-        // next slot in a free lane, guaranteeing pickups never sit on an obstacle.
+        // Obstacles first so lane occupancy is known; items then fill only free lanes.
         private void SpawnSlot(float spawnZ)
         {
             ClearOccupancy();
@@ -149,8 +142,7 @@ namespace SplitRun.Obstacle
             PlaceItems(spawnZ);
         }
 
-        // One weighted roll over both single obstacles and coop patterns: difficulty is read at the
-        // obstacle's own spawn Z (where the player meets it), not the character's current Z.
+        // Difficulty is read at the obstacle's own spawn Z (where the player meets it), not the character's Z.
         // TODO(netcode): server must select the slot contents and broadcast via ClientRpc.
         private void SpawnObstacles(float spawnZ)
         {
@@ -226,8 +218,7 @@ namespace SplitRun.Obstacle
             SpawnAt(footprint, lane, spawnZ);
         }
 
-        // Every lane filled at the same Z: one random pass lane gets the clearable footprint, the
-        // other two are Vertical walls, so the slot demands both a lane change and a vertical move.
+        // One random pass lane is clearable; the other two are Vertical walls, forcing both players to act.
         private void SpawnCoop(CoopPatternType pattern, float spawnZ)
         {
             int passLane = Random.Range(GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
@@ -240,17 +231,16 @@ namespace SplitRun.Obstacle
             }
         }
 
-        // Y stays 0 — the footprint's collider center bakes the ground/head-height anchor, so
-        // placement only chooses the lane X.
+        // Y stays 0 — the footprint's stamped collider center bakes the height anchor.
         private void SpawnAt(ObstacleFootprint footprint, int lane, float spawnZ)
         {
-            int poolIndex = PickPoolForFootprint(footprint);
-            if (poolIndex < 0) return;
+            ObstaclePool pool = PickPoolForFootprint(footprint);
+            if (pool == null) return;
 
-            TrackObstacle instance = _pools[poolIndex].Rent();
+            TrackObstacle instance = pool.Rent();
             instance.transform.position = new Vector3(GameConstants.GetLaneX(lane), 0f, spawnZ);
 
-            _active.Enqueue(new ActiveObstacle(instance, _pools[poolIndex], spawnZ));
+            _active.Enqueue(new ActiveObstacle(instance, pool, spawnZ));
             MarkOccupied(footprint, lane);
         }
 
@@ -315,17 +305,17 @@ namespace SplitRun.Obstacle
         }
 
         private bool HasPool(ObstacleFootprint footprint) =>
-            _poolsByFootprint.TryGetValue(footprint, out List<int> indices) && indices.Count > 0;
+            _pools.TryGetValue(footprint, out List<ObstaclePool> pools) && pools.Count > 0;
 
         private bool IsPatternSpawnable(CoopPatternType pattern) =>
             HasPool(ObstacleFootprint.Vertical) && HasPool(PassFootprint(pattern));
 
-        private int PickPoolForFootprint(ObstacleFootprint footprint)
+        private ObstaclePool PickPoolForFootprint(ObstacleFootprint footprint)
         {
-            if (!_poolsByFootprint.TryGetValue(footprint, out List<int> indices) || indices.Count == 0)
-                return -1;
+            if (!_pools.TryGetValue(footprint, out List<ObstaclePool> pools) || pools.Count == 0)
+                return null;
 
-            return indices[Random.Range(0, indices.Count)];
+            return pools[Random.Range(0, pools.Count)];
         }
 
         private static ObstacleFootprint PassFootprint(CoopPatternType pattern) => pattern switch

@@ -10,8 +10,7 @@ using SplitRun.Game;
 
 namespace SplitRun.Environment
 {
-    // Cosmetic endless ground: tiles one segment prefab edge-to-edge ahead of the character
-    // and recycles it behind. Carries no gameplay rules and is independent of obstacle spawning.
+    // Cosmetic endless ground — tiles the theme segment ahead, recycles behind; no gameplay rules.
     public class TrackScroller : MonoBehaviour
     {
         [Inject] private GameService       _gameService;

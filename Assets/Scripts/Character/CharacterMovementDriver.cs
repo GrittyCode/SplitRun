@@ -7,8 +7,6 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // Drives Transform position changes and CapsuleCollider hitbox resizing.
-    // Lane (X), jump arc (Y), forward sync (Z), slide hitbox.
     public class CharacterMovementDriver : MonoBehaviour
     {
         private ICharacter      _character;

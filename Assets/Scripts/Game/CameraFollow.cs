@@ -1,3 +1,5 @@
+using System;
+
 using UnityEngine;
 
 using R3;
@@ -12,7 +14,8 @@ namespace SplitRun.Game
     [RequireComponent(typeof(Camera))]
     public class CameraFollow : MonoBehaviour
     {
-        private float _trackedDistance;
+        private float       _trackedDistance;
+        private IDisposable _distanceSubscription;
 
         private void Awake()
         {
@@ -29,6 +32,9 @@ namespace SplitRun.Game
         {
             CharacterEvents.OnSpawned   -= OnCharacterSpawned;
             CharacterEvents.OnDespawned -= OnCharacterDespawned;
+
+            _distanceSubscription?.Dispose();
+            _distanceSubscription = null;
         }
 
         private void LateUpdate()
@@ -44,18 +50,22 @@ namespace SplitRun.Game
             transform.rotation = Quaternion.Euler(CameraConstants.k_CameraPitchAngle, 0f, 0f);
         }
 
+        // Disposed per despawn — AddTo(this) would stack one live subscription per respawn.
         private void OnCharacterSpawned(ICharacter character)
         {
+            _distanceSubscription?.Dispose();
+
             // Track authoritative distance instead of Transform.position.z so visual-only
             // knockback offset on the character never pulls the camera backward.
-            character.DistanceReactive
-                .Subscribe(distance => _trackedDistance = distance)
-                .AddTo(this);
+            _distanceSubscription = character.DistanceReactive
+                .Subscribe(distance => _trackedDistance = distance);
         }
 
         private void OnCharacterDespawned(ICharacter character)
         {
-            _trackedDistance = 0f;
+            _distanceSubscription?.Dispose();
+            _distanceSubscription = null;
+            _trackedDistance      = 0f;
         }
     }
 }

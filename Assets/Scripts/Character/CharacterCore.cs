@@ -20,8 +20,7 @@ namespace SplitRun.Character
 
         private readonly Subject<Unit> _onHit = new Subject<Unit>();
 
-        // Accumulates separately from _state.Speed so the dash multiplier never compounds
-        // into the acceleration read-back.
+        // Kept separate from _state.Speed so the dash multiplier never compounds into acceleration.
         private float _baseSpeed = GameConstants.k_BaseRunSpeed;
         private float _speedMultiplier = 1f;
 
@@ -37,7 +36,12 @@ namespace SplitRun.Character
         {
             _state             = state;
             _cancellationToken = cancellationToken;
-            _skill             = SkillFactory.Create(characterType, this);
+            _skill             = characterType switch
+            {
+                CharacterType.Shield => new ShieldSkill(this),
+                CharacterType.Dash   => new DashSkill(this),
+                _                    => new NullSkill(),
+            };
         }
 
         public Observable<Unit> OnHit       => _onHit;

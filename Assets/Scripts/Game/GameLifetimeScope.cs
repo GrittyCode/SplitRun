@@ -29,35 +29,23 @@ namespace SplitRun.Game
 
         protected override void Configure(IContainerBuilder builder)
         {
-            // AsSelf() makes GameService resolvable by concrete type for GameInput injection.
+            // AsSelf() so consumers resolve these by concrete type.
             builder.RegisterEntryPoint<GameService>().AsSelf();
-
             builder.RegisterEntryPoint<SwipeDetector>().AsSelf();
             builder.RegisterEntryPoint<GameInput>();
-
-            builder.RegisterInstance(_itemCatalog);
-
-            // AsSelf() so TrackSpawner and the HUD views resolve ItemService by concrete type.
             builder.RegisterEntryPoint<ItemService>().AsSelf();
 
-            if (_hudIconLibrary)
-                builder.RegisterInstance(_hudIconLibrary);
-
-            // Single assignment point for level + theme data: every consumer injects these, so no
-            // scene object holds prefab or profile references directly.
-            if (_levelProfile)
-                builder.RegisterInstance(_levelProfile);
-
-            if (_worldTheme)
-                builder.RegisterInstance(_worldTheme);
+            // Single assignment point for asset references — every consumer injects these.
+            builder.RegisterInstance(_levelProfile);
+            builder.RegisterInstance(_worldTheme);
+            builder.RegisterInstance(_itemCatalog);
+            builder.RegisterInstance(_hudIconLibrary);
 
             builder.RegisterComponent(_trackSpawner);
             builder.RegisterComponent(_trackScroller);
             builder.RegisterComponent(_hudView);
             builder.RegisterComponent(_itemBuffView);
             builder.RegisterComponent(_skillGaugeView);
-
-            builder.RegisterEntryPoint<WorldBuilder>();
 
             // TODO(netcode): builder.Register<NetworkService>(Lifetime.Singleton)
 

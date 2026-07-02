@@ -25,7 +25,6 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<SkillState>    SkillStateReactive    => _skillState;
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalState;
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distance;
-        public ReadOnlyReactiveProperty<float>         SpeedReactive         => _speed;
         public Observable<Unit>                        OnHit                 => _core.OnHit;
         public Transform                               CharacterTransform    => transform;
         public SkillType                               ActiveSkill           => _core != null ? _core.ActiveSkill : SkillType.None;

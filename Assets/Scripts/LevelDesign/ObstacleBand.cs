@@ -6,9 +6,7 @@ using SplitRun.Obstacle;
 
 namespace SplitRun.LevelDesign
 {
-    // A distance tier within a profile, active from its StartDistance until the next band begins.
-    // Single-footprint obstacles and coop patterns share one weighted roll, so coop frequency is
-    // tuned per tier exactly like any single obstacle (e.g. coop weight 0 in the opening tier).
+    // Singles and coop patterns share one weighted roll, so coop frequency is tuned like any obstacle.
     [Serializable]
     public class ObstacleBand
     {
@@ -18,14 +16,12 @@ namespace SplitRun.LevelDesign
 
         public float StartDistance => _startDistance;
 
-        // Returned as arrays so the spawner's per-slot selection iterates without allocating an
-        // interface enumerator.
+        // Arrays so the spawner's per-slot selection iterates without allocating an enumerator.
         public ObstacleFootprintWeight[] SingleWeights => _singleWeights;
         public CoopPatternWeight[]       CoopWeights   => _coopWeights;
     }
 
-    // Named pair instead of a positional array: the footprint is stored with its weight so
-    // authoring never depends on remembering the enum's declaration order in the inspector.
+    // Named pair so inspector authoring never depends on the enum's declaration order.
     [Serializable]
     public struct ObstacleFootprintWeight
     {

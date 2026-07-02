@@ -10,8 +10,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.Game
 {
-    // Lane input is gated by a cooldown timer matching the animation duration —
-    // a new lane change cannot be requested until the previous animation completes.
     public class GameInput : IStartable, ITickable, IDisposable
     {
         private readonly SwipeDetector _swipeDetector;
@@ -28,9 +26,15 @@ namespace SplitRun.Game
 
         public void Start()
         {
-            BindLaneInput();
-            BindJumpSlideInput();
-            BindSkillInput();
+            _swipeDetector.OnSwipe
+                .Where(_ => IsRunning())
+                .Subscribe(OnSwipe)
+                .AddTo(ref _disposables);
+
+            _swipeDetector.OnDoubleTap
+                .Where(_ => IsRunning())
+                .Subscribe(_ => _gameService.RequestSkill())
+                .AddTo(ref _disposables);
         }
 
         public void Tick()
@@ -41,49 +45,31 @@ namespace SplitRun.Game
 
         public void Dispose() => _disposables.Dispose();
 
-        private void BindLaneInput()
+        private void OnSwipe(SwipeDirection direction)
         {
-            _swipeDetector.OnSwipe
-                .Where(_ => IsRunning())
-                .Where(IsLaneSwipe)
-                .Where(_ => _laneInputCooldown <= 0f)
-                .Subscribe(dir =>
-                {
-                    _gameService.RequestLaneChange(ToLaneDirection(dir));
-                    _laneInputCooldown = GameConstants.k_LaneMoveDuration;
-                })
-                .AddTo(ref _disposables);
+            switch (direction)
+            {
+                case SwipeDirection.Up:
+                    _gameService.RequestJump();
+                    break;
+                case SwipeDirection.Down:
+                    _gameService.RequestSlide();
+                    break;
+                default:
+                    TryChangeLane(direction);
+                    break;
+            }
         }
 
-        private void BindJumpSlideInput()
+        // Gated by a cooldown matching the lane tween so a new change can't start mid-animation.
+        private void TryChangeLane(SwipeDirection direction)
         {
-            _swipeDetector.OnSwipe
-                .Where(_ => IsRunning())
-                .Where(dir => dir == SwipeDirection.Up)
-                .Subscribe(_ => _gameService.RequestJump())
-                .AddTo(ref _disposables);
+            if (_laneInputCooldown > 0f) return;
 
-            _swipeDetector.OnSwipe
-                .Where(_ => IsRunning())
-                .Where(dir => dir == SwipeDirection.Down)
-                .Subscribe(_ => _gameService.RequestSlide())
-                .AddTo(ref _disposables);
-        }
-
-        private void BindSkillInput()
-        {
-            _swipeDetector.OnDoubleTap
-                .Where(_ => IsRunning())
-                .Subscribe(_ => _gameService.RequestSkill())
-                .AddTo(ref _disposables);
+            _gameService.RequestLaneChange(direction == SwipeDirection.Left ? -1 : 1);
+            _laneInputCooldown = GameConstants.k_LaneMoveDuration;
         }
 
         private bool IsRunning() => _gameService.Phase.CurrentValue == GamePhase.Running;
-
-        private static bool IsLaneSwipe(SwipeDirection dir)
-            => dir is SwipeDirection.Left or SwipeDirection.Right;
-
-        private static int ToLaneDirection(SwipeDirection dir)
-            => dir == SwipeDirection.Left ? -1 : 1;
     }
 }

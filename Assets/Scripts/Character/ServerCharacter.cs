@@ -9,54 +9,20 @@ namespace SplitRun.Character
 {
     public class ServerCharacter : NetworkBehaviour, ICharacter, ICharacterState
     {
-        private readonly NetworkVariable<int> _currentLane = new NetworkVariable<int>(
-            GameConstants.k_LaneCenter,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-
-        private readonly NetworkVariable<int> _hp = new NetworkVariable<int>(
-            GameConstants.k_MaxHp,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-
-        private readonly NetworkVariable<float> _distance = new NetworkVariable<float>(
-            0f,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-
-        private readonly NetworkVariable<float> _speed = new NetworkVariable<float>(
-            GameConstants.k_BaseRunSpeed,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-
-        private readonly NetworkVariable<SkillState> _skillState = new NetworkVariable<SkillState>(
-            SkillState.Ready,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-
-        private readonly NetworkVariable<CharacterType> _charType = new NetworkVariable<CharacterType>(
-            CharacterType.Default,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-
-        private readonly NetworkVariable<VerticalState> _verticalState = new NetworkVariable<VerticalState>(
-            VerticalState.Ground,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
+        // Read Everyone / write Server are the NGO defaults — stated nowhere, relied on everywhere.
+        private readonly NetworkVariable<int>           _currentLane   = new NetworkVariable<int>(GameConstants.k_LaneCenter);
+        private readonly NetworkVariable<int>           _hp            = new NetworkVariable<int>(GameConstants.k_MaxHp);
+        private readonly NetworkVariable<float>         _distance      = new NetworkVariable<float>(0f);
+        private readonly NetworkVariable<float>         _speed         = new NetworkVariable<float>(GameConstants.k_BaseRunSpeed);
+        private readonly NetworkVariable<SkillState>    _skillState    = new NetworkVariable<SkillState>(SkillState.Ready);
+        private readonly NetworkVariable<CharacterType> _charType      = new NetworkVariable<CharacterType>(CharacterType.Default);
+        private readonly NetworkVariable<VerticalState> _verticalState = new NetworkVariable<VerticalState>(VerticalState.Ground);
 
         private readonly ReactiveProperty<int>           _laneReactive          = new ReactiveProperty<int>(GameConstants.k_LaneCenter);
         private readonly ReactiveProperty<int>           _hpReactive            = new ReactiveProperty<int>(GameConstants.k_MaxHp);
         private readonly ReactiveProperty<SkillState>    _skillStateReactive    = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<VerticalState> _verticalStateReactive = new ReactiveProperty<VerticalState>(VerticalState.Ground);
         private readonly ReactiveProperty<float>         _distanceReactive      = new ReactiveProperty<float>(0f);
-        private readonly ReactiveProperty<float>         _speedReactive         = new ReactiveProperty<float>(GameConstants.k_BaseRunSpeed);
 
         private CharacterCore _core;
 
@@ -65,7 +31,6 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<SkillState>    SkillStateReactive    => _skillStateReactive;
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalStateReactive;
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distanceReactive;
-        public ReadOnlyReactiveProperty<float>         SpeedReactive         => _speedReactive;
         public Observable<Unit>                        OnHit                 => _core.OnHit;
         public Transform                               CharacterTransform    => transform;
         public SkillType                               ActiveSkill           => _core != null ? _core.ActiveSkill : SkillType.None;
@@ -84,7 +49,6 @@ namespace SplitRun.Character
             _skillState.OnValueChanged    += OnSkillStateChanged;
             _verticalState.OnValueChanged += OnVerticalStateChanged;
             _distance.OnValueChanged      += OnDistanceChanged;
-            _speed.OnValueChanged         += OnSpeedChanged;
 
             // OnValueChanged does not fire for the initial value — manual sync required.
             _hpReactive.Value            = _hp.Value;
@@ -92,7 +56,6 @@ namespace SplitRun.Character
             _skillStateReactive.Value    = _skillState.Value;
             _verticalStateReactive.Value = _verticalState.Value;
             _distanceReactive.Value      = _distance.Value;
-            _speedReactive.Value         = _speed.Value;
 
             _core = new CharacterCore(this, _charType.Value, destroyCancellationToken);
 
@@ -110,14 +73,12 @@ namespace SplitRun.Character
             _skillState.OnValueChanged    -= OnSkillStateChanged;
             _verticalState.OnValueChanged -= OnVerticalStateChanged;
             _distance.OnValueChanged      -= OnDistanceChanged;
-            _speed.OnValueChanged         -= OnSpeedChanged;
 
             _laneReactive.Dispose();
             _hpReactive.Dispose();
             _skillStateReactive.Dispose();
             _verticalStateReactive.Dispose();
             _distanceReactive.Dispose();
-            _speedReactive.Dispose();
         }
 
         private void Update()
@@ -136,18 +97,6 @@ namespace SplitRun.Character
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void ReportCollisionServerRpc() => _core.ReportCollision();
 
-        [Rpc(SendTo.ClientsAndHost)]
-        public void TriggerSkillEffectClientRpc(SkillType skillType)
-        {
-            // TODO(skill): forward to CharacterAnimationDriver.PlaySkillEffect(skillType)
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        public void TriggerZoneTransitionClientRpc(int zoneIndex)
-        {
-            // TODO(chunk): forward to CharacterAnimationDriver.PlayZoneTransition(zoneIndex)
-        }
-
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void ChangeLaneServerRpc(int direction) => _core.ChangeLane(direction);
 
@@ -165,6 +114,5 @@ namespace SplitRun.Character
         private void OnSkillStateChanged(SkillState prev, SkillState next)          => _skillStateReactive.Value = next;
         private void OnVerticalStateChanged(VerticalState prev, VerticalState next) => _verticalStateReactive.Value = next;
         private void OnDistanceChanged(float prev, float next)                      => _distanceReactive.Value = next;
-        private void OnSpeedChanged(float prev, float next)                         => _speedReactive.Value = next;
     }
 }

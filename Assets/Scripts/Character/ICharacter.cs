@@ -11,10 +11,8 @@ namespace SplitRun.Character
         ReadOnlyReactiveProperty<SkillState>    SkillStateReactive    { get; }
         ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive { get; }
         ReadOnlyReactiveProperty<float>         DistanceReactive      { get; }
-        ReadOnlyReactiveProperty<float>         SpeedReactive         { get; }
 
-        // Fires the moment a collision clears debounce — before HP changes propagate.
-        // Subscribers needing immediate visual response (knockback, flash) use this.
+        // Fires when a collision clears debounce, before HP propagates — for immediate visual response.
         Observable<Unit> OnHit { get; }
 
         Transform CharacterTransform { get; }

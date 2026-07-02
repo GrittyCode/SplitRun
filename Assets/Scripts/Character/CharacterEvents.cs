@@ -2,9 +2,7 @@ using System;
 
 namespace SplitRun.Character
 {
-    // Static event hub that bridges dynamically spawned character instances
-    // into the VContainer dependency graph.
-    // ICharacter implementations call Notify* — services subscribe to On*.
+    // Bridges runtime-spawned character instances (outside the DI graph) to injected services.
     public static class CharacterEvents
     {
         public static event Action<ICharacter> OnSpawned;
