@@ -7,7 +7,9 @@ using Cysharp.Threading.Tasks;
 using VContainer.Unity;
 
 using SplitRun.Ad;
+using SplitRun.Constants;
 using SplitRun.Data;
+using SplitRun.Network;
 
 namespace SplitRun.Boot
 {
@@ -15,16 +17,18 @@ namespace SplitRun.Boot
     {
         private readonly PlayerDataService _playerDataService;
         private readonly AdService         _adService;
+        private readonly NetworkService    _networkService;
 
-        public BootLoader(PlayerDataService playerDataService, AdService adService)
+        public BootLoader(PlayerDataService playerDataService, AdService adService, NetworkService networkService)
         {
             _playerDataService = playerDataService;
             _adService         = adService;
+            _networkService    = networkService;
         }
 
         /// <summary>
         /// Runs once after all VContainer injections complete.
-        /// Initializes services in dependency order, then loads the Game scene for testing.
+        /// Initializes services in dependency order, then loads the Lobby scene.
         /// </summary>
         public async UniTask StartAsync(CancellationToken ct)
         {
@@ -33,10 +37,13 @@ namespace SplitRun.Boot
             // AdMob init is fire-and-forget — does not block scene transition
             _adService.Initialize();
 
-            Debug.Log("[BootLoader] Boot init complete — loading Game scene");
+            // Sign-in races the scene load — failure only disables multiplayer, so boot never blocks on it.
+            _networkService.InitializeAsync(ct).Forget();
 
-            // TODO(boot): load Title scene instead of Game scene
-            await SceneManager.LoadSceneAsync("Game").ToUniTask(cancellationToken: ct);
+            Debug.Log("[BootLoader] Boot init complete — loading Lobby scene");
+
+            // TODO(ui): route through a Title/loading screen before Lobby
+            await SceneManager.LoadSceneAsync(SceneConstants.k_LobbySceneName).ToUniTask(cancellationToken: ct);
         }
     }
 }
