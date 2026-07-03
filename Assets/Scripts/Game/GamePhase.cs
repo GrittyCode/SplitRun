@@ -4,6 +4,7 @@ namespace SplitRun.Game
     {
         Lobby,
         Running,
+        Paused,
         GameOver,
     }
 }

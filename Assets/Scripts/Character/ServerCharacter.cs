@@ -85,19 +85,28 @@ namespace SplitRun.Character
 
         private void Update()
         {
-            if (!IsServer) return;
-            _core.Tick(Time.deltaTime);
+            if (IsServer)
+            {
+                _core.Tick(Time.deltaTime);
+                return;
+            }
+
+            InterpolateDistance(Time.deltaTime);
         }
 
         public void RequestLaneChange(int direction) => ChangeLaneServerRpc(direction);
         public void RequestJump()                    => JumpServerRpc();
         public void RequestSlide()                   => SlideServerRpc();
         public void ActivateSkill()                  => ActivateSkillServerRpc();
-        public void ReportCollision()                => ReportCollisionServerRpc();
         public void SetRunning(bool isRunning)       => _core?.SetRunning(isRunning);
 
-        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        public void ReportCollisionServerRpc() => _core.ReportCollision();
+        // Layout is server-authoritative and identical everywhere — only the server's own trigger
+        // may damage; a client report would land after hit-stun and double the same hit.
+        public void ReportCollision()
+        {
+            if (!IsServer) return;
+            _core.ReportCollision();
+        }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void ChangeLaneServerRpc(int direction) => _core.ChangeLane(direction);
@@ -111,10 +120,36 @@ namespace SplitRun.Character
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void ActivateSkillServerRpc() => _core.ActivateSkill();
 
+        // NetworkVariable ticks arrive stepped — the client chases them at run speed so
+        // everything downstream (camera, track, HUD) reads a smooth distance.
+        private void InterpolateDistance(float deltaTime)
+        {
+            float target  = _distance.Value;
+            float current = _distanceReactive.Value;
+
+            if (Mathf.Abs(target - current) > CharacterConstants.k_DistanceSnapThreshold)
+            {
+                _distanceReactive.Value = target;
+                return;
+            }
+
+            // Hit-stun zeroes the synced speed — without a floor the client stalls short of the
+            // obstacle and its late local trigger desyncs the impact visuals.
+            float chaseSpeed = Mathf.Max(_speed.Value, GameConstants.k_BaseRunSpeed);
+            float maxStep    = chaseSpeed * CharacterConstants.k_DistanceCatchUpMultiplier * deltaTime;
+
+            _distanceReactive.Value = Mathf.MoveTowards(current, target, maxStep);
+        }
+
         private void OnHpChanged(int prev, int next)                                => _hpReactive.Value = next;
         private void OnLaneChanged(int prev, int next)                              => _laneReactive.Value = next;
         private void OnSkillStateChanged(SkillState prev, SkillState next)          => _skillStateReactive.Value = next;
         private void OnVerticalStateChanged(VerticalState prev, VerticalState next) => _verticalStateReactive.Value = next;
-        private void OnDistanceChanged(float prev, float next)                      => _distanceReactive.Value = next;
+
+        private void OnDistanceChanged(float prev, float next)
+        {
+            // Clients smooth distance in Update — mirroring raw ticks here would reintroduce stepping.
+            if (IsServer) _distanceReactive.Value = next;
+        }
     }
 }

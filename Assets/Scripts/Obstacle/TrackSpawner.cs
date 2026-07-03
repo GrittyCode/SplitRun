@@ -10,12 +10,23 @@ using SplitRun.Environment;
 using SplitRun.Game;
 using SplitRun.Item;
 using SplitRun.LevelDesign;
+using SplitRun.Utility;
 
 namespace SplitRun.Obstacle
 {
+    // Slot contents derive from the server-owned run seed, so every client builds the same track.
     public class TrackSpawner : MonoBehaviour
     {
+        // Salt spaces per decision within a slot; variant salts add the lane so coop lanes differ.
+        private const int k_SaltObstacleRoll = 0;
+        private const int k_SaltLane         = 1;
+        private const int k_SaltVariantBase  = 10;
+        private const int k_SaltItemRoll     = 20;
+        private const int k_SaltItemLane     = 21;
+        private const int k_SaltMagnetRoll   = 22;
+
         [Inject] private GameService        _gameService;
+        [Inject] private GameSession        _gameSession;
         [Inject] private LevelDesignProfile _levelProfile;
         [Inject] private WorldThemeProfile  _theme;
         [Inject] private ItemService        _itemService;
@@ -28,8 +39,10 @@ namespace SplitRun.Obstacle
         private readonly bool[] _laneOccupied = new bool[GameConstants.k_LaneCount];
         private readonly int[]  _freeLanes    = new int[GameConstants.k_LaneCount];
 
-        private float _nextSpawnZ;
-        private bool  _isRunning;
+        private float     _nextSpawnZ;
+        private bool      _isRunning;
+        private int       _runSeed;
+        private GamePhase _lastPhase = GamePhase.Lobby;
 
         private void Start()
         {
@@ -84,7 +97,8 @@ namespace SplitRun.Obstacle
         private void BindToGameService()
         {
             _gameService.Phase
-                .Subscribe(OnPhaseChanged)
+                .CombineLatest(_gameSession.RunSeed, (phase, seed) => (phase, seed))
+                .Subscribe(pair => OnRunStateChanged(pair.phase, pair.seed))
                 .AddTo(this);
 
             _gameService.CurrentDistance
@@ -93,11 +107,17 @@ namespace SplitRun.Obstacle
                 .AddTo(this);
         }
 
-        private void OnPhaseChanged(GamePhase phase)
+        private void OnRunStateChanged(GamePhase phase, int seed)
         {
-            if (phase != GamePhase.Running) return;
+            bool isResume = phase == GamePhase.Running && _lastPhase == GamePhase.Paused;
+            _lastPhase    = phase;
 
-            _isRunning  = true;
+            // Seed 0 means the character has not spawned yet — a client may enter Running before it.
+            _isRunning = phase == GamePhase.Running && seed != 0;
+
+            if (!_isRunning || isResume) return;
+
+            _runSeed    = seed;
             _nextSpawnZ = GameConstants.k_ObstacleSpacing;
 
             FillLookAhead(0f);
@@ -134,17 +154,18 @@ namespace SplitRun.Obstacle
         // Obstacles first so lane occupancy is known; items then fill only free lanes.
         private void SpawnSlot(float spawnZ)
         {
+            int slotIndex = Mathf.RoundToInt(spawnZ / GameConstants.k_ObstacleSpacing);
+
             ClearOccupancy();
 
             if (_pools.Count > 0 && _levelProfile && _levelProfile.HasBands)
-                SpawnObstacles(spawnZ);
+                SpawnObstacles(slotIndex, spawnZ);
 
-            PlaceItems(spawnZ);
+            PlaceItems(slotIndex, spawnZ);
         }
 
         // Difficulty is read at the obstacle's own spawn Z (where the player meets it), not the character's Z.
-        // TODO(netcode): server must select the slot contents and broadcast via ClientRpc.
-        private void SpawnObstacles(float spawnZ)
+        private void SpawnObstacles(int slotIndex, float spawnZ)
         {
             ObstacleBand band = _levelProfile.ResolveBand(spawnZ);
 
@@ -152,11 +173,11 @@ namespace SplitRun.Obstacle
             float total       = singleTotal + AvailableCoopTotal(band);
             if (total <= 0f) return;
 
-            float roll = Random.value * total;
+            float roll = DeterministicRandom.NextFloat(_runSeed, slotIndex, k_SaltObstacleRoll) * total;
             if (roll < singleTotal)
-                SpawnSelectedSingle(band, roll, spawnZ);
+                SpawnSelectedSingle(band, roll, slotIndex, spawnZ);
             else
-                SpawnSelectedCoop(band, roll - singleTotal, spawnZ);
+                SpawnSelectedCoop(band, roll - singleTotal, slotIndex, spawnZ);
         }
 
         private float AvailableSingleTotal(ObstacleBand band)
@@ -181,7 +202,7 @@ namespace SplitRun.Obstacle
             return total;
         }
 
-        private void SpawnSelectedSingle(ObstacleBand band, float roll, float spawnZ)
+        private void SpawnSelectedSingle(ObstacleBand band, float roll, int slotIndex, float spawnZ)
         {
             foreach (ObstacleFootprintWeight entry in band.SingleWeights)
             {
@@ -190,12 +211,12 @@ namespace SplitRun.Obstacle
                 roll -= Mathf.Max(0f, entry.Weight);
                 if (roll > 0f) continue;
 
-                SpawnSingle(entry.Footprint, spawnZ);
+                SpawnSingle(entry.Footprint, slotIndex, spawnZ);
                 return;
             }
         }
 
-        private void SpawnSelectedCoop(ObstacleBand band, float roll, float spawnZ)
+        private void SpawnSelectedCoop(ObstacleBand band, float roll, int slotIndex, float spawnZ)
         {
             foreach (CoopPatternWeight entry in band.CoopWeights)
             {
@@ -204,37 +225,39 @@ namespace SplitRun.Obstacle
                 roll -= Mathf.Max(0f, entry.Weight);
                 if (roll > 0f) continue;
 
-                SpawnCoop(entry.Pattern, spawnZ);
+                SpawnCoop(entry.Pattern, slotIndex, spawnZ);
                 return;
             }
         }
 
-        private void SpawnSingle(ObstacleFootprint footprint, float spawnZ)
+        private void SpawnSingle(ObstacleFootprint footprint, int slotIndex, float spawnZ)
         {
             int lane = IsFullWidth(footprint)
                 ? GameConstants.k_LaneCenter
-                : Random.Range(GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
+                : DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltLane,
+                    GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
 
-            SpawnAt(footprint, lane, spawnZ);
+            SpawnAt(footprint, lane, slotIndex, spawnZ);
         }
 
         // One random pass lane is clearable; the other two are Vertical walls, forcing both players to act.
-        private void SpawnCoop(CoopPatternType pattern, float spawnZ)
+        private void SpawnCoop(CoopPatternType pattern, int slotIndex, float spawnZ)
         {
-            int passLane = Random.Range(GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
+            int passLane = DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltLane,
+                GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
             ObstacleFootprint passFootprint = PassFootprint(pattern);
 
             for (int lane = GameConstants.k_LaneLeft; lane <= GameConstants.k_LaneRight; lane++)
             {
                 ObstacleFootprint footprint = lane == passLane ? passFootprint : ObstacleFootprint.Vertical;
-                SpawnAt(footprint, lane, spawnZ);
+                SpawnAt(footprint, lane, slotIndex, spawnZ);
             }
         }
 
         // Y stays 0 — the footprint's stamped collider center bakes the height anchor.
-        private void SpawnAt(ObstacleFootprint footprint, int lane, float spawnZ)
+        private void SpawnAt(ObstacleFootprint footprint, int lane, int slotIndex, float spawnZ)
         {
-            ObstaclePool pool = PickPoolForFootprint(footprint);
+            ObstaclePool pool = PickPoolForFootprint(footprint, slotIndex, lane);
             if (pool == null) return;
 
             TrackObstacle instance = pool.Rent();
@@ -244,19 +267,19 @@ namespace SplitRun.Obstacle
             MarkOccupied(footprint, lane);
         }
 
-        private void PlaceItems(float spawnZ)
+        private void PlaceItems(int slotIndex, float spawnZ)
         {
             if (_itemService == null || !_levelProfile) return;
 
             float chance = ItemConstants.k_CoinLineChance * _levelProfile.CoinSpawnMultiplier;
-            if (Random.value > chance) return;
+            if (DeterministicRandom.NextFloat(_runSeed, slotIndex, k_SaltItemRoll) > chance) return;
 
-            int lane = PickFreeLane();
+            int lane = PickFreeLane(slotIndex);
             if (lane < 0) return;
 
             float laneX = GameConstants.GetLaneX(lane);
 
-            if (Random.value < ItemConstants.k_MagnetChance)
+            if (DeterministicRandom.NextFloat(_runSeed, slotIndex, k_SaltMagnetRoll) < ItemConstants.k_MagnetChance)
             {
                 float magnetZ = spawnZ + GameConstants.k_ObstacleSpacing * 0.5f;
                 _itemService.Spawn(ItemType.Magnet, new Vector3(laneX, ItemConstants.k_ItemHoverHeight, magnetZ));
@@ -275,7 +298,7 @@ namespace SplitRun.Obstacle
                 _itemService.Spawn(ItemType.Coin, new Vector3(laneX, ItemConstants.k_ItemHoverHeight, z));
         }
 
-        private int PickFreeLane()
+        private int PickFreeLane(int slotIndex)
         {
             int count = 0;
             for (int lane = 0; lane < GameConstants.k_LaneCount; lane++)
@@ -283,7 +306,9 @@ namespace SplitRun.Obstacle
                 if (!_laneOccupied[lane]) _freeLanes[count++] = lane;
             }
 
-            return count == 0 ? -1 : _freeLanes[Random.Range(0, count)];
+            return count == 0
+                ? -1
+                : _freeLanes[DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltItemLane, 0, count)];
         }
 
         private void ClearOccupancy()
@@ -310,12 +335,13 @@ namespace SplitRun.Obstacle
         private bool IsPatternSpawnable(CoopPatternType pattern) =>
             HasPool(ObstacleFootprint.Vertical) && HasPool(PassFootprint(pattern));
 
-        private ObstaclePool PickPoolForFootprint(ObstacleFootprint footprint)
+        private ObstaclePool PickPoolForFootprint(ObstacleFootprint footprint, int slotIndex, int lane)
         {
             if (!_pools.TryGetValue(footprint, out List<ObstaclePool> pools) || pools.Count == 0)
                 return null;
 
-            return pools[Random.Range(0, pools.Count)];
+            int variant = DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltVariantBase + lane, 0, pools.Count);
+            return pools[variant];
         }
 
         private static ObstacleFootprint PassFootprint(CoopPatternType pattern) => pattern switch

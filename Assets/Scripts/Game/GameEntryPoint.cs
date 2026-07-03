@@ -1,5 +1,9 @@
-using UnityEngine;
+using System;
 
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+using R3;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using VContainer.Unity;
@@ -8,41 +12,53 @@ using SplitRun.Character;
 using SplitRun.Constants;
 using SplitRun.Data;
 using SplitRun.Environment;
+using SplitRun.Network;
 
 namespace SplitRun.Game
 {
-    public class GameEntryPoint : IStartable
+    public class GameEntryPoint : IStartable, IDisposable
     {
         private readonly GameService       _gameService;
         private readonly WorldThemeProfile _theme;
         private readonly CharacterCatalog  _characterCatalog;
         private readonly PlayerDataService _playerDataService;
+        private readonly NetworkService    _networkService;
+
+        private DisposableBag _disposables;
 
         public GameEntryPoint(GameService gameService, WorldThemeProfile theme,
-            CharacterCatalog characterCatalog, PlayerDataService playerDataService)
+            CharacterCatalog characterCatalog, PlayerDataService playerDataService,
+            NetworkService networkService)
         {
             _gameService       = gameService;
             _theme             = theme;
             _characterCatalog  = characterCatalog;
             _playerDataService = playerDataService;
+            _networkService    = networkService;
         }
 
         public void Start()
         {
             SpawnBackdrop();
             StartSession();
+            WatchSessionLoss();
 
             // Reaching this scene already implies intent: ready-up completed (multiplayer) or Solo pressed.
             // A late-arriving client character picks up the Running phase in GameService.OnCharacterSpawned.
             _gameService.StartRun();
         }
 
+        public void Dispose() => _disposables.Dispose();
+
         private void StartSession()
         {
             NetworkManager networkManager = NetworkManager.Singleton;
 
-            // Guard allows LocalCharacter to be used without NetworkManager in the scene.
-            if (!networkManager) return;
+            if (!networkManager)
+            {
+                Debug.LogError("[GameEntryPoint] No NetworkManager — the run cannot start.");
+                return;
+            }
 
             // Already listening means the Relay session from the Lobby carried over — never restart it.
             if (!networkManager.IsListening)
@@ -50,6 +66,28 @@ namespace SplitRun.Game
 
             if (networkManager.IsServer)
                 SpawnCharacter();
+        }
+
+        // Either peer leaving destroys the room — the survivor returns to the Lobby to make a new one.
+        private void WatchSessionLoss()
+        {
+            _networkService.ConnectionState
+                .Pairwise()
+                .Where(pair => IsSessionLost(pair.Previous, pair.Current))
+                .Subscribe(_ => ReturnToLobby())
+                .AddTo(ref _disposables);
+        }
+
+        private static bool IsSessionLost(NetworkConnectionState previous, NetworkConnectionState current)
+            => (previous is NetworkConnectionState.Hosting or NetworkConnectionState.Joined)
+            && (current is NetworkConnectionState.Offline or NetworkConnectionState.Failed);
+
+        private static void ReturnToLobby()
+        {
+            Debug.LogWarning("[GameEntryPoint] Session lost — returning to Lobby.");
+
+            // NGO already shut down in NetworkService.ResetSession, so a plain load is correct here.
+            SceneManager.LoadScene(SceneConstants.k_LobbySceneName);
         }
 
         private static void StartSoloHost(NetworkManager networkManager)
@@ -71,7 +109,7 @@ namespace SplitRun.Game
                 return;
             }
 
-            ServerCharacter character = Object.Instantiate(prefab);
+            ServerCharacter character = UnityEngine.Object.Instantiate(prefab);
 
             // The character's lifetime is one run — a later NGO scene change must take it down.
             character.NetworkObject.Spawn(destroyWithScene: true);
@@ -86,7 +124,7 @@ namespace SplitRun.Game
                 return;
             }
 
-            Object.Instantiate(_theme.BackdropPrefab);
+            UnityEngine.Object.Instantiate(_theme.BackdropPrefab);
         }
     }
 }

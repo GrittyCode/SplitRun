@@ -11,7 +11,8 @@ namespace SplitRun.Item
 
         private Quaternion _initialRotation;
 
-        public ItemType Type => _type;
+        public ItemType Type    => _type;
+        public int      SpawnId { get; private set; }
 
         private void Awake() => _initialRotation = transform.localRotation;
 
@@ -19,6 +20,9 @@ namespace SplitRun.Item
         {
             transform.Rotate(0f, ItemConstants.k_SpinSpeed * Time.deltaTime, 0f, Space.World);
         }
+
+        /// <summary>Assigns the deterministic per-run id shared by every client's copy of this pickup.</summary>
+        public void Initialize(int spawnId) => SpawnId = spawnId;
 
         public void ResetState()
         {

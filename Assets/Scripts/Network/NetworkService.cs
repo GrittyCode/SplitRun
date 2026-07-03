@@ -261,17 +261,10 @@ namespace SplitRun.Network
             }
         }
 
+        // Any disconnect kills the session — a 2-player co-op run cannot continue one-sided,
+        // so the survivor's room is destroyed and a new one must be created.
         private void OnClientDisconnected(ulong clientId)
         {
-            NetworkManager networkManager = NetworkManager.Singleton;
-
-            if (networkManager.IsHost && clientId != networkManager.LocalClientId)
-            {
-                // The peer left — keep hosting so a new player can join with the same code.
-                _isSessionReady.Value = false;
-                return;
-            }
-
             bool wasConnecting = _connectionState.Value == NetworkConnectionState.Connecting;
             ResetSession(wasConnecting ? NetworkConnectionState.Failed : NetworkConnectionState.Offline);
         }

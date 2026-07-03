@@ -10,14 +10,22 @@ namespace SplitRun.Game
 {
     public class GameService : IStartable, IDisposable
     {
+        private readonly GameSession _gameSession;
+
         private ICharacter    _character;
         private DisposableBag _characterDisposables;
+        private DisposableBag _disposables;
 
         private readonly ReactiveProperty<GamePhase>  _phase           = new ReactiveProperty<GamePhase>(GamePhase.Lobby);
         private readonly ReactiveProperty<float>      _currentDistance = new ReactiveProperty<float>(0f);
         private readonly ReactiveProperty<int>        _currentHp       = new ReactiveProperty<int>(GameConstants.k_MaxHp);
         private readonly ReactiveProperty<SkillState> _skillState      = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<SkillType>  _activeSkill     = new ReactiveProperty<SkillType>(SkillType.None);
+
+        public GameService(GameSession gameSession)
+        {
+            _gameSession = gameSession;
+        }
 
         public ReadOnlyReactiveProperty<GamePhase>  Phase             => _phase;
         public ReadOnlyReactiveProperty<float>      CurrentDistance   => _currentDistance;
@@ -33,6 +41,10 @@ namespace SplitRun.Game
             _currentDistance.Value = 0f;
             _currentHp.Value       = GameConstants.k_MaxHp;
             _phase.Value           = GamePhase.Lobby;
+
+            _gameSession.PauseStateReactive
+                .Subscribe(OnPauseStateChanged)
+                .AddTo(ref _disposables);
         }
 
         public void Dispose()
@@ -41,6 +53,7 @@ namespace SplitRun.Game
             CharacterEvents.OnDespawned -= OnCharacterDespawned;
 
             _characterDisposables.Dispose();
+            _disposables.Dispose();
 
             _phase.Dispose();
             _currentDistance.Dispose();
@@ -65,6 +78,13 @@ namespace SplitRun.Game
             // TODO(data): inject PlayerDataService and call UpdateBestDistance((int)CurrentDistance.CurrentValue)
         }
 
+        /// <summary>Requests a pause. The server records the requester as the only one allowed to resume.</summary>
+        public void RequestPause()
+        {
+            if (_phase.Value != GamePhase.Running) return;
+            _gameSession.RequestPause();
+        }
+
         public void RequestLaneChange(int direction) => _character?.RequestLaneChange(direction);
         public void RequestJump()                    => _character?.RequestJump();
         public void RequestSlide()                   => _character?.RequestSlide();
@@ -75,7 +95,7 @@ namespace SplitRun.Game
         {
             _character         = character;
             _activeSkill.Value = character.ActiveSkill;
-            character.SetRunning(_phase.Value == GamePhase.Running);
+            character.SetRunning(_phase.Value == GamePhase.Running && _gameSession.PauseStateReactive.CurrentValue == PauseState.None);
 
             character.HpReactive
                 .Subscribe(hp => _currentHp.Value = hp)
@@ -108,6 +128,22 @@ namespace SplitRun.Game
 
             // A disposed bag disposes anything added later — reset it for the next spawn.
             _characterDisposables = new DisposableBag();
+        }
+
+        private void OnPauseStateChanged(PauseState state)
+        {
+            if (state != PauseState.None && _phase.Value == GamePhase.Running)
+            {
+                _phase.Value = GamePhase.Paused;
+                _character?.SetRunning(false);
+                return;
+            }
+
+            if (state == PauseState.None && _phase.Value == GamePhase.Paused)
+            {
+                _phase.Value = GamePhase.Running;
+                _character?.SetRunning(true);
+            }
         }
     }
 }

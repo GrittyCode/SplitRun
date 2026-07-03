@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using R3;
+using Unity.Netcode;
 using VContainer.Unity;
 
 using SplitRun.Character;
@@ -17,6 +18,7 @@ namespace SplitRun.Item
     {
         private readonly ItemCatalog _catalog;
         private readonly GameService _gameService;
+        private readonly GameSession _gameSession;
 
         private readonly Dictionary<ItemType, ItemPickup>        _prefabs = new Dictionary<ItemType, ItemPickup>();
         private readonly Dictionary<ItemType, Queue<ItemPickup>> _idle    = new Dictionary<ItemType, Queue<ItemPickup>>();
@@ -33,11 +35,14 @@ namespace SplitRun.Item
         private Transform     _root;
         private ICharacter    _character;
         private float         _magnetSeconds;
+        private int           _nextSpawnId;
+        private GamePhase     _lastPhase = GamePhase.Lobby;
 
-        public ItemService(ItemCatalog catalog, GameService gameService)
+        public ItemService(ItemCatalog catalog, GameService gameService, GameSession gameSession)
         {
             _catalog     = catalog;
             _gameService = gameService;
+            _gameSession = gameSession;
         }
 
         public ReadOnlyReactiveProperty<int>   Coins           => _coins;
@@ -50,19 +55,20 @@ namespace SplitRun.Item
             BuildPool(ItemType.Coin,   _catalog.CoinPrefab,   ItemConstants.k_CoinPoolSize);
             BuildPool(ItemType.Magnet, _catalog.MagnetPrefab, ItemConstants.k_MagnetPoolSize);
 
-            CharacterEvents.OnSpawned   += OnCharacterSpawned;
-            CharacterEvents.OnDespawned += OnCharacterDespawned;
-            ItemEvents.OnCollected      += OnItemCollected;
+            CharacterEvents.OnSpawned         += OnCharacterSpawned;
+            CharacterEvents.OnDespawned       += OnCharacterDespawned;
+            ItemEvents.OnCollected            += OnItemCollected;
+            ItemEvents.OnCollectionConfirmed  += OnCollectionConfirmed;
 
             _gameService.Phase
-                .Where(phase => phase == GamePhase.Running)
-                .Subscribe(_ => ResetForRun())
+                .Subscribe(OnPhaseChanged)
                 .AddTo(ref _disposables);
         }
 
         public void Tick()
         {
             if (_character == null) return;
+            if (_gameService.Phase.CurrentValue != GamePhase.Running) return;
 
             UpdateMagnet(Time.deltaTime);
             RecycleTrailing();
@@ -70,9 +76,10 @@ namespace SplitRun.Item
 
         public void Dispose()
         {
-            CharacterEvents.OnSpawned   -= OnCharacterSpawned;
-            CharacterEvents.OnDespawned -= OnCharacterDespawned;
-            ItemEvents.OnCollected      -= OnItemCollected;
+            CharacterEvents.OnSpawned         -= OnCharacterSpawned;
+            CharacterEvents.OnDespawned       -= OnCharacterDespawned;
+            ItemEvents.OnCollected            -= OnItemCollected;
+            ItemEvents.OnCollectionConfirmed  -= OnCollectionConfirmed;
 
             _disposables.Dispose();
             _coins.Dispose();
@@ -82,14 +89,25 @@ namespace SplitRun.Item
                 UnityEngine.Object.Destroy(_root.gameObject);
         }
 
-        // TODO(netcode): server selects/places and broadcasts pickups; local placement desyncs clients.
+        // Spawn order is deterministic across clients (seed-derived slots), so the running id
+        // identifies the same pickup on every client.
         public void Spawn(ItemType type, Vector3 position)
         {
             ItemPickup pickup = Rent(type);
             if (!pickup) return;
 
+            pickup.Initialize(_nextSpawnId++);
             pickup.transform.position = position;
             _active.Add(pickup);
+        }
+
+        private void OnPhaseChanged(GamePhase phase)
+        {
+            // Resuming from pause must not wipe live pickups — only a fresh run resets.
+            if (phase == GamePhase.Running && _lastPhase != GamePhase.Paused)
+                ResetForRun();
+
+            _lastPhase = phase;
         }
 
         private void ResetForRun()
@@ -97,6 +115,7 @@ namespace SplitRun.Item
             _coins.Value           = 0;
             _magnetSeconds         = 0f;
             _magnetRemaining.Value = 0f;
+            _nextSpawnId           = 0;
 
             for (int i = _active.Count - 1; i >= 0; i--)
                 Recycle(_active[i]);
@@ -112,9 +131,24 @@ namespace SplitRun.Item
             if (_character == character) _character = null;
         }
 
+        // Only the server's trigger is authoritative; every client (host included) applies
+        // the effect through the confirmed broadcast so there is a single collection path.
         private void OnItemCollected(ItemPickup item)
         {
-            if (!_active.Remove(item)) return;
+            NetworkManager networkManager = NetworkManager.Singleton;
+            if (!networkManager || !networkManager.IsServer) return;
+
+            if (!_active.Contains(item)) return;
+
+            _gameSession.ConfirmItemCollected(item.SpawnId);
+        }
+
+        private void OnCollectionConfirmed(int spawnId)
+        {
+            ItemPickup item = FindActive(spawnId);
+            if (!item) return;
+
+            _active.Remove(item);
 
             switch (item.Type)
             {
@@ -127,6 +161,16 @@ namespace SplitRun.Item
             }
 
             Recycle(item);
+        }
+
+        private ItemPickup FindActive(int spawnId)
+        {
+            for (int i = 0; i < _active.Count; i++)
+            {
+                if (_active[i].SpawnId == spawnId) return _active[i];
+            }
+
+            return null;
         }
 
         private void UpdateMagnet(float deltaTime)

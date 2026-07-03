@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 using R3;
 using VContainer;
@@ -14,6 +15,7 @@ namespace SplitRun.UI.Game
         [SerializeField] private TMP_Text  _distanceLabel;
         [SerializeField] private TMP_Text  _coinLabel;
         [SerializeField] private HPBarView _hpBar;
+        [SerializeField] private Button    _pauseButton;
 
         [Inject] private GameService _gameService;
         [Inject] private ItemService _itemService;
@@ -36,6 +38,10 @@ namespace SplitRun.UI.Game
 
             _itemService.Coins
                 .Subscribe(coins => _coinLabel.text = $"{coins}")
+                .AddTo(this);
+
+            _pauseButton.OnClickAsObservable()
+                .Subscribe(_ => _gameService.RequestPause())
                 .AddTo(this);
         }
     }

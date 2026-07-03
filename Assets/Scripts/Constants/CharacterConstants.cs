@@ -9,5 +9,12 @@ namespace SplitRun.Constants
         public const float k_SlideColliderRadius  = 0.3f;
         public const float k_SlideColliderHeight  = 0.65f;
         public const float k_SlideColliderCenterY = k_SlideColliderHeight / 2f;
+
+        // Client-side distance smoothing between NetworkVariable ticks: chase the synced value
+        // slightly faster than the run speed, but never overshoot it.
+        public const float k_DistanceCatchUpMultiplier = 1.2f;
+
+        // A gap beyond this is a teleport (scene start, correction burst) — snap instead of chasing.
+        public const float k_DistanceSnapThreshold     = 3f;
     }
 }
