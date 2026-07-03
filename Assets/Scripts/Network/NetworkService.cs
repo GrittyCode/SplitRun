@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 using Cysharp.Threading.Tasks;
 using R3;
@@ -129,6 +130,14 @@ namespace SplitRun.Network
         /// <summary>Shuts down any active session and returns to Offline.</summary>
         public void Disconnect() => ResetSession(NetworkConnectionState.Offline);
 
+        /// <summary>Loads the Game scene through NGO scene sync so the connected client follows automatically.</summary>
+        public void LoadGameScene()
+        {
+            if (_connectionState.Value != NetworkConnectionState.Hosting) return;
+
+            NetworkManager.Singleton.SceneManager.LoadScene(SceneConstants.k_GameSceneName, LoadSceneMode.Single);
+        }
+
         private async UniTask<bool> TryEnterConnectingAsync(CancellationToken ct)
         {
             if (_connectionState.Value != NetworkConnectionState.Offline
@@ -161,7 +170,7 @@ namespace SplitRun.Network
                 {
                     return await request();
                 }
-                catch (RelayServiceException e) when (attempt < NetworkConstants.k_RelayRetryCount)
+                catch (RelayServiceException e) when (IsTransient(e) && attempt < NetworkConstants.k_RelayRetryCount)
                 {
                     Debug.LogWarning($"[NetworkService] Relay attempt {attempt} failed — retrying: {e.Message}");
                     await UniTask.Delay(
@@ -169,6 +178,16 @@ namespace SplitRun.Network
                 }
             }
         }
+
+        // A bad join code or malformed request never succeeds — retrying only delays the Failed state.
+        private static bool IsTransient(RelayServiceException e) => e.Reason switch
+        {
+            RelayExceptionReason.JoinCodeNotFound => false,
+            RelayExceptionReason.EntityNotFound   => false,
+            RelayExceptionReason.InvalidRequest   => false,
+            RelayExceptionReason.InvalidArgument  => false,
+            _                                     => true,
+        };
 
         private static void ConfigureTransport(RelayServerData relayData)
         {
@@ -178,6 +197,9 @@ namespace SplitRun.Network
 
         private void StartHosting(string joinCode)
         {
+            // Disconnect may have been called mid-allocation — a cancelled session must not restart.
+            if (_connectionState.Value != NetworkConnectionState.Connecting) return;
+
             SubscribeConnectionCallbacks();
 
             if (!NetworkManager.Singleton.StartHost())
@@ -193,6 +215,8 @@ namespace SplitRun.Network
         // Joined is set by OnClientConnected — StartClient only begins the handshake.
         private void StartJoining()
         {
+            if (_connectionState.Value != NetworkConnectionState.Connecting) return;
+
             SubscribeConnectionCallbacks();
 
             if (!NetworkManager.Singleton.StartClient())

@@ -724,6 +724,7 @@ MonoBehaviour:
   _worldTheme: {fileID: 11400000, guid: 64f6fbd287c644864bad70843cb5509c, type: 2}
   _itemCatalog: {fileID: 11400000, guid: 02bdb2afcb0fb427684896924bf1660b, type: 2}
   _hudIconLibrary: {fileID: 11400000, guid: 50babb204874f4f1c8d7c90d5d336b7f, type: 2}
+  _characterCatalog: {fileID: 11400000, guid: 56f5da307fabf4a3296772b5d9172b47, type: 2}
 --- !u!1 &1198822704
 GameObject:
   m_ObjectHideFlags: 0

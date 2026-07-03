@@ -10,5 +10,11 @@ namespace SplitRun.Constants
         public const int    k_RelayRetryCount        = 3;
         public const float  k_RelayRetryDelaySeconds = 1f;
         public const string k_RelayConnectionType    = "dtls";
+
+        // Solo play overwrites stale Relay data so a local host never targets a dead allocation.
+        public const string k_LocalHostAddress = "127.0.0.1";
+        public const ushort k_LocalHostPort    = 7777;
+
+        public const float k_FailedStateDisplaySeconds = 1f;
     }
 }

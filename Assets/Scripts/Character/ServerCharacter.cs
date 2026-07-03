@@ -9,13 +9,15 @@ namespace SplitRun.Character
 {
     public class ServerCharacter : NetworkBehaviour, ICharacter, ICharacterState
     {
+        // Prefab identity is the type sync — NGO instantiates the same registered prefab on every client.
+        [SerializeField] private CharacterType _characterType = CharacterType.Default;
+
         // Read Everyone / write Server are the NGO defaults — stated nowhere, relied on everywhere.
         private readonly NetworkVariable<int>           _currentLane   = new NetworkVariable<int>(GameConstants.k_LaneCenter);
         private readonly NetworkVariable<int>           _hp            = new NetworkVariable<int>(GameConstants.k_MaxHp);
         private readonly NetworkVariable<float>         _distance      = new NetworkVariable<float>(0f);
         private readonly NetworkVariable<float>         _speed         = new NetworkVariable<float>(GameConstants.k_BaseRunSpeed);
         private readonly NetworkVariable<SkillState>    _skillState    = new NetworkVariable<SkillState>(SkillState.Ready);
-        private readonly NetworkVariable<CharacterType> _charType      = new NetworkVariable<CharacterType>(CharacterType.Default);
         private readonly NetworkVariable<VerticalState> _verticalState = new NetworkVariable<VerticalState>(VerticalState.Ground);
 
         private readonly ReactiveProperty<int>           _laneReactive          = new ReactiveProperty<int>(GameConstants.k_LaneCenter);
@@ -57,7 +59,7 @@ namespace SplitRun.Character
             _verticalStateReactive.Value = _verticalState.Value;
             _distanceReactive.Value      = _distance.Value;
 
-            _core = new CharacterCore(this, _charType.Value, destroyCancellationToken);
+            _core = new CharacterCore(this, _characterType, destroyCancellationToken);
 
             CharacterEvents.NotifySpawned(this);
         }
