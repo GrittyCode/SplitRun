@@ -85,7 +85,7 @@ namespace SplitRun.Character
 
             foreach (var pair in overrides)
             {
-                if (pair.Key != null && pair.Key.name == clipName)
+                if (pair.Key && pair.Key.name == clipName)
                     return pair.Value;
             }
 
@@ -95,7 +95,7 @@ namespace SplitRun.Character
 
         private void ApplySpeedCompensation(AnimationClip clip, float desiredDuration)
         {
-            if (clip == null) return;
+            if (!clip) return;
 
             // Speed = clip length / desired duration — the clip finishes exactly when desiredDuration expires.
             float speed = clip.length / desiredDuration;

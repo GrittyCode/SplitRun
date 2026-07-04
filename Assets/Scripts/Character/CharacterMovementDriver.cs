@@ -98,7 +98,7 @@ namespace SplitRun.Character
 
         private void ShrinkHitboxForSlide()
         {
-            if (_hitboxCollider == null) return;
+            if (!_hitboxCollider) return;
 
             _hitboxCollider.radius = CharacterConstants.k_SlideColliderRadius;
             _hitboxCollider.height = CharacterConstants.k_SlideColliderHeight;
@@ -110,7 +110,7 @@ namespace SplitRun.Character
 
         private void RestoreHitboxToStanding()
         {
-            if (_hitboxCollider == null) return;
+            if (!_hitboxCollider) return;
 
             _hitboxCollider.radius = CharacterConstants.k_ColliderRadius;
             _hitboxCollider.height = CharacterConstants.k_ColliderHeight;

@@ -6,8 +6,8 @@ namespace SplitRun.Obstacle
 {
     public class ObstaclePool
     {
-        private readonly TrackObstacle       _prefab;
-        private readonly Transform           _parent;
+        private readonly TrackObstacle        _prefab;
+        private readonly Transform            _parent;
         private readonly Queue<TrackObstacle> _idle = new Queue<TrackObstacle>();
 
         public ObstaclePool(TrackObstacle prefab, Transform parent, int initialSize)
@@ -36,7 +36,7 @@ namespace SplitRun.Obstacle
             while (_idle.Count > 0)
             {
                 TrackObstacle instance = _idle.Dequeue();
-                if (instance != null)
+                if (instance)
                     Object.Destroy(instance.gameObject);
             }
         }
@@ -54,3 +54,4 @@ namespace SplitRun.Obstacle
         private TrackObstacle CreateInstance() => Object.Instantiate(_prefab, _parent);
     }
 }
+

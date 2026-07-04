@@ -130,14 +130,6 @@ namespace SplitRun.Network
         /// <summary>Shuts down any active session and returns to Offline.</summary>
         public void Disconnect() => ResetSession(NetworkConnectionState.Offline);
 
-        /// <summary>Loads the Game scene through NGO scene sync so the connected client follows automatically.</summary>
-        public void LoadGameScene()
-        {
-            if (_connectionState.Value != NetworkConnectionState.Hosting) return;
-
-            NetworkManager.Singleton.SceneManager.LoadScene(SceneConstants.k_GameSceneName, LoadSceneMode.Single);
-        }
-
         private async UniTask<bool> TryEnterConnectingAsync(CancellationToken ct)
         {
             if (_connectionState.Value != NetworkConnectionState.Offline
@@ -250,6 +242,12 @@ namespace SplitRun.Network
             if (networkManager.IsHost)
             {
                 _isSessionReady.Value = networkManager.ConnectedClients.Count >= NetworkConstants.k_SessionPlayerCount;
+
+                // Game start is session policy, not a UI action — the host drives NGO scene sync
+                // the moment the room fills; the connected client is carried along automatically.
+                if (_isSessionReady.Value)
+                    LoadGameScene();
+
                 return;
             }
 
@@ -267,6 +265,13 @@ namespace SplitRun.Network
         {
             bool wasConnecting = _connectionState.Value == NetworkConnectionState.Connecting;
             ResetSession(wasConnecting ? NetworkConnectionState.Failed : NetworkConnectionState.Offline);
+        }
+
+        private void LoadGameScene()
+        {
+            if (_connectionState.Value != NetworkConnectionState.Hosting) return;
+
+            NetworkManager.Singleton.SceneManager.LoadScene(SceneConstants.k_GameSceneName, LoadSceneMode.Single);
         }
 
         private void Fail(string reason)

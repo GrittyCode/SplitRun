@@ -42,6 +42,9 @@ namespace SplitRun.UI.Game
         {
             if (!_isCounting) return;
 
+            // Server-side skill timers freeze outside Running (pause) — hold the fill in step with them.
+            if (_gameService.Phase.CurrentValue != GamePhase.Running) return;
+
             _remaining = Mathf.Max(0f, _remaining - Time.deltaTime);
             _indicator.SetFill(_duration > 0f ? _remaining / _duration : 0f);
 

@@ -24,12 +24,13 @@ namespace SplitRun.Game
         private readonly NetworkVariable<int> _runSeed = new NetworkVariable<int>(0);
 
         private readonly ReactiveProperty<PauseState> _pauseStateReactive = new ReactiveProperty<PauseState>(PauseState.None);
-        private readonly ReactiveProperty<ulong>      _pausedByReactive   = new ReactiveProperty<ulong>(0);
         private readonly ReactiveProperty<int>        _runSeedReactive    = new ReactiveProperty<int>(0);
 
         public ReadOnlyReactiveProperty<PauseState> PauseStateReactive => _pauseStateReactive;
-        public ReadOnlyReactiveProperty<ulong>      PausedByReactive   => _pausedByReactive;
         public ReadOnlyReactiveProperty<int>        RunSeed            => _runSeedReactive;
+
+        // Read only synchronously on the Paused state change — no reactive mirror needed.
+        public ulong PausedBy => _pausedBy.Value;
 
         public override void OnNetworkSpawn()
         {
@@ -37,24 +38,20 @@ namespace SplitRun.Game
             if (IsServer)
                 _runSeed.Value = UnityEngine.Random.Range(1, int.MaxValue);
 
-            _pausedBy.OnValueChanged   += OnPausedByChanged;
             _pauseState.OnValueChanged += OnPauseStateChanged;
             _runSeed.OnValueChanged    += OnRunSeedChanged;
 
             // OnValueChanged does not fire for the initial value — manual sync required.
-            _pausedByReactive.Value   = _pausedBy.Value;
             _pauseStateReactive.Value = _pauseState.Value;
             _runSeedReactive.Value    = _runSeed.Value;
         }
 
         public override void OnNetworkDespawn()
         {
-            _pausedBy.OnValueChanged   -= OnPausedByChanged;
             _pauseState.OnValueChanged -= OnPauseStateChanged;
             _runSeed.OnValueChanged    -= OnRunSeedChanged;
 
             // An in-scene object survives despawn — reset so a dead session halts the spawner and hides overlays.
-            _pausedByReactive.Value   = 0;
             _pauseStateReactive.Value = PauseState.None;
             _runSeedReactive.Value    = 0;
         }
@@ -62,7 +59,6 @@ namespace SplitRun.Game
         public override void OnDestroy()
         {
             _pauseStateReactive.Dispose();
-            _pausedByReactive.Dispose();
             _runSeedReactive.Dispose();
 
             base.OnDestroy();
@@ -144,8 +140,7 @@ namespace SplitRun.Game
             _pauseState.Value = PauseState.None;
         }
 
-        private void OnPausedByChanged(ulong prev, ulong next)                => _pausedByReactive.Value = next;
-        private void OnPauseStateChanged(PauseState prev, PauseState next)    => _pauseStateReactive.Value = next;
-        private void OnRunSeedChanged(int prev, int next)                     => _runSeedReactive.Value = next;
+        private void OnPauseStateChanged(PauseState prev, PauseState next) => _pauseStateReactive.Value = next;
+        private void OnRunSeedChanged(int prev, int next)                  => _runSeedReactive.Value = next;
     }
 }

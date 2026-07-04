@@ -27,9 +27,11 @@ namespace SplitRun.UI.Game
 
         private void BindObservables()
         {
+            // Whole-meter gating keeps the label from allocating a string every frame.
             _gameService.CurrentDistance
-                .Select(distance => $"{distance:F0}m")
-                .Subscribe(text => _distanceLabel.text = text)
+                .Select(distance => (int)distance)
+                .DistinctUntilChanged()
+                .Subscribe(distance => _distanceLabel.text = $"{distance}m")
                 .AddTo(this);
 
             _gameService.CurrentHp

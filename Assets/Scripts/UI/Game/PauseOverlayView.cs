@@ -98,7 +98,7 @@ namespace SplitRun.UI.Game
         private bool IsLocalPauser()
         {
             NetworkManager networkManager = NetworkManager.Singleton;
-            return networkManager && networkManager.LocalClientId == _gameSession.PausedByReactive.CurrentValue;
+            return networkManager && networkManager.LocalClientId == _gameSession.PausedBy;
         }
 
         private void CancelCountdown()
@@ -107,6 +107,5 @@ namespace SplitRun.UI.Game
             _countdownCts?.Dispose();
             _countdownCts = null;
         }
-
     }
 }

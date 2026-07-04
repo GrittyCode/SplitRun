@@ -97,8 +97,13 @@ namespace SplitRun.Game
             _activeSkill.Value = character.ActiveSkill;
             character.SetRunning(_phase.Value == GamePhase.Running && _gameSession.PauseStateReactive.CurrentValue == PauseState.None);
 
+            // ReactiveProperty skips re-emission when value is unchanged — EndRun never fires twice.
             character.HpReactive
-                .Subscribe(hp => _currentHp.Value = hp)
+                .Subscribe(hp =>
+                {
+                    _currentHp.Value = hp;
+                    if (hp <= 0 && _phase.Value == GamePhase.Running) EndRun();
+                })
                 .AddTo(ref _characterDisposables);
 
             character.DistanceReactive
@@ -107,12 +112,6 @@ namespace SplitRun.Game
 
             character.SkillStateReactive
                 .Subscribe(state => _skillState.Value = state)
-                .AddTo(ref _characterDisposables);
-
-            // ReactiveProperty skips re-emission when value is unchanged — EndRun never fires twice.
-            character.HpReactive
-                .Where(hp => hp <= 0 && _phase.Value == GamePhase.Running)
-                .Subscribe(_ => EndRun())
                 .AddTo(ref _characterDisposables);
         }
 

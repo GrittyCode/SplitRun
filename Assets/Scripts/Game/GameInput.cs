@@ -11,7 +11,7 @@ using SplitRun.Utility;
 
 namespace SplitRun.Game
 {
-    public class GameInput : IStartable, ITickable, IDisposable
+    public class GameInput : IStartable, IDisposable
     {
         private enum InputRole
         {
@@ -23,7 +23,7 @@ namespace SplitRun.Game
         private readonly SwipeDetector _swipeDetector;
         private readonly GameService   _gameService;
 
-        private float         _laneInputCooldown;
+        private float         _nextLaneInputTime;
         private DisposableBag _disposables;
 
         public GameInput(SwipeDetector swipeDetector, GameService gameService)
@@ -43,12 +43,6 @@ namespace SplitRun.Game
                 .Where(_ => IsRunning())
                 .Subscribe(_ => _gameService.RequestSkill())
                 .AddTo(ref _disposables);
-        }
-
-        public void Tick()
-        {
-            if (_laneInputCooldown > 0f)
-                _laneInputCooldown -= Time.deltaTime;
         }
 
         public void Dispose() => _disposables.Dispose();
@@ -88,10 +82,10 @@ namespace SplitRun.Game
         // Gated by a cooldown matching the lane tween so a new change can't start mid-animation.
         private void TryChangeLane(SwipeDirection direction)
         {
-            if (_laneInputCooldown > 0f) return;
+            if (Time.time < _nextLaneInputTime) return;
 
             _gameService.RequestLaneChange(direction == SwipeDirection.Left ? -1 : 1);
-            _laneInputCooldown = GameConstants.k_LaneMoveDuration;
+            _nextLaneInputTime = Time.time + GameConstants.k_LaneMoveDuration;
         }
 
         private bool IsRunning() => _gameService.Phase.CurrentValue == GamePhase.Running;

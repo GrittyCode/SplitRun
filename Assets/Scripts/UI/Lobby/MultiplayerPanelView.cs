@@ -46,13 +46,6 @@ namespace SplitRun.UI.Lobby
                 .Subscribe(code => _joinCodeText.text = code)
                 .AddTo(this);
 
-            // Only the host drives the scene change — NGO scene sync carries the client along.
-            _networkService.ConnectionState
-                .CombineLatest(_networkService.IsSessionReady, IsReadyHost)
-                .Where(isReadyHost => isReadyHost)
-                .Subscribe(_ => _networkService.LoadGameScene())
-                .AddTo(this);
-
             _networkService.ConnectionState
                 .Where(state => state == NetworkConnectionState.Failed)
                 .Subscribe(_ => DismissFailureAsync(this.GetCancellationTokenOnDestroy()).Forget())
@@ -99,9 +92,6 @@ namespace SplitRun.UI.Lobby
             // The border frames status/code text — an empty frame in Offline looks broken.
             _textBorder.SetActive(state != NetworkConnectionState.Offline);
         }
-
-        private static bool IsReadyHost(NetworkConnectionState state, bool isSessionReady)
-            => state == NetworkConnectionState.Hosting && isSessionReady;
 
         private static string ToStatusText(NetworkConnectionState state, bool isSessionReady)
         {
