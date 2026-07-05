@@ -59,6 +59,18 @@ namespace SplitRun.Data
             Debug.Log($"[PlayerDataService] Saved — coins: {data.Coins}, best: {data.BestDistance}m");
         }
 
+        /// <summary>Adds earned coins to the persistent total. Called once per run at run end.</summary>
+        public void AddCoins(int amount)
+        {
+            if (amount <= 0)
+                return;
+
+            _coins.Value += amount;
+
+            // Mutations persist immediately — a mobile OS kill must not lose earned progress.
+            Save();
+        }
+
         /// <summary>Updates the best distance record if the new value exceeds the current one.</summary>
         public void UpdateBestDistance(int distance)
         {
@@ -66,12 +78,13 @@ namespace SplitRun.Data
                 return;
 
             _bestDistance.Value = distance;
+            Save();
         }
 
         /// <summary>Sets the character spawned for this player's runs. Written by the Storage view.</summary>
         public void SelectCharacter(CharacterType type) => _selectedCharacter.Value = type;
 
-        // TODO(shop): AddCoins(int amount), SpendCoins(int amount), Unlock(int unlockId)
+        // TODO(shop): add SpendCoins/Unlock when the shop view consumes them
 
         public void Dispose()
         {

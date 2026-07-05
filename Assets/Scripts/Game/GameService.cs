@@ -5,12 +5,14 @@ using VContainer.Unity;
 
 using SplitRun.Character;
 using SplitRun.Constants;
+using SplitRun.Data;
 
 namespace SplitRun.Game
 {
     public class GameService : IStartable, IDisposable
     {
-        private readonly GameSession _gameSession;
+        private readonly GameSession       _gameSession;
+        private readonly PlayerDataService _playerDataService;
 
         private ICharacter    _character;
         private DisposableBag _characterDisposables;
@@ -22,9 +24,10 @@ namespace SplitRun.Game
         private readonly ReactiveProperty<SkillState> _skillState      = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<SkillType>  _activeSkill     = new ReactiveProperty<SkillType>(SkillType.None);
 
-        public GameService(GameSession gameSession)
+        public GameService(GameSession gameSession, PlayerDataService playerDataService)
         {
-            _gameSession = gameSession;
+            _gameSession       = gameSession;
+            _playerDataService = playerDataService;
         }
 
         public ReadOnlyReactiveProperty<GamePhase>  Phase             => _phase;
@@ -72,10 +75,10 @@ namespace SplitRun.Game
         /// <summary>Transitions phase to GameOver. CurrentDistance already holds the final value.</summary>
         public void EndRun()
         {
+            _playerDataService.UpdateBestDistance((int)_currentDistance.Value);
+
             _phase.Value = GamePhase.GameOver;
             _character?.SetRunning(false);
-
-            // TODO(data): inject PlayerDataService and call UpdateBestDistance((int)CurrentDistance.CurrentValue)
         }
 
         /// <summary>Requests a pause. The server records the requester as the only one allowed to resume.</summary>

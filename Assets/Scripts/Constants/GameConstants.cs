@@ -47,6 +47,9 @@ namespace SplitRun.Constants
         public const float  k_ResumeCountdownStepSeconds = 1f;
         public const string k_PausedLabel                = "PAUSED";
 
+        // Time to watch the Lose animation before the session tears down and the Lobby loads.
+        public const float k_GameOverReturnDelaySeconds = 3f;
+
         // Physics layer obstacles live on. Character HitBox × this must be enabled in the
         // Layer Collision Matrix for OnTriggerEnter to fire (Project Settings → Physics).
         public const string k_ObstacleLayerName = "Obstacle";

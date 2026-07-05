@@ -9,6 +9,7 @@ using VContainer.Unity;
 
 using SplitRun.Character;
 using SplitRun.Constants;
+using SplitRun.Data;
 using SplitRun.Game;
 
 namespace SplitRun.Item
@@ -16,9 +17,10 @@ namespace SplitRun.Item
     // Owns the pickup run lifetime (pool, placement, magnet, despawn, collection); coins are local UI state.
     public sealed class ItemService : IStartable, ITickable, IDisposable
     {
-        private readonly ItemCatalog _catalog;
-        private readonly GameService _gameService;
-        private readonly GameSession _gameSession;
+        private readonly ItemCatalog       _catalog;
+        private readonly GameService       _gameService;
+        private readonly GameSession       _gameSession;
+        private readonly PlayerDataService _playerDataService;
 
         private readonly Dictionary<ItemType, ItemPickup>        _prefabs = new Dictionary<ItemType, ItemPickup>();
         private readonly Dictionary<ItemType, Queue<ItemPickup>> _idle    = new Dictionary<ItemType, Queue<ItemPickup>>();
@@ -38,11 +40,13 @@ namespace SplitRun.Item
         private int           _nextSpawnId;
         private GamePhase     _lastPhase = GamePhase.Lobby;
 
-        public ItemService(ItemCatalog catalog, GameService gameService, GameSession gameSession)
+        public ItemService(ItemCatalog catalog, GameService gameService, GameSession gameSession,
+            PlayerDataService playerDataService)
         {
-            _catalog     = catalog;
-            _gameService = gameService;
-            _gameSession = gameSession;
+            _catalog           = catalog;
+            _gameService       = gameService;
+            _gameSession       = gameSession;
+            _playerDataService = playerDataService;
         }
 
         public ReadOnlyReactiveProperty<int>   Coins           => _coins;
@@ -107,8 +111,15 @@ namespace SplitRun.Item
             if (phase == GamePhase.Running && _lastPhase != GamePhase.Paused)
                 ResetForRun();
 
+            // GameOver is entered once per run, so the merge never double-applies.
+            if (phase == GamePhase.GameOver)
+                MergeCoins();
+
             _lastPhase = phase;
         }
+
+        // Coins are run-local UI state; they merge one-way into persistent currency at run end.
+        private void MergeCoins() => _playerDataService.AddCoins(_coins.Value);
 
         private void ResetForRun()
         {
