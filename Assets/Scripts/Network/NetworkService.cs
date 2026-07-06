@@ -73,6 +73,15 @@ namespace SplitRun.Network
             }
         }
 
+        /// <summary>Starts a solo run with a plain scene load. GameEntryPoint hosts locally on arrival.</summary>
+        public void StartSolo()
+        {
+            // A lingering Relay session would make GameEntryPoint mistake the solo run for multiplayer.
+            Disconnect();
+
+            SceneManager.LoadScene(SceneConstants.k_GameSceneName);
+        }
+
         /// <summary>Allocates a Relay server, publishes the join code, and starts hosting.</summary>
         public async UniTask CreateRoomAsync(CancellationToken ct)
         {

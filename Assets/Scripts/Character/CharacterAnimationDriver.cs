@@ -19,8 +19,11 @@ namespace SplitRun.Character
 
         private void Start()
         {
-            _character   = GetComponent<ICharacter>();
-            _animator    = GetComponent<Animator>();
+            _character = GetComponent<ICharacter>();
+
+            // The Animator lives on the nested CharacterModel child, not the network root.
+            _animator = GetComponentInChildren<Animator>();
+
             _rollClip    = ResolveOverrideClip(AnimatorConstants.k_ClipNameRoll);
             _jumpOutClip = ResolveOverrideClip(AnimatorConstants.k_ClipNameJumpOut);
 

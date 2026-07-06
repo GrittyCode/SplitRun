@@ -10,8 +10,8 @@ namespace SplitRun.Data
         public int           Coins;
         public int           BestDistance;
         public CharacterType SelectedCharacter = CharacterType.Default;
+        public HatType       SelectedHat       = HatType.None;
         public int[]         UnlockedCharacters = { 0 };
-        public int[]         UnlockedColors     = { 0 };
-        public int[]         UnlockedTrails     = { 0 };
+        public int[]         UnlockedHats       = { };
     }
 }

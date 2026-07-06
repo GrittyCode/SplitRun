@@ -20,6 +20,12 @@ namespace SplitRun.Character
         /// <summary>The skill this character was created with. SkillType.None for Default.</summary>
         SkillType ActiveSkill { get; }
 
+        /// <summary>The cosmetic hat this character spawned with. Carried in the spawn payload.</summary>
+        HatType Hat { get; }
+
+        /// <summary>Instantiates the hat prefab on the model's hat socket. Pass null to remove the hat.</summary>
+        void AttachHat(GameObject hatPrefab);
+
         /// <summary>Requests a lane change. direction: -1 = left, +1 = right.</summary>
         void RequestLaneChange(int direction);
 

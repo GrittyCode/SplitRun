@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -16,28 +17,36 @@ namespace SplitRun.Data
         private readonly ReactiveProperty<int>           _coins             = new ReactiveProperty<int>(0);
         private readonly ReactiveProperty<int>           _bestDistance      = new ReactiveProperty<int>(0);
         private readonly ReactiveProperty<CharacterType> _selectedCharacter = new ReactiveProperty<CharacterType>(CharacterType.Default);
+        private readonly ReactiveProperty<HatType>       _selectedHat       = new ReactiveProperty<HatType>(HatType.None);
 
-        // Persisted round-trip only — no consumer exists yet.
-        // TODO(shop): expose these reactively once the shop/customization views consume them
-        private int[] _unlockedCharacters = { 0 };
-        private int[] _unlockedColors     = { 0 };
-        private int[] _unlockedTrails     = { 0 };
+        private readonly HashSet<CharacterType> _unlockedCharacters = new HashSet<CharacterType> { CharacterType.Default };
+        private readonly HashSet<HatType>       _unlockedHats       = new HashSet<HatType>();
 
         public ReadOnlyReactiveProperty<int>           Coins             => _coins;
         public ReadOnlyReactiveProperty<int>           BestDistance      => _bestDistance;
         public ReadOnlyReactiveProperty<CharacterType> SelectedCharacter => _selectedCharacter;
+        public ReadOnlyReactiveProperty<HatType>       SelectedHat       => _selectedHat;
 
         /// <summary>Loads persisted player data from local JSON into reactive state.</summary>
         public void Load()
         {
             SaveData data = LocalJsonStorage.Load<SaveData>(k_SaveFile);
 
-            _coins.Value             = data.Coins;
-            _bestDistance.Value      = data.BestDistance;
-            _selectedCharacter.Value = data.SelectedCharacter;
-            _unlockedCharacters      = data.UnlockedCharacters;
-            _unlockedColors          = data.UnlockedColors;
-            _unlockedTrails          = data.UnlockedTrails;
+            _coins.Value        = data.Coins;
+            _bestDistance.Value = data.BestDistance;
+
+            _unlockedCharacters.Clear();
+            _unlockedCharacters.Add(CharacterType.Default);
+            foreach (int id in data.UnlockedCharacters)
+                _unlockedCharacters.Add((CharacterType)id);
+
+            _unlockedHats.Clear();
+            foreach (int id in data.UnlockedHats)
+                _unlockedHats.Add((HatType)id);
+
+            // A selection pointing at locked content (edited or stale save) falls back to defaults.
+            _selectedCharacter.Value = IsCharacterUnlocked(data.SelectedCharacter) ? data.SelectedCharacter : CharacterType.Default;
+            _selectedHat.Value       = IsHatUnlocked(data.SelectedHat) ? data.SelectedHat : HatType.None;
 
             Debug.Log($"[PlayerDataService] Loaded — coins: {data.Coins}, best: {data.BestDistance}m");
         }
@@ -50,9 +59,9 @@ namespace SplitRun.Data
                 Coins              = _coins.Value,
                 BestDistance       = _bestDistance.Value,
                 SelectedCharacter  = _selectedCharacter.Value,
-                UnlockedCharacters = _unlockedCharacters,
-                UnlockedColors     = _unlockedColors,
-                UnlockedTrails     = _unlockedTrails,
+                SelectedHat        = _selectedHat.Value,
+                UnlockedCharacters = ToIntArray(_unlockedCharacters),
+                UnlockedHats       = ToIntArray(_unlockedHats),
             };
 
             LocalJsonStorage.Save(k_SaveFile, data);
@@ -81,10 +90,55 @@ namespace SplitRun.Data
             Save();
         }
 
-        /// <summary>Sets the character spawned for this player's runs. Written by the Storage view.</summary>
-        public void SelectCharacter(CharacterType type) => _selectedCharacter.Value = type;
+        public bool IsCharacterUnlocked(CharacterType type) => _unlockedCharacters.Contains(type);
 
-        // TODO(shop): add SpendCoins/Unlock when the shop view consumes them
+        public bool IsHatUnlocked(HatType type) => type == HatType.None || _unlockedHats.Contains(type);
+
+        /// <summary>Spends coins to unlock the character and equips it immediately. Returns false when already owned or unaffordable.</summary>
+        public bool TryPurchaseCharacter(CharacterType type, int price)
+        {
+            if (IsCharacterUnlocked(type) || _coins.Value < price)
+                return false;
+
+            _coins.Value -= price;
+            _unlockedCharacters.Add(type);
+            _selectedCharacter.Value = type;
+            Save();
+            return true;
+        }
+
+        /// <summary>Spends coins to unlock the hat and equips it immediately. Returns false when already owned or unaffordable.</summary>
+        public bool TryPurchaseHat(HatType type, int price)
+        {
+            if (IsHatUnlocked(type) || _coins.Value < price)
+                return false;
+
+            _coins.Value -= price;
+            _unlockedHats.Add(type);
+            _selectedHat.Value = type;
+            Save();
+            return true;
+        }
+
+        /// <summary>Sets the character spawned for this player's runs. Ignored for locked characters.</summary>
+        public void SelectCharacter(CharacterType type)
+        {
+            if (!IsCharacterUnlocked(type) || _selectedCharacter.Value == type)
+                return;
+
+            _selectedCharacter.Value = type;
+            Save();
+        }
+
+        /// <summary>Sets the worn hat. Ignored for locked hats.</summary>
+        public void SelectHat(HatType type)
+        {
+            if (!IsHatUnlocked(type) || _selectedHat.Value == type)
+                return;
+
+            _selectedHat.Value = type;
+            Save();
+        }
 
         public void Dispose()
         {
@@ -94,6 +148,17 @@ namespace SplitRun.Data
             _coins.Dispose();
             _bestDistance.Dispose();
             _selectedCharacter.Dispose();
+            _selectedHat.Dispose();
+        }
+
+        private static int[] ToIntArray<T>(HashSet<T> set) where T : struct, Enum
+        {
+            var result = new int[set.Count];
+            int index = 0;
+            foreach (T value in set)
+                result[index++] = Convert.ToInt32(value);
+
+            return result;
         }
     }
 }

@@ -367,6 +367,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22f7ba1fc2ad48b4b76a2f8fa6617273, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Environment.TrackScroller
+--- !u!1 &1124995429
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1124995431}
+  - component: {fileID: 1124995430}
+  m_Layer: 0
+  m_Name: characterhatspawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1124995430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124995429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 326816fa0e874e12b410ed1deb2f9d47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterHatSpawner
+--- !u!4 &1124995431
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124995429}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 206.8609, y: 486.1565, z: -1.23418}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1190504451
 GameObject:
   m_ObjectHideFlags: 0
@@ -422,11 +466,13 @@ MonoBehaviour:
   _itemBuffView: {fileID: 2049248502}
   _skillGaugeView: {fileID: 2013347885}
   _pauseOverlayView: {fileID: 360548135925914753}
+  _characterHatSpawner: {fileID: 1124995430}
   _levelProfile: {fileID: 11400000, guid: 60e613ad778f94655b7d90863f57c9f5, type: 2}
   _worldTheme: {fileID: 11400000, guid: 64f6fbd287c644864bad70843cb5509c, type: 2}
   _itemCatalog: {fileID: 11400000, guid: 02bdb2afcb0fb427684896924bf1660b, type: 2}
   _hudIconLibrary: {fileID: 11400000, guid: 50babb204874f4f1c8d7c90d5d336b7f, type: 2}
   _characterCatalog: {fileID: 11400000, guid: 56f5da307fabf4a3296772b5d9172b47, type: 2}
+  _shopCatalog: {fileID: 11400000, guid: 98bca4ae94bc04487881adff654c4b73, type: 2}
 --- !u!1 &1503502748
 GameObject:
   m_ObjectHideFlags: 0
@@ -952,3 +998,4 @@ SceneRoots:
   - {fileID: 1019863747}
   - {fileID: 360548135925914752}
   - {fileID: 1842041793}
+  - {fileID: 1124995431}

@@ -22,7 +22,7 @@ namespace SplitRun.Game
     {
         private readonly GameService       _gameService;
         private readonly WorldThemeProfile _theme;
-        private readonly CharacterCatalog  _characterCatalog;
+        private readonly ShopCatalog       _shopCatalog;
         private readonly PlayerDataService _playerDataService;
         private readonly NetworkService    _networkService;
 
@@ -31,18 +31,22 @@ namespace SplitRun.Game
         private DisposableBag _disposables;
 
         public GameEntryPoint(GameService gameService, WorldThemeProfile theme,
-            CharacterCatalog characterCatalog, PlayerDataService playerDataService,
+            ShopCatalog shopCatalog, PlayerDataService playerDataService,
             NetworkService networkService)
         {
             _gameService       = gameService;
             _theme             = theme;
-            _characterCatalog  = characterCatalog;
+            _shopCatalog       = shopCatalog;
             _playerDataService = playerDataService;
             _networkService    = networkService;
         }
 
         public void Start()
         {
+            // Subscribed before the server spawn so the host's own character is dressed too;
+            // on clients the CharacterEvents replay covers a spawn that beat this entry point.
+            CharacterEvents.OnSpawned += OnCharacterSpawned;
+
             SpawnBackdrop();
             StartSession();
             WatchSessionLoss();
@@ -55,6 +59,8 @@ namespace SplitRun.Game
 
         public void Dispose()
         {
+            CharacterEvents.OnSpawned -= OnCharacterSpawned;
+
             _cts.Cancel();
             _cts.Dispose();
             _disposables.Dispose();
@@ -144,17 +150,34 @@ namespace SplitRun.Game
 
         private void SpawnCharacter()
         {
-            ServerCharacter prefab = _characterCatalog.Resolve(_playerDataService.SelectedCharacter.CurrentValue);
-            if (!prefab)
+            ShopCharacterEntry entry = _shopCatalog.FindCharacter(_playerDataService.SelectedCharacter.CurrentValue);
+            if (entry == null || !entry.GamePrefab)
             {
-                Debug.LogError("[GameEntryPoint] CharacterCatalog has no prefab for the selected type.");
+                Debug.LogError("[GameEntryPoint] ShopCatalog has no game prefab for the selected type.");
                 return;
             }
 
-            ServerCharacter character = UnityEngine.Object.Instantiate(prefab);
+            ServerCharacter character = UnityEngine.Object.Instantiate(entry.GamePrefab);
+            character.SetHat(_playerDataService.SelectedHat.CurrentValue);
 
             // The character's lifetime is one run — a later NGO scene change must take it down.
             character.NetworkObject.Spawn(destroyWithScene: true);
+        }
+
+        // Dresses the NGO-spawned character (outside the DI graph) with the hat carried in its spawn payload.
+        private void OnCharacterSpawned(ICharacter character)
+        {
+            if (character.Hat == HatType.None)
+                return;
+
+            ShopHatEntry entry = _shopCatalog.FindHat(character.Hat);
+            if (entry == null || !entry.HatPrefab)
+            {
+                Debug.LogWarning($"[GameEntryPoint] ShopCatalog has no prefab for {character.Hat} — hat skipped.");
+                return;
+            }
+
+            character.AttachHat(entry.HatPrefab);
         }
 
         // The backdrop is one runtime follow object, spawned from the theme rather than living in the scene.

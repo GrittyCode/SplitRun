@@ -19,6 +19,7 @@ namespace SplitRun.Character
         private readonly NetworkVariable<float>         _speed         = new NetworkVariable<float>(GameConstants.k_BaseRunSpeed);
         private readonly NetworkVariable<SkillState>    _skillState    = new NetworkVariable<SkillState>(SkillState.Ready);
         private readonly NetworkVariable<VerticalState> _verticalState = new NetworkVariable<VerticalState>(VerticalState.Ground);
+        private readonly NetworkVariable<HatType>       _hat           = new NetworkVariable<HatType>(HatType.None);
 
         private readonly ReactiveProperty<int>           _laneReactive          = new ReactiveProperty<int>(GameConstants.k_LaneCenter);
         private readonly ReactiveProperty<int>           _hpReactive            = new ReactiveProperty<int>(GameConstants.k_MaxHp);
@@ -26,7 +27,8 @@ namespace SplitRun.Character
         private readonly ReactiveProperty<VerticalState> _verticalStateReactive = new ReactiveProperty<VerticalState>(VerticalState.Ground);
         private readonly ReactiveProperty<float>         _distanceReactive      = new ReactiveProperty<float>(0f);
 
-        private CharacterCore _core;
+        private CharacterCore  _core;
+        private CharacterModel _model;
 
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _laneReactive;
         public ReadOnlyReactiveProperty<int>           HpReactive            => _hpReactive;
@@ -37,12 +39,17 @@ namespace SplitRun.Character
         public Transform                               CharacterTransform    => transform;
         public SkillType                               ActiveSkill           => _core != null ? _core.ActiveSkill : SkillType.None;
 
+        // Set once before Spawn and never written again — one synchronous reader, so no reactive mirror.
+        public HatType Hat => _hat.Value;
+
         int ICharacterState.Lane               { get => _currentLane.Value;   set => _currentLane.Value = value; }
         int ICharacterState.Hp                 { get => _hp.Value;            set => _hp.Value = value; }
         float ICharacterState.Distance         { get => _distance.Value;      set => _distance.Value = value; }
         float ICharacterState.Speed            { get => _speed.Value;         set => _speed.Value = value; }
         SkillState ICharacterState.Skill       { get => _skillState.Value;    set => _skillState.Value = value; }
         VerticalState ICharacterState.Vertical { get => _verticalState.Value; set => _verticalState.Value = value; }
+
+        private void Awake() => _model = GetComponentInChildren<CharacterModel>();
 
         public override void OnNetworkSpawn()
         {
@@ -99,6 +106,21 @@ namespace SplitRun.Character
         public void RequestSlide()                   => SlideServerRpc();
         public void ActivateSkill()                  => ActivateSkillServerRpc();
         public void SetRunning(bool isRunning)       => _core?.SetRunning(isRunning);
+
+        /// <summary>Server-only, called before Spawn — the hat rides the spawn payload to every client.</summary>
+        public void SetHat(HatType hat) => _hat.Value = hat;
+
+        /// <summary>Instantiates the hat prefab on the nested model's hat socket. Pass null to remove the hat.</summary>
+        public void AttachHat(GameObject hatPrefab)
+        {
+            if (!_model)
+            {
+                Debug.LogWarning("[ServerCharacter] Prefab has no CharacterModel child — hat skipped.");
+                return;
+            }
+
+            _model.AttachHat(hatPrefab);
+        }
 
         // Layout is server-authoritative and identical everywhere — only the server's own trigger
         // may damage; a client report would land after hit-stun and double the same hit.

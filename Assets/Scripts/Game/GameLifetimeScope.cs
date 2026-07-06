@@ -3,7 +3,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-using SplitRun.Character;
+using SplitRun.Data;
 using SplitRun.Environment;
 using SplitRun.Item;
 using SplitRun.LevelDesign;
@@ -29,7 +29,7 @@ namespace SplitRun.Game
         [SerializeField] private WorldThemeProfile  _worldTheme;
         [SerializeField] private ItemCatalog        _itemCatalog;
         [SerializeField] private HudIconLibrary     _hudIconLibrary;
-        [SerializeField] private CharacterCatalog   _characterCatalog;
+        [SerializeField] private ShopCatalog        _shopCatalog;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -44,7 +44,7 @@ namespace SplitRun.Game
             builder.RegisterInstance(_worldTheme);
             builder.RegisterInstance(_itemCatalog);
             builder.RegisterInstance(_hudIconLibrary);
-            builder.RegisterInstance(_characterCatalog);
+            builder.RegisterInstance(_shopCatalog);
 
             builder.RegisterComponent(_gameSession);
             builder.RegisterComponent(_trackSpawner);

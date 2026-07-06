@@ -2,13 +2,11 @@ using System.Globalization;
 
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 using R3;
 using VContainer;
 
-using SplitRun.Constants;
 using SplitRun.Data;
 using SplitRun.Network;
 
@@ -20,17 +18,21 @@ namespace SplitRun.UI.Lobby
         [SerializeField] private TMP_Text _coinText;
         [SerializeField] private TMP_Text _bestText;
 
-        [Header("Popups")]
-        [SerializeField] private GameObject _dimOverlay;
-        [SerializeField] private GameObject _playPopup;
-        [SerializeField] private GameObject _multiplayerPanel;
+        [Header("Tabs")]
+        [SerializeField] private Button     _playTabButton;
+        [SerializeField] private Button     _storageTabButton;
+        [SerializeField] private Button     _shopTabButton;
+        [SerializeField] private GameObject _playPanel;
+        [SerializeField] private GameObject _storagePanel;
+        [SerializeField] private GameObject _shopPanel;
 
-        [Header("Buttons")]
-        [SerializeField] private Button _stageTapButton;
-        [SerializeField] private Button _soloButton;
-        [SerializeField] private Button _multiButton;
-        [SerializeField] private Button _playCloseButton;
-        [SerializeField] private Button _multiCloseButton;
+        [Header("Play Panel")]
+        [SerializeField] private GameObject _playMenu;
+        [SerializeField] private GameObject _multiplayerPanel;
+        [SerializeField] private Button     _stageTapButton;
+        [SerializeField] private Button     _soloButton;
+        [SerializeField] private Button     _multiButton;
+        [SerializeField] private Button     _multiBackButton;
 
         [Inject] private PlayerDataService _playerDataService;
         [Inject] private NetworkService    _networkService;
@@ -39,6 +41,9 @@ namespace SplitRun.UI.Lobby
         {
             BindTopBar();
             BindButtons();
+
+            // Deterministic initial state regardless of which panels were left active in the scene.
+            SelectTab(_playPanel);
         }
 
         private void BindTopBar()
@@ -54,37 +59,59 @@ namespace SplitRun.UI.Lobby
 
         private void BindButtons()
         {
-            _stageTapButton.OnClickAsObservable().Subscribe(_ => OpenPlayPopup()).AddTo(this);
-            _multiButton.OnClickAsObservable().Subscribe(_ => OpenMultiplayerPanel()).AddTo(this);
-            _playCloseButton.OnClickAsObservable().Subscribe(_ => CloseAllPopups()).AddTo(this);
-            _multiCloseButton.OnClickAsObservable().Subscribe(_ => CloseAllPopups()).AddTo(this);
+            _playTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_playPanel)).AddTo(this);
+            _storageTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_storagePanel)).AddTo(this);
+            _shopTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_shopPanel)).AddTo(this);
 
-            _soloButton.OnClickAsObservable()
-                .Subscribe(_ => SceneManager.LoadScene(SceneConstants.k_GameSceneName))
-                .AddTo(this);
+            _stageTapButton.OnClickAsObservable().Subscribe(_ => SelectTab(_playPanel)).AddTo(this);
+
+            _multiButton.OnClickAsObservable().Subscribe(_ => ShowMultiplayerFlow()).AddTo(this);
+            _multiBackButton.OnClickAsObservable().Subscribe(_ => ExitMultiplayerFlow()).AddTo(this);
+
+            // Starting a run is session policy — the view only forwards the intent.
+            _soloButton.OnClickAsObservable().Subscribe(_ => _networkService.StartSolo()).AddTo(this);
         }
 
-        private void OpenPlayPopup()
+        // Exactly one tab is active at all times; the active tab button is disabled,
+        // which doubles as the selection highlight and makes a re-tap impossible.
+        private void SelectTab(GameObject panel)
         {
-            _dimOverlay.SetActive(true);
-            _playPopup.SetActive(true);
+            if (panel.activeSelf)
+                return;
+
+            // Leaving the play sheet abandons any session being created or joined; no-op when offline.
+            if (_playPanel.activeSelf)
+                _networkService.Disconnect();
+
+            _playPanel.SetActive(panel == _playPanel);
+            _storagePanel.SetActive(panel == _storagePanel);
+            _shopPanel.SetActive(panel == _shopPanel);
+
+            _playTabButton.interactable    = panel != _playPanel;
+            _storageTabButton.interactable = panel != _storagePanel;
+            _shopTabButton.interactable    = panel != _shopPanel;
+
+            if (panel == _playPanel)
+                ShowPlayMenu();
         }
 
-        // The popup morphs in place — same position, contents swapped.
-        private void OpenMultiplayerPanel()
+        // The sheet morphs in place — same panel, contents swapped.
+        private void ShowMultiplayerFlow()
         {
-            _playPopup.SetActive(false);
+            _playMenu.SetActive(false);
             _multiplayerPanel.SetActive(true);
         }
 
-        private void CloseAllPopups()
+        private void ExitMultiplayerFlow()
         {
-            // Closing the multiplayer panel abandons any session being created or joined.
             _networkService.Disconnect();
+            ShowPlayMenu();
+        }
 
+        private void ShowPlayMenu()
+        {
             _multiplayerPanel.SetActive(false);
-            _playPopup.SetActive(false);
-            _dimOverlay.SetActive(false);
+            _playMenu.SetActive(true);
         }
     }
 }

@@ -2,6 +2,8 @@ namespace SplitRun.Constants
 {
     public static class CharacterConstants
     {
+        public const string k_HatSocketName = "HatSocket";
+
         public const float k_ReferenceHeight = 1.2f;
         public const float k_ColliderRadius  = 0.35f;
         public const float k_ColliderHeight  = k_ReferenceHeight;
