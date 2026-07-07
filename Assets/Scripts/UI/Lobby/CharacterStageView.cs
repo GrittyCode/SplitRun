@@ -11,7 +11,8 @@ namespace SplitRun.UI.Lobby
     // Renders the persisted selection; the shop temporarily overrides it for a try-on.
     public class CharacterStageView : MonoBehaviour
     {
-        [SerializeField] private Transform _stageRoot;
+        [SerializeField] private Transform              _stageRoot;
+        [SerializeField] private LobbyStageIdleAnimator _idleAnimator;
 
         [Inject] private PlayerDataService _playerData;
         [Inject] private ShopCatalog       _catalog;
@@ -37,6 +38,7 @@ namespace SplitRun.UI.Lobby
         {
             _hatOverride = type;
             AttachHat(type);
+            _idleAnimator.Roar();
         }
 
         /// <summary>Drops any try-on override and reverts the stage to the persisted selection.</summary>
@@ -53,9 +55,14 @@ namespace SplitRun.UI.Lobby
             _hatOverride       = null;
 
             if (hadCharacterOverride)
+            {
                 RebuildCharacter(_playerData.SelectedCharacter.CurrentValue);
+            }
             else if (hadHatOverride)
+            {
                 AttachHat(_playerData.SelectedHat.CurrentValue);
+                _idleAnimator.Roar();
+            }
         }
 
         private void OnCharacterSelected(CharacterType type)
@@ -67,7 +74,10 @@ namespace SplitRun.UI.Lobby
         private void OnHatSelected(HatType type)
         {
             if (_hatOverride == null)
+            {
                 AttachHat(type);
+                _idleAnimator.Roar();
+            }
         }
 
         private void RebuildCharacter(CharacterType type)
@@ -84,6 +94,7 @@ namespace SplitRun.UI.Lobby
             }
 
             _current = Instantiate(entry.ModelPrefab, _stageRoot);
+            _idleAnimator.Bind(_current.GetComponentInChildren<Animator>());
             AttachHat(_hatOverride ?? _playerData.SelectedHat.CurrentValue);
         }
 

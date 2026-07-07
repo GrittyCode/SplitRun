@@ -39,10 +39,10 @@ namespace SplitRun.Obstacle
         private readonly bool[] _laneOccupied = new bool[GameConstants.k_LaneCount];
         private readonly int[]  _freeLanes    = new int[GameConstants.k_LaneCount];
 
-        private float     _nextSpawnZ;
-        private bool      _isRunning;
-        private int       _runSeed;
-        private GamePhase _lastPhase = GamePhase.Lobby;
+        private float _nextSpawnZ;
+        private bool  _isRunning;
+        private bool  _prepared;
+        private int   _runSeed;
 
         private void Start()
         {
@@ -109,14 +109,14 @@ namespace SplitRun.Obstacle
 
         private void OnRunStateChanged(GamePhase phase, int seed)
         {
-            bool isResume = phase == GamePhase.Running && _lastPhase == GamePhase.Paused;
-            _lastPhase    = phase;
-
-            // Seed 0 means the character has not spawned yet — a client may enter Running before it.
             _isRunning = phase == GamePhase.Running && seed != 0;
 
-            if (!_isRunning || isResume) return;
+            // Build the initial look-ahead once the seed exists — during the intro when there is one —
+            // so the world is already populated before the character moves. Never rebuilt on resume.
+            if (_prepared || seed == 0) return;
+            if (phase != GamePhase.Intro && phase != GamePhase.Running) return;
 
+            _prepared   = true;
             _runSeed    = seed;
             _nextSpawnZ = GameConstants.k_ObstacleSpacing;
 

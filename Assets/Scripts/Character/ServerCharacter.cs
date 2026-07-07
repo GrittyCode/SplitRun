@@ -27,6 +27,9 @@ namespace SplitRun.Character
         private readonly ReactiveProperty<VerticalState> _verticalStateReactive = new ReactiveProperty<VerticalState>(VerticalState.Ground);
         private readonly ReactiveProperty<float>         _distanceReactive      = new ReactiveProperty<float>(0f);
 
+        // Local presentation state derived per client from the run phase — never networked.
+        private readonly ReactiveProperty<bool> _runningReactive = new ReactiveProperty<bool>(false);
+
         private CharacterCore  _core;
         private CharacterModel _model;
 
@@ -35,6 +38,7 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<SkillState>    SkillStateReactive    => _skillStateReactive;
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalStateReactive;
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distanceReactive;
+        public ReadOnlyReactiveProperty<bool>          RunningReactive       => _runningReactive;
         public Observable<Unit>                        OnHit                 => _core.OnHit;
         public Transform                               CharacterTransform    => transform;
         public SkillType                               ActiveSkill           => _core != null ? _core.ActiveSkill : SkillType.None;
@@ -88,6 +92,7 @@ namespace SplitRun.Character
             _skillStateReactive.Dispose();
             _verticalStateReactive.Dispose();
             _distanceReactive.Dispose();
+            _runningReactive.Dispose();
         }
 
         private void Update()
@@ -105,7 +110,12 @@ namespace SplitRun.Character
         public void RequestJump()                    => JumpServerRpc();
         public void RequestSlide()                   => SlideServerRpc();
         public void ActivateSkill()                  => ActivateSkillServerRpc();
-        public void SetRunning(bool isRunning)       => _core?.SetRunning(isRunning);
+
+        public void SetRunning(bool isRunning)
+        {
+            _core?.SetRunning(isRunning);
+            _runningReactive.Value = isRunning;
+        }
 
         /// <summary>Server-only, called before Spawn — the hat rides the spawn payload to every client.</summary>
         public void SetHat(HatType hat) => _hat.Value = hat;

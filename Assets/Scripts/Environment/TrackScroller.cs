@@ -36,8 +36,9 @@ namespace SplitRun.Environment
 
             if (!TryMeasureSegment()) return;
 
+            // Ground is laid during the intro (when there is one) so it is visible before the run begins.
             _gameService.Phase
-                .Where(phase => phase == GamePhase.Running)
+                .Where(phase => phase == GamePhase.Intro || phase == GamePhase.Running)
                 .Take(1)
                 .Subscribe(_ => OnRunStarted())
                 .AddTo(this);

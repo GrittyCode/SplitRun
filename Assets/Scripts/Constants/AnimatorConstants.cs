@@ -7,8 +7,10 @@ namespace SplitRun.Constants
         public const string k_TriggerSlide = "Slide";
         public const string k_TriggerHit   = "Hit";
         public const string k_TriggerLose  = "Lose";
+        public const string k_TriggerRoar  = "Roar";
 
-        public const string k_ParamSpeed = "Speed";
+        public const string k_ParamSpeed   = "Speed";
+        public const string k_ParamRunning = "Running";
 
         public const string k_ClipNameRoll    = "Roll";
         public const string k_ClipNameJumpOut = "Jump_Out";

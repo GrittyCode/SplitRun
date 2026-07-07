@@ -32,6 +32,11 @@ namespace SplitRun.Character
 
         private void SubscribeToStateChanges()
         {
+            // Idle until the run goes live, then Run — Idle is the Animator's default state.
+            _character.RunningReactive
+                .Subscribe(isRunning => _animator.SetBool(AnimatorConstants.k_ParamRunning, isRunning))
+                .AddTo(this);
+
             _character.VerticalStateReactive
                 .Skip(1)
                 .Subscribe(state => OnVerticalStateChanged(state))

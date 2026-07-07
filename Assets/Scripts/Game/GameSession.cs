@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 using UnityEngine;
@@ -12,10 +13,12 @@ using SplitRun.Item;
 
 namespace SplitRun.Game
 {
-    // In-scene placed NetworkObject owning run-level network state: pause flow,
-    // the shared track seed, and confirmed item collection. Character state stays on ServerCharacter.
+    // In-scene placed NetworkObject owning run-level network state: the pre-run gate,
+    // pause flow, the shared track seed, and confirmed item collection. Character state stays on ServerCharacter.
     public class GameSession : NetworkBehaviour
     {
+        private readonly NetworkVariable<RunStartState> _runStartState = new NetworkVariable<RunStartState>(RunStartState.AwaitingPlayers);
+
         // Declared before _pauseState so its delta applies first — views read the pauser on the state change.
         private readonly NetworkVariable<ulong>      _pausedBy   = new NetworkVariable<ulong>(0);
         private readonly NetworkVariable<PauseState> _pauseState = new NetworkVariable<PauseState>(PauseState.None);
@@ -23,11 +26,16 @@ namespace SplitRun.Game
         // 0 means unassigned — consumers wait for a non-zero seed before deriving the track layout.
         private readonly NetworkVariable<int> _runSeed = new NetworkVariable<int>(0);
 
-        private readonly ReactiveProperty<PauseState> _pauseStateReactive = new ReactiveProperty<PauseState>(PauseState.None);
-        private readonly ReactiveProperty<int>        _runSeedReactive    = new ReactiveProperty<int>(0);
+        private readonly ReactiveProperty<RunStartState> _runStartReactive   = new ReactiveProperty<RunStartState>(RunStartState.AwaitingPlayers);
+        private readonly ReactiveProperty<PauseState>    _pauseStateReactive = new ReactiveProperty<PauseState>(PauseState.None);
+        private readonly ReactiveProperty<int>           _runSeedReactive    = new ReactiveProperty<int>(0);
 
-        public ReadOnlyReactiveProperty<PauseState> PauseStateReactive => _pauseStateReactive;
-        public ReadOnlyReactiveProperty<int>        RunSeed            => _runSeedReactive;
+        // Server-only tally of peers that have the game scene synced.
+        private readonly HashSet<ulong> _readyClients = new HashSet<ulong>();
+
+        public ReadOnlyReactiveProperty<RunStartState> RunStartReactive   => _runStartReactive;
+        public ReadOnlyReactiveProperty<PauseState>    PauseStateReactive => _pauseStateReactive;
+        public ReadOnlyReactiveProperty<int>           RunSeed            => _runSeedReactive;
 
         // Read only synchronously on the Paused state change — no reactive mirror needed.
         public ulong PausedBy => _pausedBy.Value;
@@ -38,26 +46,36 @@ namespace SplitRun.Game
             if (IsServer)
                 _runSeed.Value = UnityEngine.Random.Range(1, int.MaxValue);
 
-            _pauseState.OnValueChanged += OnPauseStateChanged;
-            _runSeed.OnValueChanged    += OnRunSeedChanged;
+            _runStartState.OnValueChanged += OnRunStartStateChanged;
+            _pauseState.OnValueChanged    += OnPauseStateChanged;
+            _runSeed.OnValueChanged       += OnRunSeedChanged;
 
             // OnValueChanged does not fire for the initial value — manual sync required.
+            _runStartReactive.Value   = _runStartState.Value;
             _pauseStateReactive.Value = _pauseState.Value;
             _runSeedReactive.Value    = _runSeed.Value;
+
+            // Reporting readiness here means the local peer already has the game scene synced.
+            SignalReadyServerRpc();
         }
 
         public override void OnNetworkDespawn()
         {
-            _pauseState.OnValueChanged -= OnPauseStateChanged;
-            _runSeed.OnValueChanged    -= OnRunSeedChanged;
+            _runStartState.OnValueChanged -= OnRunStartStateChanged;
+            _pauseState.OnValueChanged    -= OnPauseStateChanged;
+            _runSeed.OnValueChanged       -= OnRunSeedChanged;
+
+            _readyClients.Clear();
 
             // An in-scene object survives despawn — reset so a dead session halts the spawner and hides overlays.
+            _runStartReactive.Value   = RunStartState.AwaitingPlayers;
             _pauseStateReactive.Value = PauseState.None;
             _runSeedReactive.Value    = 0;
         }
 
         public override void OnDestroy()
         {
+            _runStartReactive.Dispose();
             _pauseStateReactive.Dispose();
             _runSeedReactive.Dispose();
 
@@ -96,6 +114,25 @@ namespace SplitRun.Game
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void SignalReadyServerRpc(RpcParams rpcParams = default)
+        {
+            if (_runStartState.Value != RunStartState.AwaitingPlayers) return;
+
+            _readyClients.Add(rpcParams.Receive.SenderClientId);
+            if (_readyClients.Count < NetworkManager.ConnectedClientsIds.Count) return;
+
+            // Solo has no role split to explain — start immediately; a 2-player run shows the intro first.
+            if (NetworkManager.ConnectedClientsIds.Count <= 1)
+            {
+                _runStartState.Value = RunStartState.Live;
+                return;
+            }
+
+            _runStartState.Value = RunStartState.Intro;
+            IntroCountdownAsync(destroyCancellationToken).Forget();
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void PauseServerRpc(RpcParams rpcParams = default)
         {
             if (_pauseState.Value != PauseState.None) return;
@@ -123,6 +160,23 @@ namespace SplitRun.Game
         [Rpc(SendTo.ClientsAndHost)]
         private void CollectItemClientRpc(int spawnId) => ItemEvents.NotifyCollectionConfirmed(spawnId);
 
+        private async UniTaskVoid IntroCountdownAsync(CancellationToken ct)
+        {
+            try
+            {
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(GameConstants.k_RunIntroSeconds), cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            if (_runStartState.Value != RunStartState.Intro) return;
+
+            _runStartState.Value = RunStartState.Live;
+        }
+
         private async UniTaskVoid ResumeCountdownAsync(CancellationToken ct)
         {
             try
@@ -140,7 +194,8 @@ namespace SplitRun.Game
             _pauseState.Value = PauseState.None;
         }
 
-        private void OnPauseStateChanged(PauseState prev, PauseState next) => _pauseStateReactive.Value = next;
-        private void OnRunSeedChanged(int prev, int next)                  => _runSeedReactive.Value = next;
+        private void OnRunStartStateChanged(RunStartState prev, RunStartState next) => _runStartReactive.Value = next;
+        private void OnPauseStateChanged(PauseState prev, PauseState next)          => _pauseStateReactive.Value = next;
+        private void OnRunSeedChanged(int prev, int next)                           => _runSeedReactive.Value = next;
     }
 }

@@ -475,70 +475,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LobbyCanvas
       objectReference: {fileID: 0}
-    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
+    - target: {fileID: 2596607485004776098, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: _target
+      value: 
+      objectReference: {fileID: 2015639254}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -566,17 +506,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c854764cc63a48679f4467435af24e82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.ShopView
---- !u!114 &397332852 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1400845083175814454, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
-  m_PrefabInstance: {fileID: 397332849}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f83ff77d73343adaf3575d4f2b4cfe0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.MultiplayerPanelView
 --- !u!114 &397332853 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1561246929628588540, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
@@ -637,7 +566,6 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects: []
   _lobbyView: {fileID: 397332850}
-  _multiplayerPanelView: {fileID: 397332852}
   _characterStageView: {fileID: 2015639255}
   _shopView: {fileID: 397332851}
   _storageView: {fileID: 397332853}
@@ -731,6 +659,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2015639254}
   - component: {fileID: 2015639255}
+  - component: {fileID: 2015639256}
   m_Layer: 0
   m_Name: CharacterStage
   m_TagString: Untagged
@@ -766,6 +695,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.CharacterStageView
   _stageRoot: {fileID: 2015639254}
+  _idleAnimator: {fileID: 2015639256}
+--- !u!114 &2015639256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2015639253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a352158fda934215adcd190359dd36d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.LobbyStageIdleAnimator
+  _stageController: {fileID: 22100000, guid: a43860a3f04044354bf605483555605b, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

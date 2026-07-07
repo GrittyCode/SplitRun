@@ -45,6 +45,10 @@ namespace SplitRun.Game
             _currentHp.Value       = GameConstants.k_MaxHp;
             _phase.Value           = GamePhase.Lobby;
 
+            _gameSession.RunStartReactive
+                .Subscribe(OnRunStartStateChanged)
+                .AddTo(ref _disposables);
+
             _gameSession.PauseStateReactive
                 .Subscribe(OnPauseStateChanged)
                 .AddTo(ref _disposables);
@@ -65,7 +69,7 @@ namespace SplitRun.Game
             _activeSkill.Dispose();
         }
 
-        /// <summary>Transitions phase to Running. Called once both players confirm ready.</summary>
+        /// <summary>Transitions phase to Running. Called on the Live signal once both players are ready.</summary>
         public void StartRun()
         {
             _phase.Value = GamePhase.Running;
@@ -130,6 +134,20 @@ namespace SplitRun.Game
 
             // A disposed bag disposes anything added later — reset it for the next spawn.
             _characterDisposables = new DisposableBag();
+        }
+
+        // The server gates the run: both players ready → Intro (control guide) → Live (the run begins).
+        private void OnRunStartStateChanged(RunStartState state)
+        {
+            switch (state)
+            {
+                case RunStartState.Intro:
+                    _phase.Value = GamePhase.Intro;
+                    break;
+                case RunStartState.Live:
+                    StartRun();
+                    break;
+            }
         }
 
         private void OnPauseStateChanged(PauseState state)

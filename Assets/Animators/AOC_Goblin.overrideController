@@ -9,8 +9,6 @@ AnimatorOverrideController:
   m_Name: AOC_Goblin
   m_Controller: {fileID: 9100000, guid: cabc37b0a35784190936b22df7a7f0ce, type: 2}
   m_Clips:
-  - m_OriginalClip: {fileID: 5917537482288442099, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
-    m_OverrideClip: {fileID: 5917537482288442099, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
   - m_OriginalClip: {fileID: -1304387373167265313, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
     m_OverrideClip: {fileID: -1304387373167265313, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
   - m_OriginalClip: {fileID: -7905904434738182142, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
@@ -23,3 +21,5 @@ AnimatorOverrideController:
     m_OverrideClip: {fileID: 3724411549504057272, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
   - m_OriginalClip: {fileID: 5522812681064789136, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
     m_OverrideClip: {fileID: 5522812681064789136, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
+  - m_OriginalClip: {fileID: -3100369314251171874, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
+    m_OverrideClip: {fileID: -3100369314251171874, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}

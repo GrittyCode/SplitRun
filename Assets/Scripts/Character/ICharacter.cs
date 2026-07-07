@@ -12,6 +12,9 @@ namespace SplitRun.Character
         ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive { get; }
         ReadOnlyReactiveProperty<float>         DistanceReactive      { get; }
 
+        // True once the run goes live; drives the idle→run animation, mirrored per client from phase.
+        ReadOnlyReactiveProperty<bool> RunningReactive { get; }
+
         // Fires when a collision clears debounce, before HP propagates — for immediate visual response.
         Observable<Unit> OnHit { get; }
 

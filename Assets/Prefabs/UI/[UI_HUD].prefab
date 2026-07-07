@@ -196,6 +196,156 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &894715430961979036
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6631459101960296618}
+  - component: {fileID: 5457172125490793143}
+  - component: {fileID: 7136884797401317546}
+  m_Layer: 5
+  m_Name: Introduce_Vertical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &6631459101960296618
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 894715430961979036}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.7, y: 0.7, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7431694892211568729}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &5457172125490793143
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 894715430961979036}
+  m_CullTransparentMesh: 1
+--- !u!114 &7136884797401317546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 894715430961979036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 9320ced44bdc54cc99f5ea85b22c3657, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!1 &1944014220822689848
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8625742494936448469}
+  - component: {fileID: 6353706287932319089}
+  - component: {fileID: 5396113900550395548}
+  m_Layer: 5
+  m_Name: Introduce_Lane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &8625742494936448469
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1944014220822689848}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.7, y: 0.7, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7431694892211568729}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &6353706287932319089
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1944014220822689848}
+  m_CullTransparentMesh: 1
+--- !u!114 &5396113900550395548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1944014220822689848}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: e2bb8334daf8d466ea99a86d15a445c4, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &2156753395168254009
 GameObject:
   m_ObjectHideFlags: 0
@@ -372,6 +522,8 @@ RectTransform:
   - {fileID: 7316219805264988378}
   - {fileID: 5574639423833839846}
   - {fileID: 6798307098300942920}
+  - {fileID: 8625742494936448469}
+  - {fileID: 6631459101960296618}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -456,8 +608,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Game.GameHUDView
   _distanceLabel: {fileID: 1815326202104389628}
   _coinLabel: {fileID: 4143957477063045489}
-  _hpBar: {fileID: 5923518958036914719}
   _pauseButton: {fileID: 8494375177406048012}
+  _hearts:
+  - {fileID: 6651689666560913646}
+  - {fileID: 3396317982032605934}
+  - {fileID: 2331514374725998215}
+  _fullHeart: {fileID: 21300000, guid: 4775bc44947d548059450bcbdee3a545, type: 3}
+  _emptyHeart: {fileID: 21300000, guid: 3183e37014eb24fd1afc6d5c9995ddb8, type: 3}
+  _itemBuffRoot: {fileID: 5574639423833839846}
+  _itemIndicatorPrefab: {fileID: 1190990630706963367, guid: 8c62193c0f6a74c3699bf129c9bf869c, type: 3}
+  _skillGaugeRoot: {fileID: 6798307098300942920}
+  _skillIndicatorPrefab: {fileID: 1190990630706963367, guid: e96c7164c023641888e536df2df71756, type: 3}
+  _readyColor: {r: 0.39, g: 0.6, b: 0.13, a: 1}
+  _activeColor: {r: 0.94, g: 0.62, b: 0.15, a: 1}
+  _cooldownColor: {r: 0.53, g: 0.53, b: 0.5, a: 1}
+  _shieldColor: {r: 0.11, g: 0.62, b: 0.46, a: 1}
+  _pausePanel: {fileID: 5724478750887158984}
+  _pauseCenterText: {fileID: 2186166385896878045}
+  _resumeButton: {fileID: 9141763234522140897}
+  _laneGuide: {fileID: 1944014220822689848}
+  _verticalGuide: {fileID: 894715430961979036}
 --- !u!1 &2350351352379713741
 GameObject:
   m_ObjectHideFlags: 0
@@ -867,7 +1037,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1499974687628787000}
-  - component: {fileID: 8790399236033865036}
   m_Layer: 5
   m_Name: PauseOverlayView
   m_TagString: Untagged
@@ -895,21 +1064,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8790399236033865036
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6942148902258937556}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e33aff12f6b04ee18e503dd3a89a09b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Game.PauseOverlayView
-  _panelRoot: {fileID: 5724478750887158984}
-  _centerText: {fileID: 2186166385896878045}
-  _resumeButton: {fileID: 9141763234522140897}
 --- !u!1 &7014077742412189545
 GameObject:
   m_ObjectHideFlags: 0
@@ -1058,7 +1212,6 @@ GameObject:
   - component: {fileID: 5574639423833839846}
   - component: {fileID: 9014065590638357181}
   - component: {fileID: 5594178322148680945}
-  - component: {fileID: 5466694725927114215}
   m_Layer: 5
   m_Name: ItemBuffs
   m_TagString: Untagged
@@ -1125,19 +1278,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 0
---- !u!114 &5466694725927114215
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7162348751568135733}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0553baf6c2d24e68aec17aa510eb2f69, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Game.ItemBuffView
-  _indicatorPrefab: {fileID: 1190990630706963367, guid: 8c62193c0f6a74c3699bf129c9bf869c, type: 3}
 --- !u!1 &7165561056488298159
 GameObject:
   m_ObjectHideFlags: 0
@@ -1299,7 +1439,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6798307098300942920}
-  - component: {fileID: 4343028644333899592}
   m_Layer: 5
   m_Name: SkillGauge
   m_TagString: Untagged
@@ -1326,23 +1465,6 @@ RectTransform:
   m_AnchoredPosition: {x: -30, y: 30}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 1, y: 0}
---- !u!114 &4343028644333899592
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7747430489252555798}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6c038f3ac0947799de40cac1cd79e5e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Game.SkillGaugeView
-  _indicatorPrefab: {fileID: 1190990630706963367, guid: e96c7164c023641888e536df2df71756, type: 3}
-  _readyColor: {r: 0.39, g: 0.6, b: 0.13, a: 1}
-  _activeColor: {r: 0.94, g: 0.62, b: 0.15, a: 1}
-  _cooldownColor: {r: 0.53, g: 0.53, b: 0.5, a: 1}
-  _shieldColor: {r: 0.11, g: 0.62, b: 0.46, a: 1}
 --- !u!1 &8566312971849505462
 GameObject:
   m_ObjectHideFlags: 0
@@ -1474,7 +1596,6 @@ GameObject:
   - component: {fileID: 1882902577944301228}
   - component: {fileID: 1754953473880823818}
   - component: {fileID: 8754534577678571453}
-  - component: {fileID: 5923518958036914719}
   m_Layer: 5
   m_Name: HPBar
   m_TagString: Untagged
@@ -1544,24 +1665,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 2
   m_VerticalFit: 2
---- !u!114 &5923518958036914719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8604339699863990411}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd35508d5b2a4fffaf0c343ab135b01c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Game.HPBarView
-  _hearts:
-  - {fileID: 6651689666560913646}
-  - {fileID: 3396317982032605934}
-  - {fileID: 2331514374725998215}
-  _fullHeart: {fileID: 21300000, guid: b7f7e194db07848988a6dafcbcbf2f0b, type: 3}
-  _emptyHeart: {fileID: 21300000, guid: 3183e37014eb24fd1afc6d5c9995ddb8, type: 3}
 --- !u!1 &8637674700442680220
 GameObject:
   m_ObjectHideFlags: 0

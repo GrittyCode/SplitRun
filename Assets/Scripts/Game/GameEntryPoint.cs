@@ -52,9 +52,8 @@ namespace SplitRun.Game
             WatchSessionLoss();
             WatchGameOver();
 
-            // Reaching this scene already implies intent: ready-up completed (multiplayer) or Solo pressed.
-            // A late-arriving client character picks up the Running phase in GameService.OnCharacterSpawned.
-            _gameService.StartRun();
+            // The run is not started here — GameSession gates it behind both players readying up
+            // and a short control-guide intro, then GameService flips to Running on the Live signal.
         }
 
         public void Dispose()

@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AOC_LobbyStage_Goblin
+  m_Controller: {fileID: 9100000, guid: bde8dac04b2f44cad820958ef9d1f2cf, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 2556646596122092305, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
+    m_OverrideClip: {fileID: 2556646596122092305, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
+  - m_OriginalClip: {fileID: -3100369314251171874, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
+    m_OverrideClip: {fileID: -3100369314251171874, guid: 42c9e661d42e5424d8db7d285912fffd, type: 3}
