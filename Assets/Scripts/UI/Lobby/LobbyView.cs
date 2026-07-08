@@ -24,9 +24,11 @@ namespace SplitRun.UI.Lobby
 
         [Header("Tabs")]
         [SerializeField] private Button     _playTabButton;
+        [SerializeField] private Button     _missionTabButton;
         [SerializeField] private Button     _storageTabButton;
         [SerializeField] private Button     _shopTabButton;
         [SerializeField] private GameObject _playPanel;
+        [SerializeField] private GameObject _missionPanel;
         [SerializeField] private GameObject _storagePanel;
         [SerializeField] private GameObject _shopPanel;
 
@@ -73,6 +75,7 @@ namespace SplitRun.UI.Lobby
         private void BindButtons()
         {
             _playTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_playPanel)).AddTo(this);
+            _missionTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_missionPanel)).AddTo(this);
             _storageTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_storagePanel)).AddTo(this);
             _shopTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_shopPanel)).AddTo(this);
 
@@ -97,10 +100,12 @@ namespace SplitRun.UI.Lobby
                 _networkService.Disconnect();
 
             _playPanel.SetActive(panel == _playPanel);
+            _missionPanel.SetActive(panel == _missionPanel);
             _storagePanel.SetActive(panel == _storagePanel);
             _shopPanel.SetActive(panel == _shopPanel);
 
             _playTabButton.interactable    = panel != _playPanel;
+            _missionTabButton.interactable = panel != _missionPanel;
             _storageTabButton.interactable = panel != _storagePanel;
             _shopTabButton.interactable    = panel != _shopPanel;
 

@@ -475,10 +475,90 @@ PrefabInstance:
       propertyPath: m_Name
       value: LobbyCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2235499352634386605, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2584499420486365193, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2584499420486365193, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2596607485004776098, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
       propertyPath: _target
       value: 
       objectReference: {fileID: 2015639254}
+    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531386314597251582, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4335265423146528260, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330423118697252169, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5632338522748100893, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8672997875924042332, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -506,6 +586,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c854764cc63a48679f4467435af24e82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.ShopView
+--- !u!114 &397332852 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3626040014657736058, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+  m_PrefabInstance: {fileID: 397332849}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d83b992af4442c59e74dccfbe85f209, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.MissionView
 --- !u!114 &397332853 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1561246929628588540, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
@@ -567,6 +658,7 @@ MonoBehaviour:
   autoInjectGameObjects: []
   _lobbyView: {fileID: 397332850}
   _characterStageView: {fileID: 2015639255}
+  _missionView: {fileID: 397332852}
   _shopView: {fileID: 397332851}
   _storageView: {fileID: 397332853}
   _shopCatalog: {fileID: 11400000, guid: 98bca4ae94bc04487881adff654c4b73, type: 2}

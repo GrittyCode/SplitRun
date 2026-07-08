@@ -258,6 +258,7 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
+  _missionCatalog: {fileID: 11400000, guid: 3093d6ff9677d4ae68a6261cb0e4691e, type: 2}
 --- !u!4 &1665473461
 Transform:
   m_ObjectHideFlags: 0

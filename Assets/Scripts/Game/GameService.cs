@@ -13,10 +13,15 @@ namespace SplitRun.Game
     {
         private readonly GameSession       _gameSession;
         private readonly PlayerDataService _playerDataService;
+        private readonly MissionService    _missionService;
 
         private ICharacter    _character;
         private DisposableBag _characterDisposables;
         private DisposableBag _disposables;
+
+        private int _runJumps;
+        private int _runSlides;
+        private int _runLaneChanges;
 
         private readonly ReactiveProperty<GamePhase>  _phase           = new ReactiveProperty<GamePhase>(GamePhase.Lobby);
         private readonly ReactiveProperty<float>      _currentDistance = new ReactiveProperty<float>(0f);
@@ -24,10 +29,11 @@ namespace SplitRun.Game
         private readonly ReactiveProperty<SkillState> _skillState      = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<SkillType>  _activeSkill     = new ReactiveProperty<SkillType>(SkillType.None);
 
-        public GameService(GameSession gameSession, PlayerDataService playerDataService)
+        public GameService(GameSession gameSession, PlayerDataService playerDataService, MissionService missionService)
         {
             _gameSession       = gameSession;
             _playerDataService = playerDataService;
+            _missionService    = missionService;
         }
 
         public ReadOnlyReactiveProperty<GamePhase>  Phase             => _phase;
@@ -80,6 +86,7 @@ namespace SplitRun.Game
         public void EndRun()
         {
             _playerDataService.UpdateBestDistance((int)_currentDistance.Value);
+            _missionService.ReportRun((int)_currentDistance.Value, _runJumps, _runSlides, _runLaneChanges);
 
             _phase.Value = GamePhase.GameOver;
             _character?.SetRunning(false);
@@ -104,6 +111,11 @@ namespace SplitRun.Game
             _activeSkill.Value = character.ActiveSkill;
             character.SetRunning(_phase.Value == GamePhase.Running && _gameSession.PauseStateReactive.CurrentValue == PauseState.None);
 
+            // A fresh character marks a fresh run — action tallies restart from zero.
+            _runJumps       = 0;
+            _runSlides      = 0;
+            _runLaneChanges = 0;
+
             // ReactiveProperty skips re-emission when value is unchanged — EndRun never fires twice.
             character.HpReactive
                 .Subscribe(hp =>
@@ -120,6 +132,16 @@ namespace SplitRun.Game
             character.SkillStateReactive
                 .Subscribe(state => _skillState.Value = state)
                 .AddTo(ref _characterDisposables);
+
+            character.VerticalStateReactive
+                .Subscribe(CountVerticalAction)
+                .AddTo(ref _characterDisposables);
+
+            // Skip(1) drops the initial lane emitted on subscribe so only real changes count.
+            character.LaneReactive
+                .Skip(1)
+                .Subscribe(_ => _runLaneChanges++)
+                .AddTo(ref _characterDisposables);
         }
 
         private void OnCharacterDespawned(ICharacter character)
@@ -134,6 +156,19 @@ namespace SplitRun.Game
 
             // A disposed bag disposes anything added later — reset it for the next spawn.
             _characterDisposables = new DisposableBag();
+        }
+
+        private void CountVerticalAction(VerticalState state)
+        {
+            switch (state)
+            {
+                case VerticalState.Jumping:
+                    _runJumps++;
+                    break;
+                case VerticalState.Sliding:
+                    _runSlides++;
+                    break;
+            }
         }
 
         // The server gates the run: both players ready → Intro (control guide) → Live (the run begins).

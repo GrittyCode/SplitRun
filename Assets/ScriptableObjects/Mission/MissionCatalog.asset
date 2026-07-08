@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cacaec341f0f4a62ba8cba821b3de6db, type: 3}
+  m_Name: MissionCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Data.MissionCatalog
+  _pool:
+  - _id: dist_500
+    _displayName: Run 500m in one run
+    _goalType: 0
+    _target: 500
+    _rewardCoins: 50
+  - _id: dist_1000
+    _displayName: Run 1000m in one run
+    _goalType: 0
+    _target: 1000
+    _rewardCoins: 100
+  - _id: coins_100
+    _displayName: Collect 100 coins
+    _goalType: 1
+    _target: 100
+    _rewardCoins: 30
+  - _id: jump_30
+    _displayName: Jump 30 times
+    _goalType: 2
+    _target: 30
+    _rewardCoins: 40
+  - _id: lane_50
+    _displayName: Change lanes 50 times
+    _goalType: 4
+    _target: 50
+    _rewardCoins: 40
+  - _id: slide_30
+    _displayName: Slide 30 times
+    _goalType: 3
+    _target: 30
+    _rewardCoins: 40
+  _dailyCount: 3

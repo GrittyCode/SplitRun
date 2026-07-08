@@ -16,12 +16,15 @@ namespace SplitRun.Boot
     public class BootLoader : IAsyncStartable
     {
         private readonly PlayerDataService _playerDataService;
+        private readonly MissionService    _missionService;
         private readonly AdService         _adService;
         private readonly NetworkService    _networkService;
 
-        public BootLoader(PlayerDataService playerDataService, AdService adService, NetworkService networkService)
+        public BootLoader(PlayerDataService playerDataService, MissionService missionService,
+            AdService adService, NetworkService networkService)
         {
             _playerDataService = playerDataService;
+            _missionService    = missionService;
             _adService         = adService;
             _networkService    = networkService;
         }
@@ -33,6 +36,7 @@ namespace SplitRun.Boot
         public async UniTask StartAsync(CancellationToken ct)
         {
             _playerDataService.Load();
+            _missionService.Load();
 
             // AdMob init is fire-and-forget — does not block scene transition
             _adService.Initialize();

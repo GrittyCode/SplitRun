@@ -13,6 +13,7 @@ namespace SplitRun.Lobby
         [Header("Scene Components")]
         [SerializeField] private LobbyView          _lobbyView;
         [SerializeField] private CharacterStageView _characterStageView;
+        [SerializeField] private MissionView        _missionView;
         [SerializeField] private ShopView           _shopView;
         [SerializeField] private StorageView        _storageView;
 
@@ -25,6 +26,7 @@ namespace SplitRun.Lobby
 
             builder.RegisterComponent(_lobbyView);
             builder.RegisterComponent(_characterStageView);
+            builder.RegisterComponent(_missionView);
             builder.RegisterComponent(_shopView);
             builder.RegisterComponent(_storageView);
         }
