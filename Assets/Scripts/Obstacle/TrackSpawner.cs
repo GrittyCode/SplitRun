@@ -25,11 +25,11 @@ namespace SplitRun.Obstacle
         private const int k_SaltItemLane     = 21;
         private const int k_SaltMagnetRoll   = 22;
 
-        [Inject] private GameService        _gameService;
-        [Inject] private GameSession        _gameSession;
-        [Inject] private LevelDesignProfile _levelProfile;
-        [Inject] private WorldThemeProfile  _theme;
-        [Inject] private ItemService        _itemService;
+        [Inject] private GameService         _gameService;
+        [Inject] private GameSession         _gameSession;
+        [Inject] private LevelDesignProfile  _levelProfile;
+        [Inject] private AssetPreloadService _preload;
+        [Inject] private ItemService         _itemService;
 
         private readonly Dictionary<ObstacleFootprint, List<ObstaclePool>> _pools =
             new Dictionary<ObstacleFootprint, List<ObstaclePool>>();
@@ -59,39 +59,29 @@ namespace SplitRun.Obstacle
             }
         }
 
-        // Pools come from the theme's footprint→prefab map, so the level profile stays theme-agnostic.
+        // Prefabs are preloaded at boot and resolved by footprint, so the level profile stays theme-agnostic.
         private void InitializePools()
         {
-            if (!_theme)
+            foreach (ObstacleFootprint footprint in _preload.Footprints)
             {
-                Debug.LogWarning("[TrackSpawner] No world theme — spawning disabled.");
-                return;
-            }
+                foreach (TrackObstacle prefab in _preload.GetObstaclePrefabs(footprint))
+                {
+                    if (!prefab) continue;
 
-            foreach (FootprintPrefabs set in _theme.ObstaclePrefabs)
-                RegisterPrefabSet(set);
+                    AddPool(footprint, prefab);
+                }
+            }
         }
 
-        private void RegisterPrefabSet(FootprintPrefabs set)
+        private void AddPool(ObstacleFootprint footprint, TrackObstacle prefab)
         {
-            if (set.Prefabs == null) return;
-
-            foreach (TrackObstacle prefab in set.Prefabs)
+            if (!_pools.TryGetValue(footprint, out List<ObstaclePool> pools))
             {
-                if (!prefab) continue;
-
-                if (prefab.Footprint != set.Footprint)
-                    Debug.LogWarning($"[TrackSpawner] '{prefab.name}' footprint {prefab.Footprint} " +
-                                     $"does not match its theme slot {set.Footprint}.");
-
-                if (!_pools.TryGetValue(set.Footprint, out List<ObstaclePool> pools))
-                {
-                    pools = new List<ObstaclePool>();
-                    _pools[set.Footprint] = pools;
-                }
-
-                pools.Add(new ObstaclePool(prefab, transform, GameConstants.k_ObstaclePoolSizePerPrefab));
+                pools = new List<ObstaclePool>();
+                _pools[footprint] = pools;
             }
+
+            pools.Add(new ObstaclePool(prefab, transform, GameConstants.k_ObstaclePoolSizePerPrefab));
         }
 
         private void BindToGameService()

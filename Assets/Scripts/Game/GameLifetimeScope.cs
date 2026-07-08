@@ -23,7 +23,6 @@ namespace SplitRun.Game
 
         [Header("Scriptable Objects")]
         [SerializeField] private LevelDesignProfile _levelProfile;
-        [SerializeField] private WorldThemeProfile  _worldTheme;
         [SerializeField] private ItemCatalog        _itemCatalog;
         [SerializeField] private HudIconLibrary     _hudIconLibrary;
         [SerializeField] private ShopCatalog        _shopCatalog;
@@ -37,8 +36,8 @@ namespace SplitRun.Game
             builder.RegisterEntryPoint<ItemService>().AsSelf();
 
             // Single assignment point for asset references — every consumer injects these.
+            // WorldThemeProfile is registered at Root so boot preload and the run share one instance.
             builder.RegisterInstance(_levelProfile);
-            builder.RegisterInstance(_worldTheme);
             builder.RegisterInstance(_itemCatalog);
             builder.RegisterInstance(_hudIconLibrary);
             builder.RegisterInstance(_shopCatalog);

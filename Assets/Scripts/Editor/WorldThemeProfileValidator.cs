@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 using SplitRun.Environment;
 using SplitRun.Obstacle;
@@ -75,8 +77,12 @@ namespace SplitRun.EditorTools
 
                 for (int prefabIndex = 0; prefabIndex < set.Prefabs.Count; prefabIndex++)
                 {
-                    TrackObstacle prefab = set.Prefabs[prefabIndex];
-                    if (!prefab || prefab.Footprint == set.Footprint) continue;
+                    AssetReferenceGameObject reference = set.Prefabs[prefabIndex];
+                    if (reference == null) continue;
+
+                    GameObject asset = reference.editorAsset;
+                    if (!asset || !asset.TryGetComponent(out TrackObstacle prefab)) continue;
+                    if (prefab.Footprint == set.Footprint) continue;
 
                     into.Add(new ThemeFootprintMismatch(profile, set.Footprint, setIndex, prefabIndex, prefab));
                 }

@@ -9,24 +9,27 @@ using VContainer.Unity;
 using SplitRun.Ad;
 using SplitRun.Constants;
 using SplitRun.Data;
+using SplitRun.Environment;
 using SplitRun.Network;
 
 namespace SplitRun.Boot
 {
     public class BootLoader : IAsyncStartable
     {
-        private readonly PlayerDataService _playerDataService;
-        private readonly MissionService    _missionService;
-        private readonly AdService         _adService;
-        private readonly NetworkService    _networkService;
+        private readonly PlayerDataService   _playerDataService;
+        private readonly MissionService      _missionService;
+        private readonly AssetPreloadService _assetPreloadService;
+        private readonly AdService           _adService;
+        private readonly NetworkService      _networkService;
 
         public BootLoader(PlayerDataService playerDataService, MissionService missionService,
-            AdService adService, NetworkService networkService)
+            AssetPreloadService assetPreloadService, AdService adService, NetworkService networkService)
         {
-            _playerDataService = playerDataService;
-            _missionService    = missionService;
-            _adService         = adService;
-            _networkService    = networkService;
+            _playerDataService   = playerDataService;
+            _missionService      = missionService;
+            _assetPreloadService = assetPreloadService;
+            _adService           = adService;
+            _networkService      = networkService;
         }
 
         /// <summary>
@@ -43,6 +46,9 @@ namespace SplitRun.Boot
 
             // Sign-in races the scene load — failure only disables multiplayer, so boot never blocks on it.
             _networkService.InitializeAsync(ct).Forget();
+
+            // Resident theme assets are resolved here so the Game scene builds its pools synchronously.
+            await _assetPreloadService.LoadAsync(ct);
 
             Debug.Log("[BootLoader] Boot init complete — loading Lobby scene");
 
