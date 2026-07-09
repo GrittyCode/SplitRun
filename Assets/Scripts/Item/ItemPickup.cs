@@ -1,3 +1,5 @@
+using System;
+
 using UnityEngine;
 
 using SplitRun.Constants;
@@ -20,6 +22,9 @@ namespace SplitRun.Item
         public ItemType Type    => _type;
         public int      SpawnId { get; private set; }
 
+        // Pooled instances live outside the DI graph, so the character's trigger reaches ItemService here.
+        public static event Action<ItemPickup> OnCollected;
+
         private void Awake() => _initialRotation = transform.localRotation;
 
         private void Update()
@@ -29,6 +34,9 @@ namespace SplitRun.Item
 
         /// <summary>Assigns the deterministic per-run id shared by every client's copy of this pickup.</summary>
         public void Initialize(int spawnId) => SpawnId = spawnId;
+
+        /// <summary>Raised by the character's trigger. Only the server's report is authoritative.</summary>
+        public void NotifyCollected() => OnCollected?.Invoke(this);
 
         public void ResetState()
         {
@@ -41,8 +49,7 @@ namespace SplitRun.Item
 
         private void OnValidate() => EnforceItemLayer();
 
-        // Sets the item layer at author time so a pickup can't silently miss trigger collisions
-        // through a hand-edited layer — mirrors TrackObstacle's obstacle-layer enforcement.
+        // Enforced at author time so a hand-edited layer cannot silently break trigger collisions.
         private void EnforceItemLayer()
         {
             int layer = LayerMask.NameToLayer(ItemConstants.k_ItemLayerName);
@@ -50,7 +57,7 @@ namespace SplitRun.Item
             {
                 Debug.LogWarning(
                     $"[ItemPickup] Layer '{ItemConstants.k_ItemLayerName}' does not exist. " +
-                    "Add it in Project Settings → Tags and Layers, then enable Character × " +
+                    "Add it in Project Settings -> Tags and Layers, then enable Character x " +
                     $"{ItemConstants.k_ItemLayerName} in the Physics collision matrix.", this);
                 return;
             }

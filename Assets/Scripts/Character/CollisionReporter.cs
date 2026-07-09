@@ -26,7 +26,7 @@ namespace SplitRun.Character
             }
 
             if (other.TryGetComponent(out ItemPickup item))
-                ItemEvents.NotifyCollected(item);
+                item.NotifyCollected();
         }
     }
 }

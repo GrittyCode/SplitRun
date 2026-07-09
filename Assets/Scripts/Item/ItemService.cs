@@ -16,7 +16,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.Item
 {
-    // Owns the pickup run lifetime: pool, placement, magnet, despawn, collection, run-local coins.
     public sealed class ItemService : IStartable, ITickable, IDisposable
     {
         private readonly ItemCatalog       _catalog;
@@ -63,13 +62,16 @@ namespace SplitRun.Item
             BuildPool(ItemType.Coin,   _catalog.CoinPrefab,   ItemConstants.k_CoinPoolSize);
             BuildPool(ItemType.Magnet, _catalog.MagnetPrefab, ItemConstants.k_MagnetPoolSize);
 
-            CharacterEvents.OnSpawned        += OnCharacterSpawned;
-            CharacterEvents.OnDespawned      += OnCharacterDespawned;
-            ItemEvents.OnCollected           += OnItemCollected;
-            ItemEvents.OnCollectionConfirmed += OnCollectionConfirmed;
+            CharacterEvents.OnSpawned   += OnCharacterSpawned;
+            CharacterEvents.OnDespawned += OnCharacterDespawned;
+            ItemPickup.OnCollected      += OnItemCollected;
 
             _gameService.Phase
                 .Subscribe(OnPhaseChanged)
+                .AddTo(ref _disposables);
+
+            _gameSession.OnItemCollectionConfirmed
+                .Subscribe(OnCollectionConfirmed)
                 .AddTo(ref _disposables);
         }
 
@@ -84,10 +86,9 @@ namespace SplitRun.Item
 
         public void Dispose()
         {
-            CharacterEvents.OnSpawned        -= OnCharacterSpawned;
-            CharacterEvents.OnDespawned      -= OnCharacterDespawned;
-            ItemEvents.OnCollected           -= OnItemCollected;
-            ItemEvents.OnCollectionConfirmed -= OnCollectionConfirmed;
+            CharacterEvents.OnSpawned   -= OnCharacterSpawned;
+            CharacterEvents.OnDespawned -= OnCharacterDespawned;
+            ItemPickup.OnCollected      -= OnItemCollected;
 
             foreach (ComponentPool<ItemPickup> pool in _pools.Values)
                 pool.Dispose();

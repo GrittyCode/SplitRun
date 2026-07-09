@@ -3,7 +3,6 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-using SplitRun.Data;
 using SplitRun.UI.Lobby;
 
 namespace SplitRun.Lobby
@@ -17,13 +16,8 @@ namespace SplitRun.Lobby
         [SerializeField] private ShopView           _shopView;
         [SerializeField] private StorageView        _storageView;
 
-        [Header("Data Assets")]
-        [SerializeField] private ShopCatalog _shopCatalog;
-
         protected override void Configure(IContainerBuilder builder)
         {
-            builder.RegisterInstance(_shopCatalog);
-
             builder.RegisterComponent(_lobbyView);
             builder.RegisterComponent(_characterStageView);
             builder.RegisterComponent(_missionView);

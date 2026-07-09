@@ -7,9 +7,11 @@ using SplitRun.Ad;
 using SplitRun.Audio;
 using SplitRun.Data;
 using SplitRun.Environment;
+using SplitRun.Item;
 using SplitRun.Mission;
 using SplitRun.Network;
 using SplitRun.UI.Boot;
+using SplitRun.UI.Game;
 
 namespace SplitRun.Boot
 {
@@ -18,11 +20,12 @@ namespace SplitRun.Boot
         [Header("Scene Components")]
         [SerializeField] private BootView _bootView;
 
-        [Header("Data Assets")]
-        [SerializeField] private MissionCatalog _missionCatalog;
-        [SerializeField] private AudioLibrary   _audioLibrary;
-
-        [Header("Theme Assets")]
+        [Header("Catalog Assets")]
+        [SerializeField] private MissionCatalog    _missionCatalog;
+        [SerializeField] private AudioLibrary      _audioLibrary;
+        [SerializeField] private ShopCatalog       _shopCatalog;
+        [SerializeField] private ItemCatalog       _itemCatalog;
+        [SerializeField] private HudIconLibrary    _hudIconLibrary;
         [SerializeField] private WorldThemeProfile _worldTheme;
 
         protected override void Awake()
@@ -35,8 +38,9 @@ namespace SplitRun.Boot
         {
             builder.RegisterInstance(_missionCatalog);
             builder.RegisterInstance(_audioLibrary);
-
-            // Registered at Root so the boot preload and the Game scene share one theme instance.
+            builder.RegisterInstance(_shopCatalog);
+            builder.RegisterInstance(_itemCatalog);
+            builder.RegisterInstance(_hudIconLibrary);
             builder.RegisterInstance(_worldTheme);
 
             builder.Register<PlayerDataService>(Lifetime.Singleton);
@@ -49,7 +53,6 @@ namespace SplitRun.Boot
 
             builder.RegisterComponent(_bootView);
 
-            // One audio host across every scene.
             builder.RegisterEntryPoint<AudioService>();
 
             // AsSelf() so BootView can read the loader's progress/status reactives.

@@ -3,7 +3,6 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-using SplitRun.Data;
 using SplitRun.Environment;
 using SplitRun.Item;
 using SplitRun.LevelDesign;
@@ -22,9 +21,6 @@ namespace SplitRun.Game
 
         [Header("Scriptable Objects")]
         [SerializeField] private LevelDesignProfile _levelProfile;
-        [SerializeField] private ItemCatalog        _itemCatalog;
-        [SerializeField] private HudIconLibrary     _hudIconLibrary;
-        [SerializeField] private ShopCatalog        _shopCatalog;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -33,11 +29,8 @@ namespace SplitRun.Game
             builder.RegisterEntryPoint<ItemService>().AsSelf();
             builder.RegisterEntryPoint<GameInput>();
 
-            // WorldThemeProfile is registered at Root so boot preload and the run share one instance.
+            // The difficulty axis is a per-run swap target; every other catalog lives at Root.
             builder.RegisterInstance(_levelProfile);
-            builder.RegisterInstance(_itemCatalog);
-            builder.RegisterInstance(_hudIconLibrary);
-            builder.RegisterInstance(_shopCatalog);
 
             builder.RegisterComponent(_gameSession);
             builder.RegisterComponent(_trackSpawner);

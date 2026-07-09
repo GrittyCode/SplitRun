@@ -9,12 +9,9 @@ using R3;
 using Unity.Netcode;
 
 using SplitRun.Constants;
-using SplitRun.Item;
 
 namespace SplitRun.Game
 {
-    // In-scene NetworkObject owning run-level state: the pre-run gate, pause flow, the track seed,
-    // and confirmed item collection. Character state stays on ServerCharacter.
     public class GameSession : NetworkBehaviour
     {
         private readonly NetworkVariable<RunStartState> _runStartState = new NetworkVariable<RunStartState>(RunStartState.AwaitingPlayers);
@@ -30,12 +27,15 @@ namespace SplitRun.Game
         private readonly ReactiveProperty<PauseState>    _pauseStateReactive = new ReactiveProperty<PauseState>(PauseState.None);
         private readonly ReactiveProperty<int>           _runSeedReactive    = new ReactiveProperty<int>(0);
 
-        // Server-only tally of peers that have the game scene synced.
+        private readonly Subject<int> _onItemCollectionConfirmed = new Subject<int>();
+
         private readonly HashSet<ulong> _readyClients = new HashSet<ulong>();
 
         public ReadOnlyReactiveProperty<RunStartState> RunStartReactive   => _runStartReactive;
         public ReadOnlyReactiveProperty<PauseState>    PauseStateReactive => _pauseStateReactive;
         public ReadOnlyReactiveProperty<int>           RunSeed            => _runSeedReactive;
+
+        public Observable<int> OnItemCollectionConfirmed => _onItemCollectionConfirmed;
 
         // Read only synchronously on the Paused state change — no reactive mirror needed.
         public ulong PausedBy => _pausedBy.Value;
@@ -78,6 +78,7 @@ namespace SplitRun.Game
             _runStartReactive.Dispose();
             _pauseStateReactive.Dispose();
             _runSeedReactive.Dispose();
+            _onItemCollectionConfirmed.Dispose();
 
             base.OnDestroy();
         }
@@ -158,7 +159,7 @@ namespace SplitRun.Game
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void CollectItemClientRpc(int spawnId) => ItemEvents.NotifyCollectionConfirmed(spawnId);
+        private void CollectItemClientRpc(int spawnId) => _onItemCollectionConfirmed.OnNext(spawnId);
 
         private async UniTaskVoid IntroCountdownAsync(CancellationToken ct)
         {

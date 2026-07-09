@@ -340,6 +340,9 @@ MonoBehaviour:
   _bootView: {fileID: 2053365817}
   _missionCatalog: {fileID: 11400000, guid: 3093d6ff9677d4ae68a6261cb0e4691e, type: 2}
   _audioLibrary: {fileID: 11400000, guid: f29c0665e54b9477fae592dccefc7a84, type: 2}
+  _shopCatalog: {fileID: 11400000, guid: 98bca4ae94bc04487881adff654c4b73, type: 2}
+  _itemCatalog: {fileID: 11400000, guid: 02bdb2afcb0fb427684896924bf1660b, type: 2}
+  _hudIconLibrary: {fileID: 11400000, guid: 50babb204874f4f1c8d7c90d5d336b7f, type: 2}
   _worldTheme: {fileID: 11400000, guid: 64f6fbd287c644864bad70843cb5509c, type: 2}
 --- !u!4 &1665473461
 Transform:
