@@ -19,7 +19,8 @@ using SplitRun.Network;
 namespace SplitRun.UI.Game
 {
     // The whole in-game HUD on one always-active canvas: readouts, item/skill indicators,
-    // the pause overlay, and the multiplayer control-guide intro. Child panels toggle; this root does not.
+    // the pause overlay, the game-over result, and the multiplayer control-guide intro.
+    // Child panels toggle; this root does not.
     public class GameHUDView : MonoBehaviour
     {
         [Header("Readouts")]
@@ -49,6 +50,13 @@ namespace SplitRun.UI.Game
         [SerializeField] private TMP_Text   _pauseCenterText;
         [SerializeField] private Button     _resumeButton;
 
+        [Header("Game Over")]
+        [SerializeField] private GameObject _gameOverPanel;
+        [SerializeField] private TMP_Text   _resultDistanceLabel;
+        [SerializeField] private TMP_Text   _resultGoldLabel;
+        [SerializeField] private GameObject _resultBestBadge;
+        [SerializeField] private Button     _quitButton;
+
         [Header("Intro Guide")]
         [SerializeField] private GameObject _laneGuide;
         [SerializeField] private GameObject _verticalGuide;
@@ -67,16 +75,20 @@ namespace SplitRun.UI.Game
         private bool           _isSkillCounting;
 
         private CancellationTokenSource _countdownCts;
+        private CancellationTokenSource _resultRollCts;
 
         private void Start()
         {
             _pausePanel.SetActive(false);
+            _gameOverPanel.SetActive(false);
+            _resultBestBadge.SetActive(false);
             HideGuides();
 
             BindReadouts();
             BindItemBuff();
             BindSkillGauge();
             BindPauseOverlay();
+            BindGameOver();
             BindIntroGuide();
         }
 
@@ -93,7 +105,11 @@ namespace SplitRun.UI.Game
             if (_skillRemaining <= 0f) _isSkillCounting = false;
         }
 
-        private void OnDestroy() => CancelCountdown();
+        private void OnDestroy()
+        {
+            CancelCountdown();
+            CancelResultRoll();
+        }
 
         private void BindReadouts()
         {
@@ -313,6 +329,112 @@ namespace SplitRun.UI.Game
             _countdownCts?.Cancel();
             _countdownCts?.Dispose();
             _countdownCts = null;
+        }
+
+        // ---- Game over result ----
+
+        private void BindGameOver()
+        {
+            _gameService.Phase
+                .Where(phase => phase == GamePhase.GameOver)
+                .Subscribe(_ => ShowResult())
+                .AddTo(this);
+
+            // Routed through the service so GameEntryPoint stays the sole owner of session teardown.
+            _quitButton.OnClickAsObservable()
+                .Subscribe(_ => _gameService.RequestEndSession())
+                .AddTo(this);
+        }
+
+        private void ShowResult()
+        {
+            _gameOverPanel.SetActive(true);
+
+            // The run is over and both values are frozen, so one synchronous read captures the finals.
+            int  finalDistance = (int)_gameService.CurrentDistance.CurrentValue;
+            int  finalGold     = _itemService.Coins.CurrentValue;
+            bool isNewBest     = _gameService.IsNewBestDistance;
+
+            CancelResultRoll();
+            _resultRollCts = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+            RollResultAsync(finalDistance, finalGold, isNewBest, _resultRollCts.Token).Forget();
+        }
+
+        // Distance and gold climb together on one eased timeline; the quit button stays locked until
+        // they land so a mid-roll tap can't cut the payoff short.
+        private async UniTaskVoid RollResultAsync(int finalDistance, int finalGold, bool isNewBest, CancellationToken ct)
+        {
+            _quitButton.interactable = false;
+            _resultBestBadge.SetActive(false);
+
+            float elapsed       = 0f;
+            int   shownDistance = -1;
+            int   shownGold     = -1;
+
+            try
+            {
+                while (elapsed < GameConstants.k_ResultRollSeconds)
+                {
+                    elapsed += Time.deltaTime;
+                    float t = EaseOutCubic(Mathf.Clamp01(elapsed / GameConstants.k_ResultRollSeconds));
+
+                    int distance = Mathf.RoundToInt(finalDistance * t);
+                    int gold     = Mathf.RoundToInt(finalGold * t);
+
+                    // Whole-unit gating keeps the roll from allocating a string every frame.
+                    if (distance != shownDistance) { shownDistance = distance; _resultDistanceLabel.text = $"{distance}m"; }
+                    if (gold     != shownGold)     { shownGold     = gold;     _resultGoldLabel.text     = $"+{gold}"; }
+
+                    await UniTask.Yield(ct);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            // Land exactly on the finals — rounding mid-roll can leave the last tick a unit short.
+            _resultDistanceLabel.text = $"{finalDistance}m";
+            _resultGoldLabel.text     = $"+{finalGold}";
+
+            _quitButton.interactable = true;
+
+            if (!isNewBest)
+                return;
+
+            // New record — leave the badge blinking until the same token cancels it on quit/teardown.
+            await BlinkBestAsync(ct);
+        }
+
+        // Runs until the result screen is torn down; UniTask.Delay drives it off the player loop, so
+        // toggling the badge inactive never stalls the loop the way a coroutine would.
+        private async UniTask BlinkBestAsync(CancellationToken ct)
+        {
+            try
+            {
+                while (true)
+                {
+                    _resultBestBadge.SetActive(true);
+                    await UniTask.Delay(
+                        TimeSpan.FromSeconds(GameConstants.k_BestBlinkOnSeconds), cancellationToken: ct);
+
+                    _resultBestBadge.SetActive(false);
+                    await UniTask.Delay(
+                        TimeSpan.FromSeconds(GameConstants.k_BestBlinkOffSeconds), cancellationToken: ct);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private static float EaseOutCubic(float t) => 1f - Mathf.Pow(1f - t, 3f);
+
+        private void CancelResultRoll()
+        {
+            _resultRollCts?.Cancel();
+            _resultRollCts?.Dispose();
+            _resultRollCts = null;
         }
 
         // ---- Intro guide (multiplayer only) ----

@@ -47,3 +47,8 @@ MonoBehaviour:
     _price: 80
     _icon: {fileID: 21300000, guid: 65cdbbc9c17194519927c8c1c16b816f, type: 3}
     _hatPrefab: {fileID: 5389532806216274624, guid: d1a2982cd0aa84d3f8def26fc7f13aeb, type: 3}
+  - _type: 0
+    _displayName: None
+    _price: 0
+    _icon: {fileID: 0}
+    _hatPrefab: {fileID: 0}

@@ -10,12 +10,15 @@ namespace SplitRun.Constants
         public const float k_LaneXLeft          = -2f;
         public const float k_LaneXCenter        =  0f;
         public const float k_LaneXRight         =  2f;
-
+        
         public const float k_LaneMoveDuration   = 0.15f;
-
         public const float k_JumpDuration       = 0.6f;
         public const float k_SlideDuration      = 0.5f;
         public const float k_JumpHeight         = 2f;
+
+        public const float k_ResultRollSeconds = 1.3f;
+        public const float k_BestBlinkOnSeconds  = 0.55f;
+        public const float k_BestBlinkOffSeconds = 0.3f;
 
         // The landing-recovery clip always takes this long regardless of skin.
         public const float k_JumpLandRecoveryDuration = 0.15f;

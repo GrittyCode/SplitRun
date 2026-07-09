@@ -1,10 +1,8 @@
 using System;
-using System.Threading;
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-using Cysharp.Threading.Tasks;
 using R3;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -25,8 +23,6 @@ namespace SplitRun.Game
         private readonly ShopCatalog       _shopCatalog;
         private readonly PlayerDataService _playerDataService;
         private readonly NetworkService    _networkService;
-
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         private DisposableBag _disposables;
 
@@ -60,8 +56,6 @@ namespace SplitRun.Game
         {
             CharacterEvents.OnSpawned -= OnCharacterSpawned;
 
-            _cts.Cancel();
-            _cts.Dispose();
             _disposables.Dispose();
         }
 
@@ -93,27 +87,17 @@ namespace SplitRun.Game
                 .AddTo(ref _disposables);
         }
 
-        // TODO(ui): replace the fixed delay with a GameOverView button when it lands
+        // The result overlay's quit button drives teardown — no auto-return timer.
         private void WatchGameOver()
         {
-            _gameService.Phase
-                .Where(phase => phase == GamePhase.GameOver)
-                .Subscribe(_ => EndSessionAfterDelayAsync(_cts.Token).Forget())
+            _gameService.EndSessionRequested
+                .Subscribe(_ => EndSession())
                 .AddTo(ref _disposables);
         }
 
-        private async UniTaskVoid EndSessionAfterDelayAsync(CancellationToken ct)
+        // The player dismissed the result screen — shut the session down and head back to the Lobby.
+        private void EndSession()
         {
-            try
-            {
-                await UniTask.Delay(
-                    TimeSpan.FromSeconds(GameConstants.k_GameOverReturnDelaySeconds), cancellationToken: ct);
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-
             // Solo runs never enter Hosting/Joined, so the session-loss watcher cannot fire for them.
             bool isMultiplayer = _networkService.ConnectionState.CurrentValue
                 is NetworkConnectionState.Hosting or NetworkConnectionState.Joined;

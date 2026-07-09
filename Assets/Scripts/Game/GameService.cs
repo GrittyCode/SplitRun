@@ -23,11 +23,15 @@ namespace SplitRun.Game
         private int _runSlides;
         private int _runLaneChanges;
 
+        private bool _isNewBestDistance;
+
         private readonly ReactiveProperty<GamePhase>  _phase           = new ReactiveProperty<GamePhase>(GamePhase.Lobby);
         private readonly ReactiveProperty<float>      _currentDistance = new ReactiveProperty<float>(0f);
         private readonly ReactiveProperty<int>        _currentHp       = new ReactiveProperty<int>(GameConstants.k_MaxHp);
         private readonly ReactiveProperty<SkillState> _skillState      = new ReactiveProperty<SkillState>(SkillState.Ready);
         private readonly ReactiveProperty<SkillType>  _activeSkill     = new ReactiveProperty<SkillType>(SkillType.None);
+
+        private readonly Subject<Unit> _endSessionRequested = new Subject<Unit>();
 
         public GameService(GameSession gameSession, PlayerDataService playerDataService, MissionService missionService)
         {
@@ -41,6 +45,12 @@ namespace SplitRun.Game
         public ReadOnlyReactiveProperty<int>        CurrentHp         => _currentHp;
         public ReadOnlyReactiveProperty<SkillState> CurrentSkillState => _skillState;
         public ReadOnlyReactiveProperty<SkillType>  ActiveSkill       => _activeSkill;
+
+        // Set at EndRun, read by the result overlay — whether this run beat the stored record.
+        public bool IsNewBestDistance => _isNewBestDistance;
+
+        // Raised by the result overlay's quit button; GameEntryPoint owns the actual teardown.
+        public Observable<Unit> EndSessionRequested => _endSessionRequested;
 
         public void Start()
         {
@@ -73,6 +83,8 @@ namespace SplitRun.Game
             _currentHp.Dispose();
             _skillState.Dispose();
             _activeSkill.Dispose();
+
+            _endSessionRequested.Dispose();
         }
 
         /// <summary>Transitions phase to Running. Called on the Live signal once both players are ready.</summary>
@@ -85,8 +97,13 @@ namespace SplitRun.Game
         /// <summary>Transitions phase to GameOver. CurrentDistance already holds the final value.</summary>
         public void EndRun()
         {
-            _playerDataService.UpdateBestDistance((int)_currentDistance.Value);
-            _missionService.ReportRun((int)_currentDistance.Value, _runJumps, _runSlides, _runLaneChanges);
+            int finalDistance = (int)_currentDistance.Value;
+
+            // Captured before the write — UpdateBestDistance overwrites the prior record in place.
+            _isNewBestDistance = finalDistance > _playerDataService.BestDistance.CurrentValue;
+
+            _playerDataService.UpdateBestDistance(finalDistance);
+            _missionService.ReportRun(finalDistance, _runJumps, _runSlides, _runLaneChanges);
 
             _phase.Value = GamePhase.GameOver;
             _character?.SetRunning(false);
@@ -98,6 +115,9 @@ namespace SplitRun.Game
             if (_phase.Value != GamePhase.Running) return;
             _gameSession.RequestPause();
         }
+
+        /// <summary>Ends the current session from the result overlay — routed to GameEntryPoint for teardown.</summary>
+        public void RequestEndSession() => _endSessionRequested.OnNext(Unit.Default);
 
         public void RequestLaneChange(int direction) => _character?.RequestLaneChange(direction);
         public void RequestJump()                    => _character?.RequestJump();
