@@ -9,6 +9,7 @@ using R3;
 using VContainer.Unity;
 
 using SplitRun.Ad;
+using SplitRun.Audio;
 using SplitRun.Constants;
 using SplitRun.Data;
 using SplitRun.Environment;
@@ -59,6 +60,8 @@ namespace SplitRun.Boot
 
             _progress.Value = 1f;
             _status.Value   = BootConstants.k_StatusReady;
+
+            AudioEvents.RequestBgm(BgmType.Lobby);
 
             await SceneManager.LoadSceneAsync(SceneConstants.k_LobbySceneName).ToUniTask(cancellationToken: ct);
         }

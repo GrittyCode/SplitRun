@@ -8,6 +8,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using VContainer.Unity;
 
+using SplitRun.Audio;
 using SplitRun.Character;
 using SplitRun.Constants;
 using SplitRun.Data;
@@ -116,6 +117,8 @@ namespace SplitRun.Game
         private static void ReturnToLobby()
         {
             Debug.Log("[GameEntryPoint] Returning to Lobby.");
+
+            AudioEvents.RequestBgm(BgmType.Lobby);
 
             // NGO already shut down in NetworkService.ResetSession, so a plain load is correct here.
             SceneManager.LoadScene(SceneConstants.k_LobbySceneName);

@@ -47,6 +47,7 @@ namespace SplitRun.Game
             builder.RegisterComponent(_trackScroller);
             builder.RegisterComponent(_hudView);
 
+            builder.RegisterEntryPoint<GameAudioBinder>();
             builder.RegisterEntryPoint<GameEntryPoint>();
         }
     }

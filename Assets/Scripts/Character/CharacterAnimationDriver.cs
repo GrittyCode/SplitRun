@@ -48,8 +48,6 @@ namespace SplitRun.Character
                 .Skip(1)
                 .Subscribe(hp => OnHpChanged(hp))
                 .AddTo(this);
-
-            // TODO(skill): subscribe to SkillStateReactive for skill idle VFX
         }
 
         private void OnVerticalStateChanged(VerticalState state)

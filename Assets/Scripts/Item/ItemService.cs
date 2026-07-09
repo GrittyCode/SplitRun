@@ -7,6 +7,7 @@ using R3;
 using Unity.Netcode;
 using VContainer.Unity;
 
+using SplitRun.Audio;
 using SplitRun.Character;
 using SplitRun.Constants;
 using SplitRun.Data;
@@ -171,9 +172,11 @@ namespace SplitRun.Item
             {
                 case ItemType.Coin:
                     _coins.Value += ItemConstants.k_CoinValue;
+                    AudioEvents.RequestSfx(SfxType.Coin);
                     break;
                 case ItemType.Magnet:
                     _magnetSeconds = ItemConstants.k_MagnetDuration;
+                    AudioEvents.RequestSfx(SfxType.Magnet);
                     break;
             }
 

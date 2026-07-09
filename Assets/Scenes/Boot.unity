@@ -337,8 +337,9 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
-  _bootView: {fileID: 5023851408230687005}
+  _bootView: {fileID: 2053365817}
   _missionCatalog: {fileID: 11400000, guid: 3093d6ff9677d4ae68a6261cb0e4691e, type: 2}
+  _audioLibrary: {fileID: 11400000, guid: f29c0665e54b9477fae592dccefc7a84, type: 2}
   _worldTheme: {fileID: 11400000, guid: 64f6fbd287c644864bad70843cb5509c, type: 2}
 --- !u!4 &1665473461
 Transform:
@@ -355,7 +356,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &5023851408230687004
+--- !u!1001 &2053365816
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -447,24 +448,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7761812507129889997, guid: 36e4959a82c124676b3f663add49a3fc, type: 3}
-      propertyPath: m_AdditionalShaderChannelsFlag
-      value: 25
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 36e4959a82c124676b3f663add49a3fc, type: 3}
---- !u!114 &5023851408230687005 stripped
+--- !u!114 &2053365817 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8705968108183959864, guid: 36e4959a82c124676b3f663add49a3fc, type: 3}
-  m_PrefabInstance: {fileID: 5023851408230687004}
+  m_CorrespondingSourceObject: {fileID: 4735314652360737545, guid: 36e4959a82c124676b3f663add49a3fc, type: 3}
+  m_PrefabInstance: {fileID: 2053365816}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41a335e620f54291ba590466e6c15345, type: 3}
+  m_Script: {fileID: 11500000, guid: 62c5f2e2214c4bcbba0b185177b634fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Boot.BootView
 --- !u!1660057539 &9223372036854775807
@@ -473,5 +470,5 @@ SceneRoots:
   m_Roots:
   - {fileID: 1665473461}
   - {fileID: 1179066619}
-  - {fileID: 5023851408230687004}
   - {fileID: 712905909}
+  - {fileID: 2053365816}

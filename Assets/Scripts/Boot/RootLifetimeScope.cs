@@ -4,7 +4,7 @@ using VContainer;
 using VContainer.Unity;
 
 using SplitRun.Ad;
-// using SplitRun.Audio;
+using SplitRun.Audio;
 using SplitRun.Data;
 using SplitRun.Environment;
 using SplitRun.Network;
@@ -19,7 +19,7 @@ namespace SplitRun.Boot
 
         [Header("Data Assets")]
         [SerializeField] private MissionCatalog _missionCatalog;
-        // [SerializeField] private SfxLibrary     _sfxLibrary;
+        [SerializeField] private AudioLibrary   _audioLibrary;
 
         [Header("Theme Assets")]
         [SerializeField] private WorldThemeProfile _worldTheme;
@@ -33,7 +33,7 @@ namespace SplitRun.Boot
         protected override void Configure(IContainerBuilder builder)
         {
             builder.RegisterInstance(_missionCatalog);
-            // builder.RegisterInstance(_sfxLibrary);
+            builder.RegisterInstance(_audioLibrary);
 
             // Registered at Root so the boot preload and the Game scene share one theme instance.
             builder.RegisterInstance(_worldTheme);
@@ -48,8 +48,8 @@ namespace SplitRun.Boot
 
             builder.RegisterComponent(_bootView);
 
-            // Root-scoped so one AudioSource plays SFX across every scene.
-            // builder.RegisterEntryPoint<SfxService>();
+            // Root-scoped so one audio host plays SFX and BGM across every scene.
+            builder.RegisterEntryPoint<AudioService>();
 
             // AsSelf() so BootView can inject the loader to read its progress/status reactives.
             builder.RegisterEntryPoint<BootLoader>().AsSelf();
