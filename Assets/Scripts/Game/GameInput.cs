@@ -1,44 +1,86 @@
 using System;
 
 using UnityEngine;
+using UnityEngine.InputSystem.EnhancedTouch;
 
 using R3;
 using VContainer.Unity;
 
 using SplitRun.Constants;
 using SplitRun.Network;
-using SplitRun.Utility;
+
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace SplitRun.Game
 {
+    public enum SwipeDirection
+    {
+        Left,
+        Right,
+        Up,
+        Down,
+    }
+
     public class GameInput : IStartable, IDisposable
     {
-        private readonly SwipeDetector _swipeDetector;
-        private readonly GameService   _gameService;
+        private readonly GameService _gameService;
 
-        private float         _nextLaneInputTime;
-        private DisposableBag _disposables;
+        private Vector2 _touchStartPosition;
+        private float   _lastTapTime = float.NegativeInfinity;
+        private float   _nextLaneInputTime;
 
-        public GameInput(SwipeDetector swipeDetector, GameService gameService)
-        {
-            _swipeDetector = swipeDetector;
-            _gameService   = gameService;
-        }
+        public GameInput(GameService gameService) => _gameService = gameService;
 
         public void Start()
         {
-            _swipeDetector.OnSwipe
-                .Where(_ => IsRunning())
-                .Subscribe(OnSwipe)
-                .AddTo(ref _disposables);
-
-            _swipeDetector.OnDoubleTap
-                .Where(_ => IsRunning())
-                .Subscribe(_ => _gameService.RequestSkill())
-                .AddTo(ref _disposables);
+#if UNITY_EDITOR
+            TouchSimulation.Enable();
+#endif
+            EnhancedTouchSupport.Enable();
+            Touch.onFingerDown += OnFingerDown;
+            Touch.onFingerUp   += OnFingerUp;
         }
 
-        public void Dispose() => _disposables.Dispose();
+        public void Dispose()
+        {
+            Touch.onFingerDown -= OnFingerDown;
+            Touch.onFingerUp   -= OnFingerUp;
+            EnhancedTouchSupport.Disable();
+#if UNITY_EDITOR
+            TouchSimulation.Disable();
+#endif
+        }
+
+        private void OnFingerDown(Finger finger) => _touchStartPosition = finger.currentTouch.screenPosition;
+
+        private void OnFingerUp(Finger finger)
+        {
+            if (!IsRunning()) return;
+
+            Vector2 delta = finger.currentTouch.screenPosition - _touchStartPosition;
+
+            if (delta.magnitude < GameConstants.k_SwipeMinDistancePx)
+            {
+                DetectDoubleTap();
+                return;
+            }
+
+            OnSwipe(ResolveDirection(delta));
+        }
+
+        private void DetectDoubleTap()
+        {
+            float now = Time.time;
+
+            if (now - _lastTapTime <= GameConstants.k_DoubleTapWindow)
+            {
+                _gameService.RequestSkill();
+                _lastTapTime = float.NegativeInfinity;
+                return;
+            }
+
+            _lastTapTime = now;
+        }
 
         private void OnSwipe(SwipeDirection direction)
         {
@@ -64,7 +106,15 @@ namespace SplitRun.Game
             if (Time.time < _nextLaneInputTime) return;
 
             _gameService.RequestLaneChange(direction == SwipeDirection.Left ? -1 : 1);
-            _nextLaneInputTime = Time.time + GameConstants.k_LaneMoveDuration;
+            _nextLaneInputTime = Time.time + CharacterConstants.k_LaneMoveDuration;
+        }
+
+        private static SwipeDirection ResolveDirection(Vector2 delta)
+        {
+            if (Mathf.Abs(delta.x) >= Mathf.Abs(delta.y))
+                return delta.x > 0 ? SwipeDirection.Right : SwipeDirection.Left;
+
+            return delta.y > 0 ? SwipeDirection.Up : SwipeDirection.Down;
         }
 
         private bool IsRunning() => _gameService.Phase.CurrentValue == GamePhase.Running;

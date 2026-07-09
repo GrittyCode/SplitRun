@@ -12,11 +12,8 @@ namespace SplitRun.Character
         ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive { get; }
         ReadOnlyReactiveProperty<float>         DistanceReactive      { get; }
 
-        // True once the run goes live; drives the idle→run animation, mirrored per client from phase.
+        // True once the run goes live; drives the idle->run animation, mirrored per client from phase.
         ReadOnlyReactiveProperty<bool> RunningReactive { get; }
-
-        // Fires when a collision clears debounce, before HP propagates — for immediate visual response.
-        Observable<Unit> OnHit { get; }
 
         Transform CharacterTransform { get; }
 
@@ -46,5 +43,16 @@ namespace SplitRun.Character
 
         /// <summary>Starts or stops forward distance accumulation. Called by GameService on run start/end.</summary>
         void SetRunning(bool isRunning);
+    }
+
+    // The write surface CharacterCore mutates; ServerCharacter backs it with NetworkVariables.
+    public interface ICharacterState
+    {
+        int           Lane     { get; set; }
+        int           Hp       { get; set; }
+        float         Distance { get; set; }
+        float         Speed    { get; set; }
+        SkillState    Skill    { get; set; }
+        VerticalState Vertical { get; set; }
     }
 }

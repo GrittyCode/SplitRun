@@ -4,8 +4,27 @@ using UnityEngine;
 
 namespace SplitRun.Audio
 {
-    // Clip source keyed by domain enum, plus per-channel volumes. Adding or swapping a sound is a data
-    // edit here; an unassigned clip plays nothing, so audio stays silent until clips are imported.
+    // Separate types so a BGM track cannot be dispatched through PlayOneShot.
+    public enum SfxType
+    {
+        Hit,
+        Coin,
+        Magnet,
+        LaneChange,
+        Jump,
+        Slide,
+        ShieldActivate,
+        DashActivate,
+        GameOver,
+    }
+
+    public enum BgmType
+    {
+        Lobby,
+        Game,
+    }
+
+    // An unassigned clip plays nothing, so the system ships before the clips do.
     [CreateAssetMenu(fileName = "AudioLibrary", menuName = "SplitRun/Audio Library")]
     public sealed class AudioLibrary : ScriptableObject
     {

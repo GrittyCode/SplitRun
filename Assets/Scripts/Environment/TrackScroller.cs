@@ -7,6 +7,7 @@ using VContainer;
 
 using SplitRun.Constants;
 using SplitRun.Game;
+using SplitRun.Utility;
 
 namespace SplitRun.Environment
 {
@@ -55,7 +56,7 @@ namespace SplitRun.Environment
             probe.position  = Vector3.zero;
 
             bool measured = TryMeasureFloor(probe, out float lengthZ, out float minZ)
-                         || TryGetWorldBoundsZ(probe, out lengthZ, out minZ);
+                         || TryMeasureRenderers(probe, out lengthZ, out minZ);
 
             Destroy(probe.gameObject);
 
@@ -80,17 +81,12 @@ namespace SplitRun.Environment
             return segment.TryGetFloorMetrics(out lengthZ, out minZ);
         }
 
-        private static bool TryGetWorldBoundsZ(Transform root, out float lengthZ, out float minZ)
+        private static bool TryMeasureRenderers(Transform root, out float lengthZ, out float minZ)
         {
             lengthZ = 0f;
             minZ    = 0f;
 
-            Renderer[] renderers = root.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0) return false;
-
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-                bounds.Encapsulate(renderers[i].bounds);
+            if (!GeometryUtils.TryGetHierarchyBounds(root, out Bounds bounds)) return false;
 
             lengthZ = bounds.size.z;
             minZ    = bounds.min.z;

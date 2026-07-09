@@ -3,8 +3,7 @@ using UnityEngine.UI;
 
 namespace SplitRun.UI.Game
 {
-    // SetVisible deactivates this GameObject, so the driving view must live on a separate
-    // always-active parent — a deactivated view can't re-enable its own indicator.
+    // SetVisible deactivates this GameObject, so the driving view must sit on an always-active parent.
     public class TimedIndicator : MonoBehaviour
     {
         [SerializeField] private Image _icon;

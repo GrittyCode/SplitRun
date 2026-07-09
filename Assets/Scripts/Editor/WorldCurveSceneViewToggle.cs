@@ -4,11 +4,11 @@ using UnityEngine.Rendering;
 
 namespace SplitRun.EditorTools
 {
-    // camera is about to render. Requires the graph to multiply its Y bend by _WorldCurveEnabled
+    // Disables the curve in the Scene view only; the graph multiplies its Y bend by this global.
     [InitializeOnLoad]
     public static class WorldCurveSceneViewToggle
     {
-        private static readonly int s_kCurveEnabledId = Shader.PropertyToID("_WorldCurveEnabled");
+        private static readonly int s_curveEnabledId = Shader.PropertyToID("_WorldCurveEnabled");
 
         static WorldCurveSceneViewToggle()
         {
@@ -17,8 +17,7 @@ namespace SplitRun.EditorTools
 
         private static void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            float isEnabled = camera.cameraType == CameraType.SceneView ? 0f : 1f;
-            Shader.SetGlobalFloat(s_kCurveEnabledId, isEnabled);
+            Shader.SetGlobalFloat(s_curveEnabledId, camera.cameraType == CameraType.SceneView ? 0f : 1f);
         }
     }
 }

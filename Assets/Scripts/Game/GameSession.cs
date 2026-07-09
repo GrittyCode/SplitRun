@@ -13,8 +13,8 @@ using SplitRun.Item;
 
 namespace SplitRun.Game
 {
-    // In-scene placed NetworkObject owning run-level network state: the pre-run gate,
-    // pause flow, the shared track seed, and confirmed item collection. Character state stays on ServerCharacter.
+    // In-scene NetworkObject owning run-level state: the pre-run gate, pause flow, the track seed,
+    // and confirmed item collection. Character state stays on ServerCharacter.
     public class GameSession : NetworkBehaviour
     {
         private readonly NetworkVariable<RunStartState> _runStartState = new NetworkVariable<RunStartState>(RunStartState.AwaitingPlayers);
@@ -67,7 +67,7 @@ namespace SplitRun.Game
 
             _readyClients.Clear();
 
-            // An in-scene object survives despawn — reset so a dead session halts the spawner and hides overlays.
+            // An in-scene object survives despawn — reset so a dead session halts the spawner.
             _runStartReactive.Value   = RunStartState.AwaitingPlayers;
             _pauseStateReactive.Value = PauseState.None;
             _runSeedReactive.Value    = 0;

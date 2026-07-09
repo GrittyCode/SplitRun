@@ -7,6 +7,7 @@ using SplitRun.Ad;
 using SplitRun.Audio;
 using SplitRun.Data;
 using SplitRun.Environment;
+using SplitRun.Mission;
 using SplitRun.Network;
 using SplitRun.UI.Boot;
 
@@ -48,10 +49,10 @@ namespace SplitRun.Boot
 
             builder.RegisterComponent(_bootView);
 
-            // Root-scoped so one audio host plays SFX and BGM across every scene.
+            // One audio host across every scene.
             builder.RegisterEntryPoint<AudioService>();
 
-            // AsSelf() so BootView can inject the loader to read its progress/status reactives.
+            // AsSelf() so BootView can read the loader's progress/status reactives.
             builder.RegisterEntryPoint<BootLoader>().AsSelf();
         }
     }

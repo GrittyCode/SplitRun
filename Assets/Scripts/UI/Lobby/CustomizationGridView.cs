@@ -7,6 +7,12 @@ using R3;
 
 namespace SplitRun.UI.Lobby
 {
+    public enum CustomizationTab
+    {
+        Character,
+        Hat,
+    }
+
     // Shared plumbing for the customization sheets: type tabs and a reusable card pool.
     public abstract class CustomizationGridView : MonoBehaviour
     {

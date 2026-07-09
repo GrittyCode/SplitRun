@@ -41,16 +41,16 @@ namespace SplitRun.Character
         {
             _character.LaneReactive
                 .Skip(1)
-                .Subscribe(lane => AnimateLaneChange(lane))
+                .Subscribe(AnimateLaneChange)
                 .AddTo(this);
 
             _character.VerticalStateReactive
                 .Skip(1)
-                .Subscribe(state => OnVerticalStateChanged(state))
+                .Subscribe(OnVerticalStateChanged)
                 .AddTo(this);
 
             _character.DistanceReactive
-                .Subscribe(distance => SetForwardPosition(distance))
+                .Subscribe(SetForwardPosition)
                 .AddTo(this);
         }
 
@@ -58,7 +58,7 @@ namespace SplitRun.Character
         {
             _laneTween?.Kill();
             _laneTween = transform
-                .DOLocalMoveX(GameConstants.GetLaneX(lane), GameConstants.k_LaneMoveDuration)
+                .DOLocalMoveX(GameConstants.GetLaneX(lane), CharacterConstants.k_LaneMoveDuration)
                 .SetEase(Ease.OutQuad);
         }
 
@@ -83,9 +83,9 @@ namespace SplitRun.Character
 
         private void AnimateJumpArc()
         {
-            float halfDuration = GameConstants.k_JumpDuration * 0.5f;
+            float halfDuration = CharacterConstants.k_JumpDuration * 0.5f;
             _verticalTween = DOTween.Sequence()
-                .Append(transform.DOLocalMoveY(GameConstants.k_JumpHeight, halfDuration).SetEase(Ease.OutQuad))
+                .Append(transform.DOLocalMoveY(CharacterConstants.k_JumpHeight, halfDuration).SetEase(Ease.OutQuad))
                 .Append(transform.DOLocalMoveY(0f, halfDuration).SetEase(Ease.InQuad));
         }
 
@@ -96,27 +96,25 @@ namespace SplitRun.Character
             transform.localPosition = pos;
         }
 
-        private void ShrinkHitboxForSlide()
+        private void ShrinkHitboxForSlide() => ApplyHitbox(
+            CharacterConstants.k_SlideColliderRadius,
+            CharacterConstants.k_SlideColliderHeight,
+            CharacterConstants.k_SlideColliderCenterY);
+
+        private void RestoreHitboxToStanding() => ApplyHitbox(
+            CharacterConstants.k_ColliderRadius,
+            CharacterConstants.k_ColliderHeight,
+            CharacterConstants.k_ColliderCenterY);
+
+        private void ApplyHitbox(float radius, float height, float centerY)
         {
             if (!_hitboxCollider) return;
 
-            _hitboxCollider.radius = CharacterConstants.k_SlideColliderRadius;
-            _hitboxCollider.height = CharacterConstants.k_SlideColliderHeight;
+            _hitboxCollider.radius = radius;
+            _hitboxCollider.height = height;
 
             Vector3 center = _hitboxCollider.center;
-            center.y = CharacterConstants.k_SlideColliderCenterY;
-            _hitboxCollider.center = center;
-        }
-
-        private void RestoreHitboxToStanding()
-        {
-            if (!_hitboxCollider) return;
-
-            _hitboxCollider.radius = CharacterConstants.k_ColliderRadius;
-            _hitboxCollider.height = CharacterConstants.k_ColliderHeight;
-
-            Vector3 center = _hitboxCollider.center;
-            center.y = CharacterConstants.k_ColliderCenterY;
+            center.y = centerY;
             _hitboxCollider.center = center;
         }
 

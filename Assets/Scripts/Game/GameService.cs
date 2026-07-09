@@ -6,6 +6,7 @@ using VContainer.Unity;
 using SplitRun.Character;
 using SplitRun.Constants;
 using SplitRun.Data;
+using SplitRun.Mission;
 
 namespace SplitRun.Game
 {
@@ -124,7 +125,7 @@ namespace SplitRun.Game
         public void RequestSlide()                   => _character?.RequestSlide();
         public void RequestSkill()                   => _character?.ActivateSkill();
 
-        // Mirrors the runtime-spawned character's reactives so injected views keep a stable seam across spawn/despawn.
+        // Mirrors the character's reactives so injected views keep a stable seam across spawn/despawn.
         private void OnCharacterSpawned(ICharacter character)
         {
             _character         = character;
@@ -191,7 +192,6 @@ namespace SplitRun.Game
             }
         }
 
-        // The server gates the run: both players ready → Intro (control guide) → Live (the run begins).
         private void OnRunStartStateChanged(RunStartState state)
         {
             switch (state)

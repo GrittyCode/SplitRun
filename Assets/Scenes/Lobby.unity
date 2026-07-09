@@ -471,6 +471,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 784461638033944515, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
+      propertyPath: m_PlayOnAwake
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 830547644435409826, guid: 072671c7e920b4632a90c471d20dba5e, type: 3}
       propertyPath: m_Name
       value: LobbyCanvas
@@ -751,7 +755,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2015639254}
   - component: {fileID: 2015639255}
-  - component: {fileID: 2015639256}
   m_Layer: 0
   m_Name: CharacterStage
   m_TagString: Untagged
@@ -787,19 +790,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.CharacterStageView
   _stageRoot: {fileID: 2015639254}
-  _idleAnimator: {fileID: 2015639256}
---- !u!114 &2015639256
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2015639253}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a352158fda934215adcd190359dd36d7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Lobby.LobbyStageIdleAnimator
   _stageController: {fileID: 22100000, guid: a43860a3f04044354bf605483555605b, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

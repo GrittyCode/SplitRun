@@ -4,12 +4,11 @@ using UnityEditor;
 using UnityEngine;
 
 using SplitRun.Data;
+using SplitRun.Utility;
 
 namespace SplitRun.EditorTools
 {
-    // Renders each catalog prefab front-on into a Sprite asset and writes it back onto the
-    // matching ShopCatalog entry, so shop/storage cards get icons without hand-authored art.
-    // Driven by ShopIconBakerWindow, which supplies the catalog and the output folder.
+    // Renders each catalog prefab front-on into a Sprite and wires it onto its ShopCatalog entry.
     public static class ShopIconBaker
     {
         public const string k_DefaultIconFolder = "Assets/ScriptableObjects/Shop/Icons";
@@ -41,7 +40,6 @@ namespace SplitRun.EditorTools
             return baked;
         }
 
-        // Renders each entry's source prefab and wires the resulting sprite onto its _icon slot.
         private static int BakeArray(SerializedObject serialized, string outputFolder,
             string arrayField, string sourceField, string prefix)
         {
@@ -72,7 +70,7 @@ namespace SplitRun.EditorTools
             return baked;
         }
 
-        // The source may be a GameObject (hat prefab) or a Component reference (CharacterModel) — both resolve to a prefab.
+        // The source may be a GameObject (hat) or a Component (CharacterModel) — both resolve to a prefab.
         private static GameObject ResolvePrefab(Object reference) => reference switch
         {
             GameObject gameObject => gameObject,
@@ -80,7 +78,6 @@ namespace SplitRun.EditorTools
             _                     => null,
         };
 
-        // Spins up a throwaway scene camera, frames the prefab from the front, and captures one RGBA frame.
         private static Sprite RenderToSprite(GameObject prefab, string outputFolder, string iconName)
         {
             GameObject subject = Object.Instantiate(prefab);
@@ -123,17 +120,16 @@ namespace SplitRun.EditorTools
             var host = new GameObject("__IconBakeLight");
             host.transform.rotation = Quaternion.Euler(k_LightEuler);
 
-            Light light   = host.AddComponent<Light>();
+            Light light     = host.AddComponent<Light>();
             light.type      = LightType.Directional;
             light.intensity = k_LightIntensity;
 
             return light;
         }
 
-        // Centers the orthographic camera on the subject's render bounds and sizes it to fit with padding.
         private static void FrameSubject(Camera camera, GameObject subject)
         {
-            if (!TryGetBounds(subject, out Bounds bounds))
+            if (!GeometryUtils.TryGetHierarchyBounds(subject.transform, out Bounds bounds))
             {
                 camera.transform.position = k_ViewDirection.normalized * -k_CameraDistanceMin;
                 camera.transform.LookAt(Vector3.zero);
@@ -147,22 +143,6 @@ namespace SplitRun.EditorTools
             camera.transform.position = bounds.center + k_ViewDirection.normalized * -distance;
             camera.transform.LookAt(bounds.center);
             camera.orthographicSize = Mathf.Max(bounds.extents.x, bounds.extents.y) * k_FramePadding;
-        }
-
-        private static bool TryGetBounds(GameObject subject, out Bounds bounds)
-        {
-            Renderer[] renderers = subject.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0)
-            {
-                bounds = default;
-                return false;
-            }
-
-            bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-                bounds.Encapsulate(renderers[i].bounds);
-
-            return true;
         }
 
         private static Texture2D ReadBack(RenderTexture texture)
@@ -184,8 +164,7 @@ namespace SplitRun.EditorTools
             File.WriteAllBytes(path, texture.EncodeToPNG());
             Object.DestroyImmediate(texture);
 
-            // ImportAsset registers the file; SaveAndReimport then applies the Sprite type synchronously,
-            // so the sprite sub-asset exists by the time LoadSprite runs on the next line.
+            // SaveAndReimport applies the Sprite type synchronously, so the sub-asset exists below.
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
             ConfigureAsSprite(path);
 
@@ -197,16 +176,16 @@ namespace SplitRun.EditorTools
             if (AssetImporter.GetAtPath(path) is not TextureImporter importer)
                 return;
 
-            importer.textureType         = TextureImporterType.Sprite;
-            // Without an explicit Single mode the sprite sub-asset is never generated, so the load returns null.
+            importer.textureType = TextureImporterType.Sprite;
+
+            // Without an explicit Single mode the sprite sub-asset is never generated.
             importer.spriteImportMode    = SpriteImportMode.Single;
             importer.alphaIsTransparency = true;
             importer.mipmapEnabled       = false;
             importer.SaveAndReimport();
         }
 
-        // LoadAssetAtPath returns the main asset (the Texture2D) — the Sprite is a sub-representation,
-        // so it must be pulled from LoadAllAssetRepresentationsAtPath instead.
+        // LoadAssetAtPath returns the Texture2D main asset; the Sprite is a sub-representation.
         private static Sprite LoadSprite(string path)
         {
             foreach (Object representation in AssetDatabase.LoadAllAssetRepresentationsAtPath(path))
@@ -224,6 +203,109 @@ namespace SplitRun.EditorTools
             target.layer = layer;
             foreach (Transform child in target.transform)
                 SetLayerRecursive(child.gameObject, layer);
+        }
+    }
+
+    // Takes the catalog and output folder as fields so baking never depends on the Project selection.
+    public class ShopIconBakerWindow : EditorWindow
+    {
+        private ShopCatalog _catalog;
+        private string      _outputFolder = ShopIconBaker.k_DefaultIconFolder;
+
+        [MenuItem("SplitRun/Shop Icon Baker", priority = 40)]
+        public static void Open()
+        {
+            var window = GetWindow<ShopIconBakerWindow>(utility: false, title: "Shop Icon Baker");
+            window.minSize = new Vector2(460f, 200f);
+            window.Show();
+            window.Focus();
+        }
+
+        private void OnGUI()
+        {
+            EditorGUILayout.Space();
+
+            EditorGUILayout.HelpBox(
+                "Renders each character and hat prefab front-on into a Sprite and wires it onto the " +
+                "catalog entry. Character icons come from the model prefab, hat icons from the hat prefab.",
+                MessageType.Info);
+
+            EditorGUILayout.Space();
+
+            _catalog = (ShopCatalog)EditorGUILayout.ObjectField(
+                "Shop Catalog", _catalog, typeof(ShopCatalog), allowSceneObjects: false);
+
+            DrawOutputFolderField();
+
+            EditorGUILayout.Space();
+
+            DrawBakeButton();
+        }
+
+        private void DrawOutputFolderField()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                _outputFolder = EditorGUILayout.TextField("Output Folder", _outputFolder);
+
+                if (GUILayout.Button("Browse", GUILayout.Width(80f)))
+                    BrowseForFolder();
+            }
+        }
+
+        private void DrawBakeButton()
+        {
+            using (new EditorGUI.DisabledScope(!CanBake()))
+            {
+                if (GUILayout.Button("Bake Icons", GUILayout.Height(32f)))
+                    Bake();
+            }
+
+            if (!_catalog)
+                EditorGUILayout.HelpBox("Assign a Shop Catalog to bake.", MessageType.Warning);
+            else if (!IsFolderInsideProject(_outputFolder))
+                EditorGUILayout.HelpBox("Output folder must be inside the project's Assets folder.", MessageType.Warning);
+        }
+
+        private void BrowseForFolder()
+        {
+            string absolute = EditorUtility.OpenFolderPanel("Icon Output Folder", Application.dataPath, string.Empty);
+            if (string.IsNullOrEmpty(absolute))
+                return;
+
+            string relative = ToProjectRelativePath(absolute);
+            if (string.IsNullOrEmpty(relative))
+            {
+                EditorUtility.DisplayDialog("Shop Icon Baker", "Pick a folder inside the project's Assets folder.", "OK");
+                return;
+            }
+
+            _outputFolder = relative;
+        }
+
+        private void Bake()
+        {
+            int baked = ShopIconBaker.Bake(_catalog, _outputFolder);
+
+            Debug.Log($"[ShopIconBakerWindow] Baked {baked} icon(s) into '{_catalog.name}'.");
+            EditorUtility.DisplayDialog("Shop Icon Baker", $"Baked {baked} icon(s) into '{_catalog.name}'.", "OK");
+        }
+
+        private bool CanBake() => _catalog && IsFolderInsideProject(_outputFolder);
+
+        private static bool IsFolderInsideProject(string folder)
+            => !string.IsNullOrEmpty(folder) && folder.Replace('\\', '/').StartsWith("Assets/");
+
+        // OpenFolderPanel returns an absolute path; asset APIs need one relative to the project root.
+        private static string ToProjectRelativePath(string absolutePath)
+        {
+            string normalized = absolutePath.Replace('\\', '/');
+            string dataPath   = Application.dataPath.Replace('\\', '/');
+
+            if (!normalized.StartsWith(dataPath))
+                return null;
+
+            return "Assets" + normalized.Substring(dataPath.Length);
         }
     }
 }

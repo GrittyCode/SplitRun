@@ -4,8 +4,7 @@ using R3;
 
 namespace SplitRun.Character
 {
-    // Toggles a skin-specific skill VFX object while the skill is Active. Lives on the Shield/Dash
-    // character prefabs; the Default character carries neither this driver nor a VFX child.
+    // Lives on the Shield/Dash prefabs only; Default carries neither this driver nor a VFX child.
     public class CharacterSkillVfxDriver : MonoBehaviour
     {
         [SerializeField] private GameObject _skillVfx;

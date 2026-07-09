@@ -13,10 +13,7 @@ namespace SplitRun.LevelDesign
         public float  CoinSpawnMultiplier => _coinSpawnMultiplier;
         public bool   HasBands            => _obstacleBands != null && _obstacleBands.Length > 0;
 
-        /// <summary>
-        /// Returns the band whose StartDistance is the largest value not exceeding the given
-        /// distance. Bands must be authored in ascending StartDistance order.
-        /// </summary>
+        /// <summary>Returns the band with the largest StartDistance not exceeding the given distance.</summary>
         public ObstacleBand ResolveBand(float distance)
         {
             ObstacleBand active = _obstacleBands[0];
@@ -40,9 +37,7 @@ namespace SplitRun.LevelDesign
                 if (_obstacleBands[i].StartDistance >= _obstacleBands[i - 1].StartDistance) continue;
 
                 Debug.LogWarning(
-                    $"[LevelDesignProfile] '{name}' bands are not in ascending StartDistance order " +
-                    $"(band {i} starts before band {i - 1}). ResolveBand assumes ascending order.",
-                    this);
+                    $"[LevelDesignProfile] '{name}' bands are not in ascending StartDistance order.", this);
                 return;
             }
         }

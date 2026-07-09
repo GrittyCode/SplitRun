@@ -6,12 +6,12 @@ using VContainer.Unity;
 
 namespace SplitRun.Audio
 {
-    // Plays audio raised through AudioEvents. Root-scoped with a persistent host so sound carries
-    // across scene loads; an unassigned clip is a silent no-op.
+    // Root-scoped with a persistent host so sound carries across scene loads.
     public sealed class AudioService : IStartable, IDisposable
     {
         private readonly AudioLibrary _library;
 
+        private GameObject  _host;
         private AudioSource _sfxSource;
         private AudioSource _bgmSource;
 
@@ -19,13 +19,13 @@ namespace SplitRun.Audio
 
         public void Start()
         {
-            GameObject host = new GameObject("[Audio]");
-            UnityEngine.Object.DontDestroyOnLoad(host);
+            _host = new GameObject("[Audio]");
+            UnityEngine.Object.DontDestroyOnLoad(_host);
 
-            _sfxSource             = host.AddComponent<AudioSource>();
+            _sfxSource             = _host.AddComponent<AudioSource>();
             _sfxSource.playOnAwake = false;
 
-            _bgmSource             = host.AddComponent<AudioSource>();
+            _bgmSource             = _host.AddComponent<AudioSource>();
             _bgmSource.playOnAwake = false;
             _bgmSource.loop        = true;
             _bgmSource.volume      = _library ? _library.BgmVolume : 0f;
@@ -39,8 +39,8 @@ namespace SplitRun.Audio
             AudioEvents.OnSfxRequested -= PlaySfx;
             AudioEvents.OnBgmRequested -= PlayBgm;
 
-            if (_sfxSource)
-                UnityEngine.Object.Destroy(_sfxSource.gameObject);
+            if (_host)
+                UnityEngine.Object.Destroy(_host);
         }
 
         private void PlaySfx(SfxType type)

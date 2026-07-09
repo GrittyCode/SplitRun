@@ -121,7 +121,7 @@ namespace SplitRun.EditorTools
 
         private static int ResolveObstacleLayer()
         {
-            int layer = LayerMask.NameToLayer(GameConstants.k_ObstacleLayerName);
+            int layer = LayerMask.NameToLayer(ObstacleConstants.k_LayerName);
             return layer < 0 ? 0 : layer;
         }
 

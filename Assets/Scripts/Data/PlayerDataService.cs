@@ -10,6 +10,17 @@ using SplitRun.Utility;
 
 namespace SplitRun.Data
 {
+    [Serializable]
+    public class SaveData
+    {
+        public int           Coins;
+        public int           BestDistance;
+        public CharacterType SelectedCharacter  = CharacterType.Default;
+        public HatType       SelectedHat        = HatType.None;
+        public int[]         UnlockedCharacters = { 0 };
+        public int[]         UnlockedHats       = { };
+    }
+
     public class PlayerDataService : IDisposable
     {
         private const string k_SaveFile = "player_data.json";
@@ -27,7 +38,6 @@ namespace SplitRun.Data
         public ReadOnlyReactiveProperty<CharacterType> SelectedCharacter => _selectedCharacter;
         public ReadOnlyReactiveProperty<HatType>       SelectedHat       => _selectedHat;
 
-        /// <summary>Loads persisted player data from local JSON into reactive state.</summary>
         public void Load()
         {
             SaveData data = LocalJsonStorage.Load<SaveData>(k_SaveFile);
@@ -51,7 +61,6 @@ namespace SplitRun.Data
             Debug.Log($"[PlayerDataService] Loaded — coins: {data.Coins}, best: {data.BestDistance}m");
         }
 
-        /// <summary>Writes current reactive state to local JSON.</summary>
         public void Save()
         {
             var data = new SaveData
@@ -65,10 +74,8 @@ namespace SplitRun.Data
             };
 
             LocalJsonStorage.Save(k_SaveFile, data);
-            Debug.Log($"[PlayerDataService] Saved — coins: {data.Coins}, best: {data.BestDistance}m");
         }
 
-        /// <summary>Adds earned coins to the persistent total. Called once per run at run end.</summary>
         public void AddCoins(int amount)
         {
             if (amount <= 0)
@@ -80,7 +87,6 @@ namespace SplitRun.Data
             Save();
         }
 
-        /// <summary>Updates the best distance record if the new value exceeds the current one.</summary>
         public void UpdateBestDistance(int distance)
         {
             if (distance <= _bestDistance.Value)
@@ -94,7 +100,7 @@ namespace SplitRun.Data
 
         public bool IsHatUnlocked(HatType type) => type == HatType.None || _unlockedHats.Contains(type);
 
-        /// <summary>Spends coins to unlock the character and equips it immediately. Returns false when already owned or unaffordable.</summary>
+        /// <summary>Spends coins to unlock the character and equips it. False when already owned or unaffordable.</summary>
         public bool TryPurchaseCharacter(CharacterType type, int price)
         {
             if (IsCharacterUnlocked(type) || _coins.Value < price)
@@ -107,7 +113,7 @@ namespace SplitRun.Data
             return true;
         }
 
-        /// <summary>Spends coins to unlock the hat and equips it immediately. Returns false when already owned or unaffordable.</summary>
+        /// <summary>Spends coins to unlock the hat and equips it. False when already owned or unaffordable.</summary>
         public bool TryPurchaseHat(HatType type, int price)
         {
             if (IsHatUnlocked(type) || _coins.Value < price)
@@ -120,7 +126,6 @@ namespace SplitRun.Data
             return true;
         }
 
-        /// <summary>Sets the character spawned for this player's runs. Ignored for locked characters.</summary>
         public void SelectCharacter(CharacterType type)
         {
             if (!IsCharacterUnlocked(type) || _selectedCharacter.Value == type)
@@ -130,7 +135,6 @@ namespace SplitRun.Data
             Save();
         }
 
-        /// <summary>Sets the worn hat. Ignored for locked hats.</summary>
         public void SelectHat(HatType type)
         {
             if (!IsHatUnlocked(type) || _selectedHat.Value == type)
@@ -142,7 +146,6 @@ namespace SplitRun.Data
 
         public void Dispose()
         {
-            // Safety save so no progress is lost when the root scope tears down
             Save();
 
             _coins.Dispose();

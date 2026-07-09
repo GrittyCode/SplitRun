@@ -79,7 +79,7 @@ namespace SplitRun.Network
             // A lingering Relay session would make GameEntryPoint mistake the solo run for multiplayer.
             Disconnect();
 
-            SceneManager.LoadScene(SceneConstants.k_GameSceneName);
+            SceneManager.LoadScene(GameConstants.k_GameSceneName);
         }
 
         /// <summary>Allocates a Relay server, publishes the join code, and starts hosting.</summary>
@@ -280,7 +280,7 @@ namespace SplitRun.Network
         {
             if (_connectionState.Value != NetworkConnectionState.Hosting) return;
 
-            NetworkManager.Singleton.SceneManager.LoadScene(SceneConstants.k_GameSceneName, LoadSceneMode.Single);
+            NetworkManager.Singleton.SceneManager.LoadScene(GameConstants.k_GameSceneName, LoadSceneMode.Single);
         }
 
         private void Fail(string reason)

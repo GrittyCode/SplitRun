@@ -16,7 +16,7 @@ namespace SplitRun.Character
         private readonly NetworkVariable<int>           _currentLane   = new NetworkVariable<int>(GameConstants.k_LaneCenter);
         private readonly NetworkVariable<int>           _hp            = new NetworkVariable<int>(GameConstants.k_MaxHp);
         private readonly NetworkVariable<float>         _distance      = new NetworkVariable<float>(0f);
-        private readonly NetworkVariable<float>         _speed         = new NetworkVariable<float>(GameConstants.k_BaseRunSpeed);
+        private readonly NetworkVariable<float>         _speed         = new NetworkVariable<float>(CharacterConstants.k_BaseRunSpeed);
         private readonly NetworkVariable<SkillState>    _skillState    = new NetworkVariable<SkillState>(SkillState.Ready);
         private readonly NetworkVariable<VerticalState> _verticalState = new NetworkVariable<VerticalState>(VerticalState.Ground);
         private readonly NetworkVariable<HatType>       _hat           = new NetworkVariable<HatType>(HatType.None);
@@ -39,7 +39,6 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive => _verticalStateReactive;
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distanceReactive;
         public ReadOnlyReactiveProperty<bool>          RunningReactive       => _runningReactive;
-        public Observable<Unit>                        OnHit                 => _core.OnHit;
         public Transform                               CharacterTransform    => transform;
         public SkillType                               ActiveSkill           => _core != null ? _core.ActiveSkill : SkillType.None;
 
@@ -167,7 +166,7 @@ namespace SplitRun.Character
 
             // Hit-stun zeroes the synced speed — without a floor the client stalls short of the
             // obstacle and its late local trigger desyncs the impact visuals.
-            float chaseSpeed = Mathf.Max(_speed.Value, GameConstants.k_BaseRunSpeed);
+            float chaseSpeed = Mathf.Max(_speed.Value, CharacterConstants.k_BaseRunSpeed);
             float maxStep    = chaseSpeed * CharacterConstants.k_DistanceCatchUpMultiplier * deltaTime;
 
             _distanceReactive.Value = Mathf.MoveTowards(current, target, maxStep);

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 using R3;
 
-using SplitRun.Data;
+using SplitRun.Mission;
 
 namespace SplitRun.UI.Lobby
 {

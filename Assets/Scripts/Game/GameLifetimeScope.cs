@@ -9,7 +9,6 @@ using SplitRun.Item;
 using SplitRun.LevelDesign;
 using SplitRun.Obstacle;
 using SplitRun.UI.Game;
-using SplitRun.Utility;
 
 namespace SplitRun.Game
 {
@@ -31,11 +30,9 @@ namespace SplitRun.Game
         {
             // AsSelf() so consumers resolve these by concrete type.
             builder.RegisterEntryPoint<GameService>().AsSelf();
-            builder.RegisterEntryPoint<SwipeDetector>().AsSelf();
-            builder.RegisterEntryPoint<GameInput>();
             builder.RegisterEntryPoint<ItemService>().AsSelf();
+            builder.RegisterEntryPoint<GameInput>();
 
-            // Single assignment point for asset references — every consumer injects these.
             // WorldThemeProfile is registered at Root so boot preload and the run share one instance.
             builder.RegisterInstance(_levelProfile);
             builder.RegisterInstance(_itemCatalog);

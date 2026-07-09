@@ -40,8 +40,7 @@ namespace SplitRun.Game
 
         public void Start()
         {
-            // Subscribed before the server spawn so the host's own character is dressed too;
-            // on clients the CharacterEvents replay covers a spawn that beat this entry point.
+            // Before the server spawn so the host's own character is dressed; the CharacterEvents replay covers clients.
             CharacterEvents.OnSpawned += OnCharacterSpawned;
 
             SpawnBackdrop();
@@ -49,8 +48,7 @@ namespace SplitRun.Game
             WatchSessionLoss();
             WatchGameOver();
 
-            // The run is not started here — GameSession gates it behind both players readying up
-            // and a short control-guide intro, then GameService flips to Running on the Live signal.
+            // The run is not started here — GameSession gates it behind the ready handshake and intro.
         }
 
         public void Dispose()
@@ -88,7 +86,6 @@ namespace SplitRun.Game
                 .AddTo(ref _disposables);
         }
 
-        // The result overlay's quit button drives teardown — no auto-return timer.
         private void WatchGameOver()
         {
             _gameService.EndSessionRequested
@@ -96,7 +93,6 @@ namespace SplitRun.Game
                 .AddTo(ref _disposables);
         }
 
-        // The player dismissed the result screen — shut the session down and head back to the Lobby.
         private void EndSession()
         {
             // Solo runs never enter Hosting/Joined, so the session-loss watcher cannot fire for them.
@@ -121,7 +117,7 @@ namespace SplitRun.Game
             AudioEvents.RequestBgm(BgmType.Lobby);
 
             // NGO already shut down in NetworkService.ResetSession, so a plain load is correct here.
-            SceneManager.LoadScene(SceneConstants.k_LobbySceneName);
+            SceneManager.LoadScene(GameConstants.k_LobbySceneName);
         }
 
         private static void StartSoloHost(NetworkManager networkManager)
@@ -150,7 +146,7 @@ namespace SplitRun.Game
             character.NetworkObject.Spawn(destroyWithScene: true);
         }
 
-        // Dresses the NGO-spawned character (outside the DI graph) with the hat carried in its spawn payload.
+        // The NGO-spawned character is outside the DI graph, so the hat is attached from its spawn payload.
         private void OnCharacterSpawned(ICharacter character)
         {
             if (character.Hat == HatType.None)
@@ -166,7 +162,7 @@ namespace SplitRun.Game
             character.AttachHat(entry.HatPrefab);
         }
 
-        // The backdrop is one runtime follow object, spawned from the theme rather than living in the scene.
+        // The backdrop follows the character, so it is spawned from the theme rather than placed in the scene.
         private void SpawnBackdrop()
         {
             if (!_theme || !_theme.BackdropPrefab)

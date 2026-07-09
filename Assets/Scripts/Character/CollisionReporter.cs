@@ -12,8 +12,7 @@ namespace SplitRun.Character
 
         private void Start()
         {
-            // The character is spawned at runtime outside the DI container, so its owner is
-            // resolved from the hierarchy rather than injected.
+            // Spawned outside the DI container, so the owner is resolved from the hierarchy.
             _character = GetComponentInParent<ICharacter>();
         }
 

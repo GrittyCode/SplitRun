@@ -5,8 +5,8 @@ using UnityEngine;
 using R3;
 using VContainer;
 
+using SplitRun.Boot;
 using SplitRun.Constants;
-using SplitRun.Environment;
 using SplitRun.Game;
 using SplitRun.Item;
 using SplitRun.LevelDesign;
@@ -31,8 +31,8 @@ namespace SplitRun.Obstacle
         [Inject] private AssetPreloadService _preload;
         [Inject] private ItemService         _itemService;
 
-        private readonly Dictionary<ObstacleFootprint, List<ObstaclePool>> _pools =
-            new Dictionary<ObstacleFootprint, List<ObstaclePool>>();
+        private readonly Dictionary<ObstacleFootprint, List<ComponentPool<TrackObstacle>>> _pools =
+            new Dictionary<ObstacleFootprint, List<ComponentPool<TrackObstacle>>>();
 
         private readonly Queue<ActiveObstacle> _active = new Queue<ActiveObstacle>();
 
@@ -52,9 +52,9 @@ namespace SplitRun.Obstacle
 
         private void OnDestroy()
         {
-            foreach (List<ObstaclePool> pools in _pools.Values)
+            foreach (List<ComponentPool<TrackObstacle>> pools in _pools.Values)
             {
-                foreach (ObstaclePool pool in pools)
+                foreach (ComponentPool<TrackObstacle> pool in pools)
                     pool.Dispose();
             }
         }
@@ -75,13 +75,14 @@ namespace SplitRun.Obstacle
 
         private void AddPool(ObstacleFootprint footprint, TrackObstacle prefab)
         {
-            if (!_pools.TryGetValue(footprint, out List<ObstaclePool> pools))
+            if (!_pools.TryGetValue(footprint, out List<ComponentPool<TrackObstacle>> pools))
             {
-                pools = new List<ObstaclePool>();
+                pools = new List<ComponentPool<TrackObstacle>>();
                 _pools[footprint] = pools;
             }
 
-            pools.Add(new ObstaclePool(prefab, transform, GameConstants.k_ObstaclePoolSizePerPrefab));
+            pools.Add(new ComponentPool<TrackObstacle>(
+                prefab, transform, ObstacleConstants.k_ObstaclePoolSizePerPrefab, obstacle => obstacle.ResetState()));
         }
 
         private void BindToGameService()
@@ -108,7 +109,7 @@ namespace SplitRun.Obstacle
 
             _prepared   = true;
             _runSeed    = seed;
-            _nextSpawnZ = GameConstants.k_ObstacleSpacing;
+            _nextSpawnZ = ObstacleConstants.k_ObstacleSpacing;
 
             FillLookAhead(0f);
         }
@@ -121,18 +122,18 @@ namespace SplitRun.Obstacle
 
         private void FillLookAhead(float characterZ)
         {
-            float frontier = characterZ + GameConstants.k_ObstacleSpawnLookAheadDistance;
+            float frontier = characterZ + ObstacleConstants.k_ObstacleSpawnLookAheadDistance;
 
             while (_nextSpawnZ < frontier)
             {
                 SpawnSlot(_nextSpawnZ);
-                _nextSpawnZ += GameConstants.k_ObstacleSpacing;
+                _nextSpawnZ += ObstacleConstants.k_ObstacleSpacing;
             }
         }
 
         private void DespawnTrailing(float characterZ)
         {
-            float threshold = characterZ - GameConstants.k_ObstacleDespawnBehindDistance;
+            float threshold = characterZ - ObstacleConstants.k_ObstacleDespawnBehindDistance;
 
             while (_active.Count > 0 && _active.Peek().SpawnZ < threshold)
             {
@@ -144,7 +145,7 @@ namespace SplitRun.Obstacle
         // Obstacles first so lane occupancy is known; items then fill only free lanes.
         private void SpawnSlot(float spawnZ)
         {
-            int slotIndex = Mathf.RoundToInt(spawnZ / GameConstants.k_ObstacleSpacing);
+            int slotIndex = Mathf.RoundToInt(spawnZ / ObstacleConstants.k_ObstacleSpacing);
 
             ClearOccupancy();
 
@@ -247,7 +248,7 @@ namespace SplitRun.Obstacle
         // Y stays 0 — the footprint's stamped collider center bakes the height anchor.
         private void SpawnAt(ObstacleFootprint footprint, int lane, int slotIndex, float spawnZ)
         {
-            ObstaclePool pool = PickPoolForFootprint(footprint, slotIndex, lane);
+            ComponentPool<TrackObstacle> pool = PickPoolForFootprint(footprint, slotIndex, lane);
             if (pool == null) return;
 
             TrackObstacle instance = pool.Rent();
@@ -271,7 +272,7 @@ namespace SplitRun.Obstacle
 
             if (DeterministicRandom.NextFloat(_runSeed, slotIndex, k_SaltMagnetRoll) < ItemConstants.k_MagnetChance)
             {
-                float magnetZ = spawnZ + GameConstants.k_ObstacleSpacing * 0.5f;
+                float magnetZ = spawnZ + ObstacleConstants.k_ObstacleSpacing * 0.5f;
                 _itemService.Spawn(ItemType.Magnet, new Vector3(laneX, ItemConstants.k_ItemHoverHeight, magnetZ));
                 return;
             }
@@ -282,7 +283,7 @@ namespace SplitRun.Obstacle
         private void PlaceCoinLine(float laneX, float spawnZ)
         {
             float start = spawnZ + ItemConstants.k_CoinLineMargin;
-            float end   = spawnZ + GameConstants.k_ObstacleSpacing - ItemConstants.k_CoinLineMargin;
+            float end   = spawnZ + ObstacleConstants.k_ObstacleSpacing - ItemConstants.k_CoinLineMargin;
 
             for (float z = start; z <= end; z += ItemConstants.k_CoinSpacing)
                 _itemService.Spawn(ItemType.Coin, new Vector3(laneX, ItemConstants.k_ItemHoverHeight, z));
@@ -320,14 +321,14 @@ namespace SplitRun.Obstacle
         }
 
         private bool HasPool(ObstacleFootprint footprint) =>
-            _pools.TryGetValue(footprint, out List<ObstaclePool> pools) && pools.Count > 0;
+            _pools.TryGetValue(footprint, out List<ComponentPool<TrackObstacle>> pools) && pools.Count > 0;
 
         private bool IsPatternSpawnable(CoopPatternType pattern) =>
             HasPool(ObstacleFootprint.Vertical) && HasPool(PassFootprint(pattern));
 
-        private ObstaclePool PickPoolForFootprint(ObstacleFootprint footprint, int slotIndex, int lane)
+        private ComponentPool<TrackObstacle> PickPoolForFootprint(ObstacleFootprint footprint, int slotIndex, int lane)
         {
-            if (!_pools.TryGetValue(footprint, out List<ObstaclePool> pools) || pools.Count == 0)
+            if (!_pools.TryGetValue(footprint, out List<ComponentPool<TrackObstacle>> pools) || pools.Count == 0)
                 return null;
 
             int variant = DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltVariantBase + lane, 0, pools.Count);
@@ -345,11 +346,11 @@ namespace SplitRun.Obstacle
 
         private readonly struct ActiveObstacle
         {
-            public TrackObstacle Instance { get; }
-            public ObstaclePool  Pool     { get; }
-            public float         SpawnZ   { get; }
+            public TrackObstacle                Instance { get; }
+            public ComponentPool<TrackObstacle> Pool     { get; }
+            public float                        SpawnZ   { get; }
 
-            public ActiveObstacle(TrackObstacle instance, ObstaclePool pool, float spawnZ)
+            public ActiveObstacle(TrackObstacle instance, ComponentPool<TrackObstacle> pool, float spawnZ)
             {
                 Instance = instance;
                 Pool     = pool;

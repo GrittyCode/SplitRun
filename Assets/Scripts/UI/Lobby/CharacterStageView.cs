@@ -4,20 +4,25 @@ using R3;
 using VContainer;
 
 using SplitRun.Character;
+using SplitRun.Constants;
 using SplitRun.Data;
 
 namespace SplitRun.UI.Lobby
 {
     // Renders the persisted selection; the shop temporarily overrides it for a try-on.
+    // The stage runs a presentation-only controller, never the gameplay AC_Character.
     public class CharacterStageView : MonoBehaviour
     {
-        [SerializeField] private Transform              _stageRoot;
-        [SerializeField] private LobbyStageIdleAnimator _idleAnimator;
+        [SerializeField] private Transform                 _stageRoot;
+        [SerializeField] private RuntimeAnimatorController _stageController;
 
         [Inject] private PlayerDataService _playerData;
         [Inject] private ShopCatalog       _catalog;
 
+        private static readonly int s_roarHash = Animator.StringToHash(CharacterConstants.k_TriggerRoar);
+
         private CharacterModel _current;
+        private Animator       _animator;
 
         private CharacterType? _characterOverride;
         private HatType?       _hatOverride;
@@ -38,7 +43,7 @@ namespace SplitRun.UI.Lobby
         {
             _hatOverride = type;
             AttachHat(type);
-            _idleAnimator.Roar();
+            Roar();
         }
 
         /// <summary>Drops any try-on override and reverts the stage to the persisted selection.</summary>
@@ -61,7 +66,7 @@ namespace SplitRun.UI.Lobby
             else if (hadHatOverride)
             {
                 AttachHat(_playerData.SelectedHat.CurrentValue);
-                _idleAnimator.Roar();
+                Roar();
             }
         }
 
@@ -73,11 +78,11 @@ namespace SplitRun.UI.Lobby
 
         private void OnHatSelected(HatType type)
         {
-            if (_hatOverride == null)
-            {
-                AttachHat(type);
-                _idleAnimator.Roar();
-            }
+            if (_hatOverride != null)
+                return;
+
+            AttachHat(type);
+            Roar();
         }
 
         private void RebuildCharacter(CharacterType type)
@@ -89,13 +94,19 @@ namespace SplitRun.UI.Lobby
             if (entry == null || !entry.ModelPrefab)
             {
                 Debug.LogError($"[CharacterStageView] ShopCatalog has no model prefab for {type}.");
-                _current = null;
+                _current  = null;
+                _animator = null;
                 return;
             }
 
-            _current = Instantiate(entry.ModelPrefab, _stageRoot);
-            _idleAnimator.Bind(_current.GetComponentInChildren<Animator>());
+            _current  = Instantiate(entry.ModelPrefab, _stageRoot);
+            _animator = _current.GetComponentInChildren<Animator>();
+
+            if (_animator)
+                _animator.runtimeAnimatorController = _stageController;
+
             AttachHat(_hatOverride ?? _playerData.SelectedHat.CurrentValue);
+            Roar();
         }
 
         private void AttachHat(HatType type)
@@ -105,6 +116,12 @@ namespace SplitRun.UI.Lobby
 
             ShopHatEntry entry = _catalog.FindHat(type);
             _current.AttachHat(entry?.HatPrefab);
+        }
+
+        private void Roar()
+        {
+            if (_animator)
+                _animator.SetTrigger(s_roarHash);
         }
     }
 }

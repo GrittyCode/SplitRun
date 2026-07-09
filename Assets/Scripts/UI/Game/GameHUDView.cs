@@ -219,7 +219,7 @@ namespace SplitRun.UI.Game
                 return;
             }
 
-            StartSkillCountdown(_activeColor, SkillConstants.k_DashDuration);
+            StartSkillCountdown(_activeColor, CharacterConstants.k_DashDuration);
         }
 
         private void StartSkillCountdown(Color color, float duration)
@@ -247,8 +247,8 @@ namespace SplitRun.UI.Game
 
         private float CooldownDuration() =>
             _skill == SkillType.Dash
-                ? SkillConstants.k_DashCooldownDuration
-                : SkillConstants.k_ShieldCooldownDuration;
+                ? CharacterConstants.k_DashCooldownDuration
+                : CharacterConstants.k_ShieldCooldownDuration;
 
         // ---- Pause overlay ----
 

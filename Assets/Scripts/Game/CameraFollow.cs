@@ -9,8 +9,7 @@ using SplitRun.Constants;
 
 namespace SplitRun.Game
 {
-    // Attached directly to the scene's Main Camera. Not VContainer-registered — subscribes to
-    // CharacterEvents directly since the target doesn't exist at scene load time.
+    // Not VContainer-registered: the target does not exist at scene load time.
     [RequireComponent(typeof(Camera))]
     public class CameraFollow : MonoBehaviour
     {
@@ -55,8 +54,7 @@ namespace SplitRun.Game
         {
             _distanceSubscription?.Dispose();
 
-            // Track authoritative distance instead of Transform.position.z so visual-only
-            // knockback offset on the character never pulls the camera backward.
+            // Authoritative distance, not Transform.position.z — knockback must not pull the camera back.
             _distanceSubscription = character.DistanceReactive
                 .Subscribe(distance => _trackedDistance = distance);
         }

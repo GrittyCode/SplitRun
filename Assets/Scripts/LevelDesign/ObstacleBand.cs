@@ -6,7 +6,12 @@ using SplitRun.Obstacle;
 
 namespace SplitRun.LevelDesign
 {
-    // Singles and coop patterns share one weighted roll, so coop frequency is tuned like any obstacle.
+    public enum CoopPatternType
+    {
+        CoopJump,
+        CoopSlide,
+    }
+
     [Serializable]
     public class ObstacleBand
     {
@@ -16,7 +21,7 @@ namespace SplitRun.LevelDesign
 
         public float StartDistance => _startDistance;
 
-        // Arrays so the spawner's per-slot selection iterates without allocating an enumerator.
+        // Arrays so per-slot selection iterates without allocating an enumerator.
         public ObstacleFootprintWeight[] SingleWeights => _singleWeights;
         public CoopPatternWeight[]       CoopWeights   => _coopWeights;
     }

@@ -4,6 +4,12 @@ using SplitRun.Constants;
 
 namespace SplitRun.Item
 {
+    public enum ItemType
+    {
+        Coin,
+        Magnet,
+    }
+
     [RequireComponent(typeof(Collider))]
     public sealed class ItemPickup : MonoBehaviour
     {

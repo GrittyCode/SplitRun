@@ -7,15 +7,16 @@ using R3;
 using Unity.Netcode;
 using VContainer.Unity;
 
-using SplitRun.Audio;
 using SplitRun.Character;
 using SplitRun.Constants;
 using SplitRun.Data;
 using SplitRun.Game;
+using SplitRun.Mission;
+using SplitRun.Utility;
 
 namespace SplitRun.Item
 {
-    // Owns the pickup run lifetime (pool, placement, magnet, despawn, collection); coins are local UI state.
+    // Owns the pickup run lifetime: pool, placement, magnet, despawn, collection, run-local coins.
     public sealed class ItemService : IStartable, ITickable, IDisposable
     {
         private readonly ItemCatalog       _catalog;
@@ -24,12 +25,12 @@ namespace SplitRun.Item
         private readonly PlayerDataService _playerDataService;
         private readonly MissionService    _missionService;
 
-        private readonly Dictionary<ItemType, ItemPickup>        _prefabs = new Dictionary<ItemType, ItemPickup>();
-        private readonly Dictionary<ItemType, Queue<ItemPickup>> _idle    = new Dictionary<ItemType, Queue<ItemPickup>>();
-        private readonly List<ItemPickup>                        _active  = new List<ItemPickup>();
+        private readonly Dictionary<ItemType, ComponentPool<ItemPickup>> _pools =
+            new Dictionary<ItemType, ComponentPool<ItemPickup>>();
 
-        // Coins latched while the magnet is active keep being pulled until collected even after
-        // it expires, so none freeze mid-air when the duration ends.
+        private readonly List<ItemPickup> _active = new List<ItemPickup>();
+
+        // A coin latched while the magnet is active keeps homing until collected, even after expiry.
         private readonly HashSet<ItemPickup> _pulled = new HashSet<ItemPickup>();
 
         private readonly ReactiveProperty<int>   _coins           = new ReactiveProperty<int>(0);
@@ -62,10 +63,10 @@ namespace SplitRun.Item
             BuildPool(ItemType.Coin,   _catalog.CoinPrefab,   ItemConstants.k_CoinPoolSize);
             BuildPool(ItemType.Magnet, _catalog.MagnetPrefab, ItemConstants.k_MagnetPoolSize);
 
-            CharacterEvents.OnSpawned         += OnCharacterSpawned;
-            CharacterEvents.OnDespawned       += OnCharacterDespawned;
-            ItemEvents.OnCollected            += OnItemCollected;
-            ItemEvents.OnCollectionConfirmed  += OnCollectionConfirmed;
+            CharacterEvents.OnSpawned        += OnCharacterSpawned;
+            CharacterEvents.OnDespawned      += OnCharacterDespawned;
+            ItemEvents.OnCollected           += OnItemCollected;
+            ItemEvents.OnCollectionConfirmed += OnCollectionConfirmed;
 
             _gameService.Phase
                 .Subscribe(OnPhaseChanged)
@@ -83,10 +84,13 @@ namespace SplitRun.Item
 
         public void Dispose()
         {
-            CharacterEvents.OnSpawned         -= OnCharacterSpawned;
-            CharacterEvents.OnDespawned       -= OnCharacterDespawned;
-            ItemEvents.OnCollected            -= OnItemCollected;
-            ItemEvents.OnCollectionConfirmed  -= OnCollectionConfirmed;
+            CharacterEvents.OnSpawned        -= OnCharacterSpawned;
+            CharacterEvents.OnDespawned      -= OnCharacterDespawned;
+            ItemEvents.OnCollected           -= OnItemCollected;
+            ItemEvents.OnCollectionConfirmed -= OnCollectionConfirmed;
+
+            foreach (ComponentPool<ItemPickup> pool in _pools.Values)
+                pool.Dispose();
 
             _disposables.Dispose();
             _coins.Dispose();
@@ -96,13 +100,12 @@ namespace SplitRun.Item
                 UnityEngine.Object.Destroy(_root.gameObject);
         }
 
-        // Spawn order is deterministic across clients (seed-derived slots), so the running id
-        // identifies the same pickup on every client.
+        // Spawn order is deterministic across clients, so the running id names the same pickup everywhere.
         public void Spawn(ItemType type, Vector3 position)
         {
-            ItemPickup pickup = Rent(type);
-            if (!pickup) return;
+            if (!_pools.TryGetValue(type, out ComponentPool<ItemPickup> pool)) return;
 
+            ItemPickup pickup = pool.Rent();
             pickup.Initialize(_nextSpawnId++);
             pickup.transform.position = position;
             _active.Add(pickup);
@@ -121,7 +124,6 @@ namespace SplitRun.Item
             _lastPhase = phase;
         }
 
-        // Coins are run-local UI state; at run end they merge one-way into currency and feed coin missions.
         private void MergeCoins()
         {
             _playerDataService.AddCoins(_coins.Value);
@@ -149,8 +151,7 @@ namespace SplitRun.Item
             if (_character == character) _character = null;
         }
 
-        // Only the server's trigger is authoritative; every client (host included) applies
-        // the effect through the confirmed broadcast so there is a single collection path.
+        // Only the server's trigger is authoritative; every client applies the confirmed broadcast.
         private void OnItemCollected(ItemPickup item)
         {
             NetworkManager networkManager = NetworkManager.Singleton;
@@ -172,11 +173,9 @@ namespace SplitRun.Item
             {
                 case ItemType.Coin:
                     _coins.Value += ItemConstants.k_CoinValue;
-                    AudioEvents.RequestSfx(SfxType.Coin);
                     break;
                 case ItemType.Magnet:
                     _magnetSeconds = ItemConstants.k_MagnetDuration;
-                    AudioEvents.RequestSfx(SfxType.Magnet);
                     break;
             }
 
@@ -233,7 +232,7 @@ namespace SplitRun.Item
 
         private void RecycleTrailing()
         {
-            float threshold = _character.CharacterTransform.position.z - GameConstants.k_ObstacleDespawnBehindDistance;
+            float threshold = _character.CharacterTransform.position.z - ItemConstants.k_ItemDespawnBehindDistance;
 
             for (int i = _active.Count - 1; i >= 0; i--)
             {
@@ -253,43 +252,15 @@ namespace SplitRun.Item
                 return;
             }
 
-            _prefabs[type] = prefab;
-
-            Queue<ItemPickup> queue = new Queue<ItemPickup>(size);
-            for (int i = 0; i < size; i++)
-            {
-                ItemPickup instance = Create(prefab);
-                instance.gameObject.SetActive(false);
-                queue.Enqueue(instance);
-            }
-
-            _idle[type] = queue;
-        }
-
-        private ItemPickup Rent(ItemType type)
-        {
-            if (!_idle.TryGetValue(type, out Queue<ItemPickup> queue) ||
-                !_prefabs.TryGetValue(type, out ItemPickup prefab))
-                return null;
-
-            ItemPickup pickup = queue.Count > 0 ? queue.Dequeue() : Create(prefab);
-            pickup.ResetState();
-            return pickup;
+            _pools[type] = new ComponentPool<ItemPickup>(prefab, _root, size, pickup => pickup.ResetState());
         }
 
         private void Recycle(ItemPickup pickup)
         {
             _pulled.Remove(pickup);
-            pickup.gameObject.SetActive(false);
-            Enqueue(pickup);
-        }
 
-        private void Enqueue(ItemPickup pickup)
-        {
-            if (_idle.TryGetValue(pickup.Type, out Queue<ItemPickup> queue))
-                queue.Enqueue(pickup);
+            if (_pools.TryGetValue(pickup.Type, out ComponentPool<ItemPickup> pool))
+                pool.Return(pickup);
         }
-
-        private ItemPickup Create(ItemPickup prefab) => UnityEngine.Object.Instantiate(prefab, _root);
     }
 }
