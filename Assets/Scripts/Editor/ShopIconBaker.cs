@@ -31,8 +31,13 @@ namespace SplitRun.EditorTools
             var serialized = new SerializedObject(catalog);
             int baked = 0;
 
-            baked += BakeArray(serialized, outputFolder, "_characters", "_modelPrefab", "CHR");
-            baked += BakeArray(serialized, outputFolder, "_hats", "_hatPrefab", "HAT");
+            baked += BakeArray(serialized, outputFolder,
+                ValuesPath(ShopCatalog.k_CharactersField),
+                ShopCharacterEntry.k_ModelPrefabField, ShopCharacterEntry.k_IconField, "CHR");
+
+            baked += BakeArray(serialized, outputFolder,
+                ValuesPath(ShopCatalog.k_HatsField),
+                ShopHatEntry.k_HatPrefabField, ShopHatEntry.k_IconField, "HAT");
 
             serialized.ApplyModifiedProperties();
             AssetDatabase.SaveAssets();
@@ -40,17 +45,26 @@ namespace SplitRun.EditorTools
             return baked;
         }
 
+        // EnumKeyedArray nests its storage one level down, so the entry array is reached through _values.
+        private static string ValuesPath(string arrayField) => $"{arrayField}.{EnumKeyedArray.k_ValuesField}";
+
         private static int BakeArray(SerializedObject serialized, string outputFolder,
-            string arrayField, string sourceField, string prefix)
+            string arrayPath, string sourceField, string iconField, string prefix)
         {
-            SerializedProperty array = serialized.FindProperty(arrayField);
+            SerializedProperty array = serialized.FindProperty(arrayPath);
+            if (array == null)
+            {
+                Debug.LogError($"[ShopIconBaker] '{arrayPath}' not found on the catalog — nothing baked.");
+                return 0;
+            }
+
             int baked = 0;
 
             for (int i = 0; i < array.arraySize; i++)
             {
                 SerializedProperty element = array.GetArrayElementAtIndex(i);
                 SerializedProperty source  = element.FindPropertyRelative(sourceField);
-                SerializedProperty target  = element.FindPropertyRelative("_icon");
+                SerializedProperty target  = element.FindPropertyRelative(iconField);
 
                 if (source == null || target == null)
                     continue;
@@ -164,7 +178,6 @@ namespace SplitRun.EditorTools
             File.WriteAllBytes(path, texture.EncodeToPNG());
             Object.DestroyImmediate(texture);
 
-            // SaveAndReimport applies the Sprite type synchronously, so the sub-asset exists below.
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
             ConfigureAsSprite(path);
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using UnityEditor;
 using UnityEditor.Build;
@@ -9,21 +10,23 @@ namespace SplitRun.EditorTools
     public static class PlayModeBuildGuard
     {
         /// <summary>
-        /// Runs <paramref name="report"/> when edit mode exits and issues exist. When
-        /// <paramref name="blocksPlay"/> the Play transition is cancelled before it starts.
+        /// Scans once when edit mode exits and hands the result to <paramref name="report"/>.
+        /// When <paramref name="blocksPlay"/> the Play transition is cancelled before it starts.
         /// </summary>
-        public static void RegisterPlayModeCheck(Func<bool> hasIssues, Action report, bool blocksPlay)
+        public static void Register<T>(Func<List<T>> scan, Action<List<T>> report, bool blocksPlay)
         {
             EditorApplication.playModeStateChanged += change =>
             {
                 if (change != PlayModeStateChange.ExitingEditMode) return;
-                if (!hasIssues()) return;
+
+                List<T> issues = scan();
+                if (issues.Count == 0) return;
 
                 // Cancelling isPlaying here aborts the transition, so Play never actually starts.
                 if (blocksPlay)
                     EditorApplication.isPlaying = false;
 
-                report();
+                report(issues);
             };
         }
 

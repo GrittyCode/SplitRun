@@ -14,27 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Audio.AudioLibrary
   _sfxVolume: 1
   _bgmVolume: 0.5
-  _sfxEntries:
-  - _type: 0
-    _clip: {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
-  - _type: 1
-    _clip: {fileID: 8300000, guid: 79180f511d89441b9aa23ccae1992fe0, type: 3}
-  - _type: 2
-    _clip: {fileID: 8300000, guid: 35fbad8cdde724f11ba6481f1e64af71, type: 3}
-  - _type: 3
-    _clip: {fileID: 8300000, guid: d46323e22e74e46baa241cbf48c85671, type: 3}
-  - _type: 4
-    _clip: {fileID: 8300000, guid: fe0b1f9aeb45b41b089175aeeabd5d95, type: 3}
-  - _type: 5
-    _clip: {fileID: 8300000, guid: 7e9ee6dc04a5d40d1a5dfc4beb9865e7, type: 3}
-  - _type: 6
-    _clip: {fileID: 8300000, guid: ff5f85da24bc943d1abdc5760a22bc81, type: 3}
-  - _type: 7
-    _clip: {fileID: 8300000, guid: ff5f85da24bc943d1abdc5760a22bc81, type: 3}
-  - _type: 8
-    _clip: {fileID: 8300000, guid: 7478151cf36724a7dada558f746c3633, type: 3}
-  _bgmEntries:
-  - _type: 0
-    _clip: {fileID: 8300000, guid: b1b45bcdc5f4c4602b4df40f88401198, type: 3}
-  - _type: 1
-    _clip: {fileID: 8300000, guid: 56d54474d758e49f0930fb95550f2914, type: 3}
+  _sfxClips:
+    _values:
+    - {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
+    - {fileID: 8300000, guid: 79180f511d89441b9aa23ccae1992fe0, type: 3}
+    - {fileID: 8300000, guid: 35fbad8cdde724f11ba6481f1e64af71, type: 3}
+    - {fileID: 8300000, guid: d46323e22e74e46baa241cbf48c85671, type: 3}
+    - {fileID: 8300000, guid: fe0b1f9aeb45b41b089175aeeabd5d95, type: 3}
+    - {fileID: 8300000, guid: 7e9ee6dc04a5d40d1a5dfc4beb9865e7, type: 3}
+    - {fileID: 8300000, guid: ff5f85da24bc943d1abdc5760a22bc81, type: 3}
+    - {fileID: 8300000, guid: ff5f85da24bc943d1abdc5760a22bc81, type: 3}
+    - {fileID: 8300000, guid: 7478151cf36724a7dada558f746c3633, type: 3}
+  _bgmClips:
+    _values:
+    - {fileID: 8300000, guid: b1b45bcdc5f4c4602b4df40f88401198, type: 3}
+    - {fileID: 8300000, guid: 56d54474d758e49f0930fb95550f2914, type: 3}

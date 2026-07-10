@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 
 using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 using SplitRun.Environment;
@@ -8,19 +10,25 @@ using SplitRun.Environment;
 namespace SplitRun.EditorTools
 {
     // TrackScroller uses one recycle step, so mismatched Floor Z lengths open or overlap seams.
-    [InitializeOnLoad]
-    public static class EnvironmentPrefabValidator
+    // The seam is cosmetic, so this never blocks Play or fails a build — measuring instantiates
+    // every segment prefab, a cost that does not belong on every Play entry.
+    public class EnvironmentPrefabValidator : IPreprocessBuildWithReport
     {
         public const float k_LengthTolerance = 0.01f;
 
-        static EnvironmentPrefabValidator()
-        {
-            // Warn-only: the seam is cosmetic, so Play is never cancelled.
-            PlayModeBuildGuard.RegisterPlayModeCheck(HasInconsistentFloorLength, ReportAndShow, blocksPlay: false);
-        }
+        public int callbackOrder => 0;
 
         [MenuItem("SplitRun/Validate Environment Segments", priority = 21)]
         private static void Validate() => EnvironmentValidationWindow.ShowFor(CollectSegments());
+
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            if (!HasInconsistentFloorLength()) return;
+
+            Debug.LogWarning(
+                "[EnvironmentPrefabValidator] Track segment prefabs do not share one Floor Z length — " +
+                "mixing them in TrackScroller may open seams. See SplitRun -> Validate Environment Segments.");
+        }
 
         public static List<TrackSegment> CollectSegments()
         {
@@ -56,15 +64,6 @@ namespace SplitRun.EditorTools
             {
                 Object.DestroyImmediate(instance);
             }
-        }
-
-        private static void ReportAndShow()
-        {
-            Debug.LogWarning(
-                "[EnvironmentPrefabValidator] Track segment prefabs do not share one Floor Z length — " +
-                "mixing them in TrackScroller may open seams. See SplitRun -> Validate Environment Segments.");
-
-            EnvironmentValidationWindow.ShowFor(CollectSegments());
         }
 
         private static bool HasInconsistentFloorLength()

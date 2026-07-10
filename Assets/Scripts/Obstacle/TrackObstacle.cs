@@ -6,15 +6,45 @@ using SplitRun.Constants;
 
 namespace SplitRun.Obstacle
 {
-    // Single key for an obstacle's X placement (lane vs full-width) and its stamped BoxCollider.
-    // All obstacles are floor-based; slide variants raise their collider center to head height.
     public enum ObstacleFootprint
     {
-        Vertical,
-        LaneJump,
-        LaneSlide,
-        WideJump,
-        WideSlide,
+        Vertical  = 0,
+        LaneJump  = 1,
+        LaneSlide = 2,
+        WideJump  = 3,
+        WideSlide = 4,
+    }
+
+    public static class ObstacleFootprintExtensions
+    {
+        /// <summary>Returns the stamped BoxCollider size and center Y. Every footprint is floor-based.</summary>
+        public static (Vector3 size, float centerY) ToColliderBox(this ObstacleFootprint footprint) => footprint switch
+        {
+            ObstacleFootprint.Vertical => (
+                new Vector3(ObstacleConstants.k_LaneWidth, ObstacleConstants.k_VerticalHeight, ObstacleConstants.k_Depth),
+                ObstacleConstants.k_VerticalHeight * 0.5f),
+
+            ObstacleFootprint.LaneJump => (
+                new Vector3(ObstacleConstants.k_LaneWidth, ObstacleConstants.k_JumpBarHeight, ObstacleConstants.k_Depth),
+                ObstacleConstants.k_JumpBarHeight * 0.5f),
+
+            ObstacleFootprint.LaneSlide => (
+                new Vector3(ObstacleConstants.k_LaneWidth, ObstacleConstants.k_SlideBarHeight, ObstacleConstants.k_Depth),
+                ObstacleConstants.k_SlideClearanceHeight + ObstacleConstants.k_SlideBarHeight * 0.5f),
+
+            ObstacleFootprint.WideJump => (
+                new Vector3(ObstacleConstants.k_WideWidth, ObstacleConstants.k_JumpBarHeight, ObstacleConstants.k_Depth),
+                ObstacleConstants.k_JumpBarHeight * 0.5f),
+
+            ObstacleFootprint.WideSlide => (
+                new Vector3(ObstacleConstants.k_WideWidth, ObstacleConstants.k_SlideBarHeight, ObstacleConstants.k_Depth),
+                ObstacleConstants.k_SlideClearanceHeight + ObstacleConstants.k_SlideBarHeight * 0.5f),
+
+            _ => (Vector3.one, 0.5f),
+        };
+
+        public static bool IsFullWidth(this ObstacleFootprint footprint) =>
+            footprint == ObstacleFootprint.WideJump || footprint == ObstacleFootprint.WideSlide;
     }
 
     [RequireComponent(typeof(BoxCollider))]
@@ -68,22 +98,22 @@ namespace SplitRun.Obstacle
         }
 
 #if UNITY_EDITOR
-        // The footprint stamps the hitbox; the layer is enforced so a hand-edited layer cannot
-        // silently break trigger collisions. Gizmos and auto-floor live in TrackObstacleEditor.
-        private void Reset()   => EnforceObstacleLayer();
+        private void Reset() => EnforceObstacleLayer();
+
         private void OnValidate()
         {
             EnforceObstacleLayer();
 
             if (!TryGetComponent(out BoxCollider box)) return;
 
-            (Vector3 size, float centerY) = ObstacleConstants.GetFootprintBox(_footprint);
+            (Vector3 size, float centerY) = _footprint.ToColliderBox();
 
             box.size      = size;
             box.center    = new Vector3(0f, centerY, 0f);
             box.isTrigger = true;
         }
 
+        // Enforced at author time so a hand-edited layer cannot silently break trigger collisions.
         private void EnforceObstacleLayer()
         {
             int layer = LayerMask.NameToLayer(ObstacleConstants.k_LayerName);

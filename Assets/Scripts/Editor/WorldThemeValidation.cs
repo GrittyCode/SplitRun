@@ -15,16 +15,14 @@ namespace SplitRun.EditorTools
     {
         public WorldThemeProfile Profile     { get; }
         public ObstacleFootprint Slot        { get; }
-        public int               SetIndex    { get; }
         public int               PrefabIndex { get; }
         public TrackObstacle     Prefab      { get; }
 
         public ThemeFootprintMismatch(
-            WorldThemeProfile profile, ObstacleFootprint slot, int setIndex, int prefabIndex, TrackObstacle prefab)
+            WorldThemeProfile profile, ObstacleFootprint slot, int prefabIndex, TrackObstacle prefab)
         {
             Profile     = profile;
             Slot        = slot;
-            SetIndex    = setIndex;
             PrefabIndex = prefabIndex;
             Prefab      = prefab;
         }
@@ -38,10 +36,8 @@ namespace SplitRun.EditorTools
 
         static WorldThemeProfileValidator()
         {
-            PlayModeBuildGuard.RegisterPlayModeCheck(
-                () => CollectMismatches().Count > 0,
-                () => WorldThemeValidationWindow.ShowFor(CollectMismatches()),
-                blocksPlay: true);
+            PlayModeBuildGuard.Register<ThemeFootprintMismatch>(
+                CollectMismatches, WorldThemeValidationWindow.ShowFor, blocksPlay: true);
         }
 
         [MenuItem("SplitRun/Validate World Theme Profiles", priority = 22)]
@@ -76,23 +72,20 @@ namespace SplitRun.EditorTools
 
         private static void CollectProfileMismatches(WorldThemeProfile profile, List<ThemeFootprintMismatch> into)
         {
-            IReadOnlyList<FootprintPrefabs> sets = profile.ObstaclePrefabs;
-
-            for (int setIndex = 0; setIndex < sets.Count; setIndex++)
+            foreach ((ObstacleFootprint slot, ObstacleVariants variants) in profile.ObstaclePrefabs)
             {
-                FootprintPrefabs set = sets[setIndex];
-                if (set.Prefabs == null) continue;
+                if (variants?.Prefabs == null) continue;
 
-                for (int prefabIndex = 0; prefabIndex < set.Prefabs.Count; prefabIndex++)
+                for (int prefabIndex = 0; prefabIndex < variants.Prefabs.Count; prefabIndex++)
                 {
-                    AssetReferenceGameObject reference = set.Prefabs[prefabIndex];
+                    AssetReferenceGameObject reference = variants.Prefabs[prefabIndex];
                     if (reference == null) continue;
 
                     GameObject asset = reference.editorAsset;
                     if (!asset || !asset.TryGetComponent(out TrackObstacle prefab)) continue;
-                    if (prefab.Footprint == set.Footprint) continue;
+                    if (prefab.Footprint == slot) continue;
 
-                    into.Add(new ThemeFootprintMismatch(profile, set.Footprint, setIndex, prefabIndex, prefab));
+                    into.Add(new ThemeFootprintMismatch(profile, slot, prefabIndex, prefab));
                 }
             }
         }
@@ -133,8 +126,8 @@ namespace SplitRun.EditorTools
 
             EditorGUI.indentLevel = 1;
             EditorGUILayout.LabelField(
-                $"Obstacle Prefabs[{mismatch.SetIndex}] ({mismatch.Slot})  ->  " +
-                $"Prefabs[{mismatch.PrefabIndex}] = {mismatch.Prefab.name} ({mismatch.Prefab.Footprint})");
+                $"{mismatch.Slot}  ->  Prefabs[{mismatch.PrefabIndex}] = " +
+                $"{mismatch.Prefab.name} ({mismatch.Prefab.Footprint})");
             EditorGUI.indentLevel = 0;
         }
 

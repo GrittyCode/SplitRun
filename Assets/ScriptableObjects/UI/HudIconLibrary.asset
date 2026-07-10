@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: HudIconLibrary
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.UI.Game.HudIconLibrary
   _itemIcons:
-  - _type: 1
-    _sprite: {fileID: 21300000, guid: 85b8bcb1dfddf437aa37f15946aaae22, type: 3}
+    _values:
+    - {fileID: 21300000, guid: 79fe238a407ef460c9b35d9ef96b69da, type: 3}
+    - {fileID: 21300000, guid: 85b8bcb1dfddf437aa37f15946aaae22, type: 3}
   _skillIcons:
-  - _type: 2
-    _sprite: {fileID: 21300000, guid: 79fe238a407ef460c9b35d9ef96b69da, type: 3}
+    _values:
+    - {fileID: 0}
+    - {fileID: 21300000, guid: 6cf2e8fb6845e4050a1b502be3ba2129, type: 3}
+    - {fileID: 21300000, guid: 73bed1baa14564a3ab233bcc8aaac801, type: 3}

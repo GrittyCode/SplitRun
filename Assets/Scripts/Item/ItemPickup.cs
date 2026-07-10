@@ -8,8 +8,8 @@ namespace SplitRun.Item
 {
     public enum ItemType
     {
-        Coin,
-        Magnet,
+        Coin   = 0,
+        Magnet = 1,
     }
 
     [RequireComponent(typeof(Collider))]

@@ -14,8 +14,11 @@ namespace SplitRun.UI.Lobby
         [Inject] private PlayerDataService _playerData;
         [Inject] private ShopCatalog       _catalog;
 
-        private readonly List<ShopCharacterEntry> _visibleCharacters = new List<ShopCharacterEntry>();
-        private readonly List<ShopHatEntry>       _visibleHats       = new List<ShopHatEntry>();
+        private readonly List<(CharacterType Type, ShopCharacterEntry Entry)> _visibleCharacters =
+            new List<(CharacterType, ShopCharacterEntry)>();
+
+        private readonly List<(HatType Type, ShopHatEntry Entry)> _visibleHats =
+            new List<(HatType, ShopHatEntry)>();
 
         protected override void Rebuild()
         {
@@ -48,53 +51,46 @@ namespace SplitRun.UI.Lobby
         private void RebuildCharacters()
         {
             _visibleCharacters.Clear();
-            foreach (ShopCharacterEntry entry in _catalog.Characters)
+            foreach ((CharacterType type, ShopCharacterEntry entry) in _catalog.Characters)
             {
-                if (_playerData.IsCharacterUnlocked(entry.Type))
-                    _visibleCharacters.Add(entry);
+                if (entry == null || !_playerData.IsCharacterUnlocked(type)) continue;
+
+                _visibleCharacters.Add((type, entry));
             }
 
             SetCardCount(_visibleCharacters.Count);
             for (int i = 0; i < _visibleCharacters.Count; i++)
-                SetupCharacterCard(CardAt(i), _visibleCharacters[i]);
+            {
+                (CharacterType type, ShopCharacterEntry entry) = _visibleCharacters[i];
+                SetupCard(CardAt(i), entry.Icon, entry.DisplayName, _playerData.SelectedCharacter.CurrentValue == type);
+            }
         }
 
-        // The None entry leads the hat grid so the worn hat can always be taken off.
+        // HatType.None is enum index 0, so the take-off slot always leads the grid.
         private void RebuildHats()
         {
             _visibleHats.Clear();
-
-            ShopHatEntry noneEntry = _catalog.FindHat(HatType.None);
-            if (noneEntry != null)
-                _visibleHats.Add(noneEntry);
-            else
-                Debug.LogWarning("[StorageView] ShopCatalog has no None hat entry — unequipping is unavailable.");
-
-            foreach (ShopHatEntry entry in _catalog.Hats)
+            foreach ((HatType type, ShopHatEntry entry) in _catalog.Hats)
             {
-                if (entry.Type != HatType.None && _playerData.IsHatUnlocked(entry.Type))
-                    _visibleHats.Add(entry);
+                if (entry == null || !_playerData.IsHatUnlocked(type)) continue;
+
+                _visibleHats.Add((type, entry));
             }
 
             SetCardCount(_visibleHats.Count);
             for (int i = 0; i < _visibleHats.Count; i++)
-                SetupHatCard(CardAt(i), _visibleHats[i]);
+            {
+                (HatType type, ShopHatEntry entry) = _visibleHats[i];
+                SetupCard(CardAt(i), entry.Icon, entry.DisplayName, _playerData.SelectedHat.CurrentValue == type);
+            }
         }
 
-        private void SetupCharacterCard(CustomizationCardView card, ShopCharacterEntry entry)
+        private static void SetupCard(CustomizationCardView card, Sprite icon, string displayName, bool isEquipped)
         {
-            if (_playerData.SelectedCharacter.CurrentValue == entry.Type)
-                card.SetupEquipped(entry.Icon, entry.DisplayName);
+            if (isEquipped)
+                card.SetupEquipped(icon, displayName);
             else
-                card.SetupOwned(entry.Icon, entry.DisplayName);
-        }
-
-        private void SetupHatCard(CustomizationCardView card, ShopHatEntry entry)
-        {
-            if (_playerData.SelectedHat.CurrentValue == entry.Type)
-                card.SetupEquipped(entry.Icon, entry.DisplayName);
-            else
-                card.SetupOwned(entry.Icon, entry.DisplayName);
+                card.SetupOwned(icon, displayName);
         }
     }
 }

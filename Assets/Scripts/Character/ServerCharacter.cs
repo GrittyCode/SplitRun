@@ -79,6 +79,7 @@ namespace SplitRun.Character
             CharacterEvents.NotifyDespawned(this);
 
             _core?.Dispose();
+            _core = null;
 
             _hp.OnValueChanged            -= OnHpChanged;
             _currentLane.OnValueChanged   -= OnLaneChanged;
@@ -96,13 +97,16 @@ namespace SplitRun.Character
 
         private void Update()
         {
-            if (IsServer)
+            if (!IsServer)
             {
-                _core.Tick(Time.deltaTime);
+                InterpolateDistance(Time.deltaTime);
                 return;
             }
 
-            InterpolateDistance(Time.deltaTime);
+            // A frame can land between Instantiate and OnNetworkSpawn, before the core exists.
+            if (_core == null) return;
+
+            _core.Tick(Time.deltaTime);
         }
 
         public void RequestLaneChange(int direction) => ChangeLaneServerRpc(direction);
@@ -136,20 +140,21 @@ namespace SplitRun.Character
         public void ReportCollision()
         {
             if (!IsServer) return;
-            _core.ReportCollision();
+
+            _core?.ReportCollision();
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void ChangeLaneServerRpc(int direction) => _core.ChangeLane(direction);
+        private void ChangeLaneServerRpc(int direction) => _core?.ChangeLane(direction);
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void JumpServerRpc() => _core.Jump();
+        private void JumpServerRpc() => _core?.Jump();
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void SlideServerRpc() => _core.Slide();
+        private void SlideServerRpc() => _core?.Slide();
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void ActivateSkillServerRpc() => _core.ActivateSkill();
+        private void ActivateSkillServerRpc() => _core?.ActivateSkill();
 
         // NetworkVariable ticks arrive stepped — the client chases them at run speed so
         // everything downstream (camera, track, HUD) reads a smooth distance.

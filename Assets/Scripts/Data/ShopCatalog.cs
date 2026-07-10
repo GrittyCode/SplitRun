@@ -3,54 +3,44 @@ using System;
 using UnityEngine;
 
 using SplitRun.Character;
+using SplitRun.Utility;
 
 namespace SplitRun.Data
 {
-    // Single product database — the one authoring point per character (shop data, lobby model,
-    // network prefab) and per hat. Adding either is one enum value, one entry, no code branch.
+    // Single product database — one authoring point per character (shop data, lobby model, network
+    // prefab) and per hat. The array index is the enum value, so no entry carries its own type.
     [CreateAssetMenu(fileName = "ShopCatalog", menuName = "SplitRun/Shop Catalog")]
     public sealed class ShopCatalog : ScriptableObject
     {
-        [SerializeField] private ShopCharacterEntry[] _characters;
-        [SerializeField] private ShopHatEntry[]       _hats;
+        public const string k_CharactersField = "_characters";
+        public const string k_HatsField       = "_hats";
 
-        public ShopCharacterEntry[] Characters => _characters;
-        public ShopHatEntry[]       Hats       => _hats;
+        [SerializeField] private EnumKeyedArray<CharacterType, ShopCharacterEntry> _characters =
+            new EnumKeyedArray<CharacterType, ShopCharacterEntry>();
 
-        public ShopCharacterEntry FindCharacter(CharacterType type)
-        {
-            foreach (ShopCharacterEntry entry in _characters)
-            {
-                if (entry.Type == type)
-                    return entry;
-            }
+        [SerializeField] private EnumKeyedArray<HatType, ShopHatEntry> _hats =
+            new EnumKeyedArray<HatType, ShopHatEntry>();
 
-            return null;
-        }
+        public EnumKeyedArray<CharacterType, ShopCharacterEntry> Characters => _characters;
+        public EnumKeyedArray<HatType, ShopHatEntry>             Hats       => _hats;
 
-        public ShopHatEntry FindHat(HatType type)
-        {
-            foreach (ShopHatEntry entry in _hats)
-            {
-                if (entry.Type == type)
-                    return entry;
-            }
+        public ShopCharacterEntry FindCharacter(CharacterType type) => _characters[type];
 
-            return null;
-        }
+        public ShopHatEntry FindHat(HatType type) => _hats[type];
     }
 
     [Serializable]
     public sealed class ShopCharacterEntry
     {
-        [SerializeField] private CharacterType   _type;
+        public const string k_IconField        = "_icon";
+        public const string k_ModelPrefabField = "_modelPrefab";
+
         [SerializeField] private string          _displayName;
         [SerializeField] private int             _price;
         [SerializeField] private Sprite          _icon;
         [SerializeField] private CharacterModel  _modelPrefab;
         [SerializeField] private ServerCharacter _gamePrefab;
 
-        public CharacterType   Type        => _type;
         public string          DisplayName => _displayName;
         public int             Price       => _price;
         public Sprite          Icon        => _icon;
@@ -61,13 +51,14 @@ namespace SplitRun.Data
     [Serializable]
     public sealed class ShopHatEntry
     {
-        [SerializeField] private HatType    _type;
+        public const string k_IconField      = "_icon";
+        public const string k_HatPrefabField = "_hatPrefab";
+
         [SerializeField] private string     _displayName;
         [SerializeField] private int        _price;
         [SerializeField] private Sprite     _icon;
         [SerializeField] private GameObject _hatPrefab;
 
-        public HatType    Type        => _type;
         public string     DisplayName => _displayName;
         public int        Price       => _price;
         public Sprite     Icon        => _icon;

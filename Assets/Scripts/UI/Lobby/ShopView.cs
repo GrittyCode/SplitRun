@@ -27,8 +27,11 @@ namespace SplitRun.UI.Lobby
         [Inject] private ShopCatalog        _catalog;
         [Inject] private CharacterStageView _stage;
 
-        private readonly List<ShopCharacterEntry> _visibleCharacters = new List<ShopCharacterEntry>();
-        private readonly List<ShopHatEntry>       _visibleHats       = new List<ShopHatEntry>();
+        private readonly List<(CharacterType Type, ShopCharacterEntry Entry)> _visibleCharacters =
+            new List<(CharacterType, ShopCharacterEntry)>();
+
+        private readonly List<(HatType Type, ShopHatEntry Entry)> _visibleHats =
+            new List<(HatType, ShopHatEntry)>();
 
         private int _pendingIndex = -1;
 
@@ -65,33 +68,36 @@ namespace SplitRun.UI.Lobby
         private void RebuildCharacters()
         {
             _visibleCharacters.Clear();
-            foreach (ShopCharacterEntry entry in _catalog.Characters)
+            foreach ((CharacterType type, ShopCharacterEntry entry) in _catalog.Characters)
             {
-                if (!_playerData.IsCharacterUnlocked(entry.Type))
-                    _visibleCharacters.Add(entry);
+                if (entry == null || _playerData.IsCharacterUnlocked(type)) continue;
+
+                _visibleCharacters.Add((type, entry));
             }
 
             SetCardCount(_visibleCharacters.Count);
             for (int i = 0; i < _visibleCharacters.Count; i++)
             {
-                ShopCharacterEntry entry = _visibleCharacters[i];
+                ShopCharacterEntry entry = _visibleCharacters[i].Entry;
                 CardAt(i).SetupPurchasable(entry.Icon, entry.DisplayName, entry.Price, IsAffordable(entry.Price));
             }
         }
 
+        // IsHatUnlocked returns true for HatType.None, so the bare-head slot never reaches the shop grid.
         private void RebuildHats()
         {
             _visibleHats.Clear();
-            foreach (ShopHatEntry entry in _catalog.Hats)
+            foreach ((HatType type, ShopHatEntry entry) in _catalog.Hats)
             {
-                if (entry.Type != HatType.None && !_playerData.IsHatUnlocked(entry.Type))
-                    _visibleHats.Add(entry);
+                if (entry == null || _playerData.IsHatUnlocked(type)) continue;
+
+                _visibleHats.Add((type, entry));
             }
 
             SetCardCount(_visibleHats.Count);
             for (int i = 0; i < _visibleHats.Count; i++)
             {
-                ShopHatEntry entry = _visibleHats[i];
+                ShopHatEntry entry = _visibleHats[i].Entry;
                 CardAt(i).SetupPurchasable(entry.Icon, entry.DisplayName, entry.Price, IsAffordable(entry.Price));
             }
         }
@@ -101,8 +107,8 @@ namespace SplitRun.UI.Lobby
             if (index >= _visibleCharacters.Count)
                 return;
 
-            ShopCharacterEntry entry = _visibleCharacters[index];
-            _stage.PreviewCharacter(entry.Type);
+            (CharacterType type, ShopCharacterEntry entry) = _visibleCharacters[index];
+            _stage.PreviewCharacter(type);
             ShowPurchasePopup(index, entry.DisplayName, entry.Price);
         }
 
@@ -111,8 +117,8 @@ namespace SplitRun.UI.Lobby
             if (index >= _visibleHats.Count)
                 return;
 
-            ShopHatEntry entry = _visibleHats[index];
-            _stage.PreviewHat(entry.Type);
+            (HatType type, ShopHatEntry entry) = _visibleHats[index];
+            _stage.PreviewHat(type);
             ShowPurchasePopup(index, entry.DisplayName, entry.Price);
         }
 
@@ -153,14 +159,14 @@ namespace SplitRun.UI.Lobby
 
         private bool PurchaseCharacter(int index)
         {
-            ShopCharacterEntry entry = _visibleCharacters[index];
-            return _playerData.TryPurchaseCharacter(entry.Type, entry.Price);
+            (CharacterType type, ShopCharacterEntry entry) = _visibleCharacters[index];
+            return _playerData.TryPurchaseCharacter(type, entry.Price);
         }
 
         private bool PurchaseHat(int index)
         {
-            ShopHatEntry entry = _visibleHats[index];
-            return _playerData.TryPurchaseHat(entry.Type, entry.Price);
+            (HatType type, ShopHatEntry entry) = _visibleHats[index];
+            return _playerData.TryPurchaseHat(type, entry.Price);
         }
 
         private bool IsAffordable(int price) => _playerData.Coins.CurrentValue >= price;

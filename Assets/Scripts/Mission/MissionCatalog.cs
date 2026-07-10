@@ -8,12 +8,12 @@ namespace SplitRun.Mission
     public enum MissionGoalType
     {
         // Best single run, not accumulated.
-        DistanceSingleRun,
+        DistanceSingleRun = 0,
 
-        CoinsTotal,
-        JumpsTotal,
-        SlidesTotal,
-        LaneChangesTotal,
+        CoinsTotal       = 1,
+        JumpsTotal       = 2,
+        SlidesTotal      = 3,
+        LaneChangesTotal = 4,
     }
 
     // Adding a mission of an existing goal type is one entry; a new goal type is one enum value

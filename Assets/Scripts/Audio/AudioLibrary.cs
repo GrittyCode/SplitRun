@@ -1,27 +1,27 @@
-using System;
-
 using UnityEngine;
+
+using SplitRun.Utility;
 
 namespace SplitRun.Audio
 {
     // Separate types so a BGM track cannot be dispatched through PlayOneShot.
     public enum SfxType
     {
-        Hit,
-        Coin,
-        Magnet,
-        LaneChange,
-        Jump,
-        Slide,
-        ShieldActivate,
-        DashActivate,
-        GameOver,
+        Hit            = 0,
+        Coin           = 1,
+        Magnet         = 2,
+        LaneChange     = 3,
+        Jump           = 4,
+        Slide          = 5,
+        ShieldActivate = 6,
+        DashActivate   = 7,
+        GameOver       = 8,
     }
 
     public enum BgmType
     {
-        Lobby,
-        Game,
+        Lobby = 0,
+        Game  = 1,
     }
 
     // An unassigned clip plays nothing, so the system ships before the clips do.
@@ -33,50 +33,14 @@ namespace SplitRun.Audio
         [SerializeField, Range(0f, 1f)] private float _bgmVolume = 0.5f;
 
         [Header("Clips")]
-        [SerializeField] private SfxEntry[] _sfxEntries = Array.Empty<SfxEntry>();
-        [SerializeField] private BgmEntry[] _bgmEntries = Array.Empty<BgmEntry>();
+        [SerializeField] private EnumKeyedArray<SfxType, AudioClip> _sfxClips = new EnumKeyedArray<SfxType, AudioClip>();
+        [SerializeField] private EnumKeyedArray<BgmType, AudioClip> _bgmClips = new EnumKeyedArray<BgmType, AudioClip>();
 
         public float SfxVolume => _sfxVolume;
         public float BgmVolume => _bgmVolume;
 
-        public AudioClip ClipFor(SfxType type)
-        {
-            foreach (SfxEntry entry in _sfxEntries)
-            {
-                if (entry.Type == type) return entry.Clip;
-            }
+        public AudioClip ClipFor(SfxType type) => _sfxClips[type];
 
-            return null;
-        }
-
-        public AudioClip ClipFor(BgmType type)
-        {
-            foreach (BgmEntry entry in _bgmEntries)
-            {
-                if (entry.Type == type) return entry.Clip;
-            }
-
-            return null;
-        }
-
-        [Serializable]
-        private struct SfxEntry
-        {
-            [SerializeField] private SfxType   _type;
-            [SerializeField] private AudioClip _clip;
-
-            public SfxType   Type => _type;
-            public AudioClip Clip => _clip;
-        }
-
-        [Serializable]
-        private struct BgmEntry
-        {
-            [SerializeField] private BgmType   _type;
-            [SerializeField] private AudioClip _clip;
-
-            public BgmType   Type => _type;
-            public AudioClip Clip => _clip;
-        }
+        public AudioClip ClipFor(BgmType type) => _bgmClips[type];
     }
 }

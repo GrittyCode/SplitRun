@@ -2,38 +2,38 @@ namespace SplitRun.Character
 {
     public enum CharacterType
     {
-        Default,
-        Shield,
-        Dash,
+        Default = 0,
+        Shield  = 1,
+        Dash    = 2,
     }
 
     // Values mirror Mg3D_Hats asset names — adding a hat is one value here plus one ShopCatalog entry.
     public enum HatType
     {
-        None,
-        MinerHat,
-        Crown,
-        MagicianHat,
+        None        = 0,
+        MinerHat    = 1,
+        Crown       = 2,
+        MagicianHat = 3,
     }
 
     public enum SkillType
     {
-        None,
-        Shield,
-        Dash,
+        None   = 0,
+        Shield = 1,
+        Dash   = 2,
     }
 
     public enum SkillState
     {
-        Ready,
-        Active,
-        Cooldown,
+        Ready    = 0,
+        Active   = 1,
+        Cooldown = 2,
     }
 
     public enum VerticalState
     {
-        Ground,
-        Jumping,
-        Sliding,
+        Ground  = 0,
+        Jumping = 1,
+        Sliding = 2,
     }
 }

@@ -19,10 +19,7 @@ namespace SplitRun.EditorTools
 
         static ObstaclePrefabValidator()
         {
-            PlayModeBuildGuard.RegisterPlayModeCheck(
-                () => CollectInvalid().Count > 0,
-                ReportAndShow,
-                blocksPlay: true);
+            PlayModeBuildGuard.Register<GameObject>(CollectInvalid, ReportAndShow, blocksPlay: true);
         }
 
         [MenuItem("SplitRun/Validate Obstacle Prefabs", priority = 20)]
@@ -33,7 +30,7 @@ namespace SplitRun.EditorTools
             List<GameObject> invalid = CollectInvalid();
             if (invalid.Count == 0) return;
 
-            ReportAndShow();
+            ReportAndShow(invalid);
             PlayModeBuildGuard.FailBuild(invalid.Count, "obstacle prefab(s) have a non-identity root Transform",
                 "Obstacle Validation window");
         }
@@ -58,10 +55,8 @@ namespace SplitRun.EditorTools
         }
 
         // The prefab is the console context object, so clicking the line pings it in the Project window.
-        private static void ReportAndShow()
+        private static void ReportAndShow(List<GameObject> invalid)
         {
-            List<GameObject> invalid = CollectInvalid();
-
             foreach (GameObject prefab in invalid)
                 Debug.LogError(
                     "[ObstaclePrefabValidator] Non-identity root Transform: " +

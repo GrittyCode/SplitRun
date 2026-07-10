@@ -13,42 +13,37 @@ MonoBehaviour:
   m_Name: ShopCatalog
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Data.ShopCatalog
   _characters:
-  - _type: 0
-    _displayName: Default
-    _price: 0
-    _icon: {fileID: 21300000, guid: 5d9fd50711bd04c64ac0414d0877aa88, type: 3}
-    _modelPrefab: {fileID: 142203759756050935, guid: 25ade518e73794972815ac9b1e280093, type: 3}
-    _gamePrefab: {fileID: 533238763769468148, guid: 9e986942325d3433b986f46ab4e290bd, type: 3}
-  - _type: 1
-    _displayName: Shield Goblin
-    _price: 100
-    _icon: {fileID: 21300000, guid: 6cf2e8fb6845e4050a1b502be3ba2129, type: 3}
-    _modelPrefab: {fileID: 924216131978432981, guid: f775d8e5f1ffd4018a09dbb41f2683ee, type: 3}
-    _gamePrefab: {fileID: 8707825338318615220, guid: 06e690a8407df4021b14b540bba60cbd, type: 3}
-  - _type: 2
-    _displayName: Dash Goblin
-    _price: 200
-    _icon: {fileID: 21300000, guid: 73bed1baa14564a3ab233bcc8aaac801, type: 3}
-    _modelPrefab: {fileID: 2896076778083953189, guid: a6f7355c5de0d4ab790f07329547d985, type: 3}
-    _gamePrefab: {fileID: -6263061098965211464, guid: 616d44ecac66345e39ab5b214eb50a70, type: 3}
+    _values:
+    - _displayName: Goblin
+      _price: 0
+      _icon: {fileID: 21300000, guid: 5d9fd50711bd04c64ac0414d0877aa88, type: 3}
+      _modelPrefab: {fileID: 142203759756050935, guid: 25ade518e73794972815ac9b1e280093, type: 3}
+      _gamePrefab: {fileID: 533238763769468148, guid: 9e986942325d3433b986f46ab4e290bd, type: 3}
+    - _displayName: Shield Goblin
+      _price: 100
+      _icon: {fileID: 21300000, guid: 6cf2e8fb6845e4050a1b502be3ba2129, type: 3}
+      _modelPrefab: {fileID: 924216131978432981, guid: f775d8e5f1ffd4018a09dbb41f2683ee, type: 3}
+      _gamePrefab: {fileID: 8707825338318615220, guid: 06e690a8407df4021b14b540bba60cbd, type: 3}
+    - _displayName: Dash Goblin
+      _price: 200
+      _icon: {fileID: 21300000, guid: 73bed1baa14564a3ab233bcc8aaac801, type: 3}
+      _modelPrefab: {fileID: 2896076778083953189, guid: a6f7355c5de0d4ab790f07329547d985, type: 3}
+      _gamePrefab: {fileID: -6263061098965211464, guid: 616d44ecac66345e39ab5b214eb50a70, type: 3}
   _hats:
-  - _type: 1
-    _displayName: Miner Helmet
-    _price: 30
-    _icon: {fileID: 21300000, guid: 472fbe6789bd3438dbbd54bd75d65adf, type: 3}
-    _hatPrefab: {fileID: 126414408092950466, guid: a0d45b83669884b05ac75d4d66ddfa52, type: 3}
-  - _type: 2
-    _displayName: Crown
-    _price: 50
-    _icon: {fileID: 21300000, guid: 36580794e252147f8bb24ea13dbb3929, type: 3}
-    _hatPrefab: {fileID: 3257828574997996445, guid: 6ac894bb8a2ad435eb3fed981f669559, type: 3}
-  - _type: 3
-    _displayName: Magician Hat
-    _price: 80
-    _icon: {fileID: 21300000, guid: 65cdbbc9c17194519927c8c1c16b816f, type: 3}
-    _hatPrefab: {fileID: 5389532806216274624, guid: d1a2982cd0aa84d3f8def26fc7f13aeb, type: 3}
-  - _type: 0
-    _displayName: None
-    _price: 0
-    _icon: {fileID: 0}
-    _hatPrefab: {fileID: 0}
+    _values:
+    - _displayName: Take off
+      _price: 0
+      _icon: {fileID: 0}
+      _hatPrefab: {fileID: 0}
+    - _displayName: MinerHat
+      _price: 50
+      _icon: {fileID: 21300000, guid: 472fbe6789bd3438dbbd54bd75d65adf, type: 3}
+      _hatPrefab: {fileID: 126414408092950466, guid: a0d45b83669884b05ac75d4d66ddfa52, type: 3}
+    - _displayName: Crown
+      _price: 80
+      _icon: {fileID: 21300000, guid: 36580794e252147f8bb24ea13dbb3929, type: 3}
+      _hatPrefab: {fileID: 3257828574997996445, guid: 6ac894bb8a2ad435eb3fed981f669559, type: 3}
+    - _displayName: MagicianHat
+      _price: 100
+      _icon: {fileID: 21300000, guid: 65cdbbc9c17194519927c8c1c16b816f, type: 3}
+      _hatPrefab: {fileID: 5389532806216274624, guid: d1a2982cd0aa84d3f8def26fc7f13aeb, type: 3}

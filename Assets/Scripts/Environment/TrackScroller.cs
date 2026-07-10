@@ -5,15 +5,17 @@ using UnityEngine;
 using R3;
 using VContainer;
 
-using SplitRun.Constants;
 using SplitRun.Game;
 using SplitRun.Utility;
 
 namespace SplitRun.Environment
 {
-    // Cosmetic endless ground — tiles the theme segment ahead, recycles behind; no gameplay rules.
+    // Cosmetic endless ground — no gameplay rules live here.
     public class TrackScroller : MonoBehaviour
     {
+        private const float k_FillAheadDistance     = 80f;
+        private const float k_RecycleBehindDistance = 12f;
+
         [Inject] private GameService       _gameService;
         [Inject] private WorldThemeProfile _theme;
 
@@ -95,7 +97,7 @@ namespace SplitRun.Environment
 
         private void OnRunStarted()
         {
-            _nextSegmentZ = SnapToBoundary(-TrackConstants.k_TrackRecycleBehindDistance);
+            _nextSegmentZ = SnapToBoundary(-k_RecycleBehindDistance);
             FillAhead(0f);
         }
 
@@ -107,7 +109,7 @@ namespace SplitRun.Environment
 
         private void FillAhead(float characterZ)
         {
-            float frontier = characterZ + TrackConstants.k_TrackFillAheadDistance;
+            float frontier = characterZ + k_FillAheadDistance;
 
             while (_nextSegmentZ < frontier)
             {
@@ -118,7 +120,7 @@ namespace SplitRun.Environment
 
         private void RecycleBehind(float characterZ)
         {
-            float threshold = characterZ - TrackConstants.k_TrackRecycleBehindDistance;
+            float threshold = characterZ - k_RecycleBehindDistance;
 
             while (_active.Count > 0 && _active.Peek().NearZ + _segmentLengthZ < threshold)
             {

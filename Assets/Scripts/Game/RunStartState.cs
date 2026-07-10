@@ -2,8 +2,8 @@ namespace SplitRun.Game
 {
     public enum RunStartState
     {
-        AwaitingPlayers,
-        Intro,
-        Live,
+        AwaitingPlayers = 0,
+        Intro           = 1,
+        Live            = 2,
     }
 }

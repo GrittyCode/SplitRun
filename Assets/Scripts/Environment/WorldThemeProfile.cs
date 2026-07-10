@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 using SplitRun.Obstacle;
+using SplitRun.Utility;
 
 namespace SplitRun.Environment
 {
@@ -12,25 +13,25 @@ namespace SplitRun.Environment
     [CreateAssetMenu(fileName = "WTP_New", menuName = "SplitRun/World Theme Profile")]
     public class WorldThemeProfile : ScriptableObject
     {
-        [SerializeField] private string             _themeName;
-        [SerializeField] private FootprintPrefabs[] _obstaclePrefabs = Array.Empty<FootprintPrefabs>();
-        [SerializeField] private Transform          _segmentPrefab;
-        [SerializeField] private BackdropFollower   _backdropPrefab;
+        [SerializeField] private string           _themeName;
+        [SerializeField] private Transform        _segmentPrefab;
+        [SerializeField] private BackdropFollower _backdropPrefab;
 
-        public string                          ThemeName       => _themeName;
-        public IReadOnlyList<FootprintPrefabs> ObstaclePrefabs => _obstaclePrefabs;
-        public Transform                       SegmentPrefab   => _segmentPrefab;
-        public BackdropFollower                BackdropPrefab  => _backdropPrefab;
+        [SerializeField] private EnumKeyedArray<ObstacleFootprint, ObstacleVariants> _obstaclePrefabs =
+            new EnumKeyedArray<ObstacleFootprint, ObstacleVariants>();
+
+        public string                                              ThemeName       => _themeName;
+        public Transform                                           SegmentPrefab   => _segmentPrefab;
+        public BackdropFollower                                    BackdropPrefab  => _backdropPrefab;
+        public EnumKeyedArray<ObstacleFootprint, ObstacleVariants> ObstaclePrefabs => _obstaclePrefabs;
     }
 
-    // One or more interchangeable prefab variants for a footprint, loaded through Addressables.
+    // Unity cannot serialize a jagged array, so the variant list needs one wrapper level.
     [Serializable]
-    public struct FootprintPrefabs
+    public sealed class ObstacleVariants
     {
-        [SerializeField] private ObstacleFootprint          _footprint;
-        [SerializeField] private AssetReferenceGameObject[] _prefabs;
+        [SerializeField] private AssetReferenceGameObject[] _prefabs = Array.Empty<AssetReferenceGameObject>();
 
-        public ObstacleFootprint                      Footprint => _footprint;
-        public IReadOnlyList<AssetReferenceGameObject> Prefabs   => _prefabs;
+        public IReadOnlyList<AssetReferenceGameObject> Prefabs => _prefabs;
     }
 }

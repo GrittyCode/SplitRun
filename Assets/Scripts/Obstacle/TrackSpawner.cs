@@ -223,7 +223,7 @@ namespace SplitRun.Obstacle
 
         private void SpawnSingle(ObstacleFootprint footprint, int slotIndex, float spawnZ)
         {
-            int lane = IsFullWidth(footprint)
+            int lane = footprint.IsFullWidth()
                 ? GameConstants.k_LaneCenter
                 : DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltLane,
                     GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
@@ -310,7 +310,7 @@ namespace SplitRun.Obstacle
 
         private void MarkOccupied(ObstacleFootprint footprint, int lane)
         {
-            if (IsFullWidth(footprint))
+            if (footprint.IsFullWidth())
             {
                 for (int i = 0; i < _laneOccupied.Length; i++)
                     _laneOccupied[i] = true;
@@ -340,9 +340,6 @@ namespace SplitRun.Obstacle
             CoopPatternType.CoopSlide => ObstacleFootprint.LaneSlide,
             _ => ObstacleFootprint.LaneJump,
         };
-
-        private static bool IsFullWidth(ObstacleFootprint footprint) =>
-            footprint == ObstacleFootprint.WideJump || footprint == ObstacleFootprint.WideSlide;
 
         private readonly struct ActiveObstacle
         {

@@ -72,11 +72,11 @@ namespace SplitRun.Boot
             var footprints = new List<ObstacleFootprint>();
             var tasks      = new List<UniTask<GameObject>>();
 
-            foreach (FootprintPrefabs set in _theme.ObstaclePrefabs)
+            foreach ((ObstacleFootprint footprint, ObstacleVariants variants) in _theme.ObstaclePrefabs)
             {
-                if (set.Prefabs == null) continue;
+                if (variants?.Prefabs == null) continue;
 
-                foreach (AssetReferenceGameObject reference in set.Prefabs)
+                foreach (AssetReferenceGameObject reference in variants.Prefabs)
                 {
                     if (reference == null || !reference.RuntimeKeyIsValid()) continue;
 
@@ -84,7 +84,7 @@ namespace SplitRun.Boot
                     // theme SO never owns the session-scoped handles this service must release.
                     AsyncOperationHandle<GameObject> handle = Addressables.LoadAssetAsync<GameObject>(reference);
                     _handles.Add(handle);
-                    footprints.Add(set.Footprint);
+                    footprints.Add(footprint);
                     tasks.Add(handle.ToUniTask(cancellationToken: ct));
                 }
             }
