@@ -38,10 +38,10 @@ namespace SplitRun.UI.Lobby
         {
             base.Start();
 
-            _buyButton.OnClickAsObservable().Subscribe(_ => Purchase()).AddTo(this);
+            _buyButton.OnClickWithSfx().Subscribe(_ => Purchase()).AddTo(this);
 
             // Closing the popup without buying reverts the try-on to the persisted selection.
-            _popupCloseButton.OnClickAsObservable().Subscribe(_ => ClearTryOn()).AddTo(this);
+            _popupCloseButton.OnClickWithSfx().Subscribe(_ => ClearTryOn()).AddTo(this);
         }
 
         private void OnDisable() => ClearTryOn();

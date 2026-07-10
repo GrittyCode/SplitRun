@@ -31,8 +31,8 @@ namespace SplitRun.UI.Lobby
 
         protected virtual void Start()
         {
-            _characterTabButton.OnClickAsObservable().Subscribe(_ => ShowTab(CustomizationTab.Character)).AddTo(this);
-            _hatTabButton.OnClickAsObservable().Subscribe(_ => ShowTab(CustomizationTab.Hat)).AddTo(this);
+            _characterTabButton.OnClickWithSfx().Subscribe(_ => ShowTab(CustomizationTab.Character)).AddTo(this);
+            _hatTabButton.OnClickWithSfx().Subscribe(_ => ShowTab(CustomizationTab.Hat)).AddTo(this);
         }
 
         protected virtual void OnEnable() => ShowTab(_tab);

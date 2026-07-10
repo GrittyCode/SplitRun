@@ -1488,6 +1488,37 @@ Transform:
   - {fileID: 1879658438709585854}
   m_Father: {fileID: 1498199402795244878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3806947775235743934
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7606860278771347775}
+  m_Layer: 6
+  m_Name: HatSocket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7606860278771347775
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3806947775235743934}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.41898647, y: -0.5696054, z: 0.41898647, w: 0.5696054}
+  m_LocalPosition: {x: -0.326, y: 0.088, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1524276340679905373}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4314742221497761349
 GameObject:
   m_ObjectHideFlags: 0
@@ -1517,12 +1548,12 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 7606860278771347775}
   - {fileID: 7984819301306680540}
   - {fileID: 8298178526421976930}
   - {fileID: 8884412405861181738}
   - {fileID: 9142901617935728448}
   - {fileID: 5810998607198803418}
-  - {fileID: 6847153694198842089}
   m_Father: {fileID: 3952483193652740425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4559408291993260425
@@ -1817,37 +1848,6 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.000000037252903, y: -0.2283799, z: 0.59951144}
     m_Extent: {x: 0.124808155, y: 0.17202175, z: 0.10977876}
   m_DirtyAABB: 0
---- !u!1 &5029256119116741787
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6847153694198842089}
-  m_Layer: 6
-  m_Name: HatSocket
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6847153694198842089
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5029256119116741787}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.324, y: 0.085, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1524276340679905373}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5184488432467350778
 GameObject:
   m_ObjectHideFlags: 0

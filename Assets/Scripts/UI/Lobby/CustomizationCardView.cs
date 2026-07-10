@@ -28,7 +28,7 @@ namespace SplitRun.UI.Lobby
         [SerializeField] private Color _affordableColor = Color.white;
         [SerializeField] private Color _shortfallColor  = new Color(1f, 0.35f, 0.35f);
 
-        public Observable<Unit> OnClicked => _button.OnClickAsObservable();
+        public Observable<Unit> OnClicked => _button.OnClickWithSfx();
 
         public void SetupPurchasable(Sprite icon, string displayName, int price, bool isAffordable)
         {

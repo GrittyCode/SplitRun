@@ -3,7 +3,6 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-using SplitRun.Ad;
 using SplitRun.Audio;
 using SplitRun.Data;
 using SplitRun.Environment;
@@ -46,7 +45,6 @@ namespace SplitRun.Boot
             builder.Register<PlayerDataService>(Lifetime.Singleton);
             builder.Register<MissionService>(Lifetime.Singleton);
             builder.Register<AssetPreloadService>(Lifetime.Singleton);
-            builder.Register<AdService>(Lifetime.Singleton);
 
             // Root-scoped so the Relay session created in Lobby survives the load into Game.
             builder.Register<NetworkService>(Lifetime.Singleton);

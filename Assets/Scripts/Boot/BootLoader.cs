@@ -8,7 +8,6 @@ using Cysharp.Threading.Tasks;
 using R3;
 using VContainer.Unity;
 
-using SplitRun.Ad;
 using SplitRun.Audio;
 using SplitRun.Constants;
 using SplitRun.Data;
@@ -28,19 +27,17 @@ namespace SplitRun.Boot
         private readonly PlayerDataService   _playerDataService;
         private readonly MissionService      _missionService;
         private readonly AssetPreloadService _assetPreloadService;
-        private readonly AdService           _adService;
         private readonly NetworkService      _networkService;
 
         private readonly ReactiveProperty<float>  _progress = new ReactiveProperty<float>(0f);
         private readonly ReactiveProperty<string> _status   = new ReactiveProperty<string>(k_StatusLoading);
 
         public BootLoader(PlayerDataService playerDataService, MissionService missionService,
-            AssetPreloadService assetPreloadService, AdService adService, NetworkService networkService)
+            AssetPreloadService assetPreloadService, NetworkService networkService)
         {
             _playerDataService   = playerDataService;
             _missionService      = missionService;
             _assetPreloadService = assetPreloadService;
-            _adService           = adService;
             _networkService      = networkService;
         }
 
@@ -51,8 +48,6 @@ namespace SplitRun.Boot
         {
             _playerDataService.Load();
             _missionService.Load();
-
-            _adService.Initialize();
 
             // Sign-in races the loading screen — failure only disables multiplayer.
             _networkService.InitializeAsync(ct).Forget();

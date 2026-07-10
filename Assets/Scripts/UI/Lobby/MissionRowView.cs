@@ -25,7 +25,7 @@ namespace SplitRun.UI.Lobby
         [SerializeField] private Button     _claimButton;
         [SerializeField] private GameObject _dim;
 
-        public Observable<Unit> OnClaimClicked => _claimButton.OnClickAsObservable();
+        public Observable<Unit> OnClaimClicked => _claimButton.OnClickWithSfx();
 
         public void Bind(MissionState mission)
         {

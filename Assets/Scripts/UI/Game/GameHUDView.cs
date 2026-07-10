@@ -125,7 +125,7 @@ namespace SplitRun.UI.Game
                 .Subscribe(coins => _coinLabel.text = $"{coins}")
                 .AddTo(this);
 
-            _pauseButton.OnClickAsObservable()
+            _pauseButton.OnClickWithSfx()
                 .Subscribe(_ => _gameService.RequestPause())
                 .AddTo(this);
         }
@@ -249,7 +249,7 @@ namespace SplitRun.UI.Game
                 .Subscribe(ApplyPauseState)
                 .AddTo(this);
 
-            _resumeButton.OnClickAsObservable()
+            _resumeButton.OnClickWithSfx()
                 .Subscribe(_ => _gameSession.RequestResume())
                 .AddTo(this);
         }
@@ -330,7 +330,7 @@ namespace SplitRun.UI.Game
                 .AddTo(this);
 
             // Routed through the service so GameEntryPoint stays the sole owner of session teardown.
-            _quitButton.OnClickAsObservable()
+            _quitButton.OnClickWithSfx()
                 .Subscribe(_ => _gameService.RequestEndSession())
                 .AddTo(this);
         }

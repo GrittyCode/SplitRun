@@ -15,6 +15,7 @@ namespace SplitRun.Audio
         ShieldActivate = 6,
         DashActivate   = 7,
         GameOver       = 8,
+        Click          = 9,
     }
 
     public enum BgmType

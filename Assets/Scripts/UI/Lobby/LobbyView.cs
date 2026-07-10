@@ -74,18 +74,18 @@ namespace SplitRun.UI.Lobby
 
         private void BindButtons()
         {
-            _playTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_playPanel)).AddTo(this);
-            _missionTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_missionPanel)).AddTo(this);
-            _storageTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_storagePanel)).AddTo(this);
-            _shopTabButton.OnClickAsObservable().Subscribe(_ => SelectTab(_shopPanel)).AddTo(this);
+            _playTabButton.OnClickWithSfx().Subscribe(_ => SelectTab(_playPanel)).AddTo(this);
+            _missionTabButton.OnClickWithSfx().Subscribe(_ => SelectTab(_missionPanel)).AddTo(this);
+            _storageTabButton.OnClickWithSfx().Subscribe(_ => SelectTab(_storagePanel)).AddTo(this);
+            _shopTabButton.OnClickWithSfx().Subscribe(_ => SelectTab(_shopPanel)).AddTo(this);
 
             _stageTapButton.OnClickAsObservable().Subscribe(_ => SelectTab(_playPanel)).AddTo(this);
 
-            _multiButton.OnClickAsObservable().Subscribe(_ => ShowMultiplayerFlow()).AddTo(this);
-            _multiBackButton.OnClickAsObservable().Subscribe(_ => ExitMultiplayerFlow()).AddTo(this);
+            _multiButton.OnClickWithSfx().Subscribe(_ => ShowMultiplayerFlow()).AddTo(this);
+            _multiBackButton.OnClickWithSfx().Subscribe(_ => ExitMultiplayerFlow()).AddTo(this);
 
             // Starting a run is session policy — the view only forwards the intent.
-            _soloButton.OnClickAsObservable().Subscribe(_ => _networkService.StartSolo()).AddTo(this);
+            _soloButton.OnClickWithSfx().Subscribe(_ => _networkService.StartSolo()).AddTo(this);
         }
 
         // Exactly one tab is active at all times; the active tab button is disabled,
@@ -152,11 +152,11 @@ namespace SplitRun.UI.Lobby
                 .Subscribe(_ => DismissFailureAsync(this.GetCancellationTokenOnDestroy()).Forget())
                 .AddTo(this);
 
-            _createButton.OnClickAsObservable()
+            _createButton.OnClickWithSfx()
                 .Subscribe(_ => _networkService.CreateRoomAsync(this.GetCancellationTokenOnDestroy()).Forget())
                 .AddTo(this);
 
-            _okButton.OnClickAsObservable()
+            _okButton.OnClickWithSfx()
                 .Subscribe(_ => JoinWithInputCode())
                 .AddTo(this);
         }
