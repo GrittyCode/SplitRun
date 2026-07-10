@@ -403,6 +403,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[UI_HUD]'
       objectReference: {fileID: 0}
+    - target: {fileID: 5446614579977005552, guid: f56eeee2753a84320b38f40941d315e3, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5446614579977005552, guid: f56eeee2753a84320b38f40941d315e3, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7431694892211568729, guid: f56eeee2753a84320b38f40941d315e3, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -748,6 +756,7 @@ GameObject:
   - component: {fileID: 2079835154}
   - component: {fileID: 2079835157}
   - component: {fileID: 2079835158}
+  - component: {fileID: 2079835159}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -885,6 +894,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16c58fe4468f492888bba184fbabd591, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Game.CameraFollow
+--- !u!114 &2079835159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2079835153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd70014ac0bd41e3946608bae231a3ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Utility.AspectRatioEnforcer
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

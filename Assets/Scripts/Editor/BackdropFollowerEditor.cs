@@ -52,7 +52,7 @@ namespace SplitRun.EditorTools
             DrawCurrentSilhouette(backdrop);
         }
 
-        // _WorldCurveEnabled is a global shader property, so it never shows in material.HasProperty.
+        // _WorldCurveDisabled is a global shader property, so it never shows in material.HasProperty.
         private static bool UsesCurveShader(BackdropFollower backdrop)
         {
             foreach (Renderer renderer in backdrop.GetComponentsInChildren<Renderer>())
