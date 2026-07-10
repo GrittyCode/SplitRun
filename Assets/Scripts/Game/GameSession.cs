@@ -12,6 +12,20 @@ using SplitRun.Constants;
 
 namespace SplitRun.Game
 {
+    public enum PauseState
+    {
+        None      = 0,
+        Paused    = 1,
+        Countdown = 2,
+    }
+
+    public enum RunStartState
+    {
+        AwaitingPlayers = 0,
+        Intro           = 1,
+        Live            = 2,
+    }
+
     public class GameSession : NetworkBehaviour
     {
         private readonly NetworkVariable<RunStartState> _runStartState = new NetworkVariable<RunStartState>(RunStartState.AwaitingPlayers);

@@ -4,8 +4,6 @@ namespace SplitRun.Constants
     {
         public const string k_HatSocketName = "HatSocket";
 
-        // --- Collider ---
-
         public const float k_ReferenceHeight = 1.2f;
         public const float k_ColliderRadius  = 0.35f;
         public const float k_ColliderHeight  = k_ReferenceHeight;
@@ -14,8 +12,6 @@ namespace SplitRun.Constants
         public const float k_SlideColliderRadius  = 0.3f;
         public const float k_SlideColliderHeight  = 0.65f;
         public const float k_SlideColliderCenterY = k_SlideColliderHeight / 2f;
-
-        // --- Locomotion ---
 
         public const float k_BaseRunSpeed = 8f;
 
@@ -39,14 +35,14 @@ namespace SplitRun.Constants
         // Discards duplicate collision reports arriving within this window of the first.
         public const float k_CollisionDebounceDuration = 0.3f;
 
-        // Client-side distance smoothing between NetworkVariable ticks: chase the synced value
-        // slightly faster than the run speed, but never overshoot it.
+        // Client-side distance smoothing: chase the synced value slightly faster than run speed, never overshoot.
         public const float k_DistanceCatchUpMultiplier = 1.2f;
 
         // A gap beyond this is a teleport (scene start, correction burst) — snap instead of chasing.
         public const float k_DistanceSnapThreshold = 3f;
 
-        // --- Animator ---
+        // Bounds the dead-reckoned lead when ticks stall, so a dropped packet cannot ghost-run the client.
+        public const float k_DistanceExtrapolationCap = 0.25f;
 
         public const string k_TriggerJump  = "Jump";
         public const string k_TriggerLand  = "Land";
@@ -60,8 +56,6 @@ namespace SplitRun.Constants
 
         public const string k_ClipNameRoll    = "Roll";
         public const string k_ClipNameJumpOut = "Jump_Out";
-
-        // --- Skills ---
 
         public const float k_ShieldCooldownDuration = 20f;
 

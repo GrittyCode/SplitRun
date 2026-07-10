@@ -6,7 +6,6 @@ using VContainer.Unity;
 
 namespace SplitRun.Audio
 {
-    // Root-scoped with a persistent host so sound carries across scene loads.
     public sealed class AudioService : IStartable, IDisposable
     {
         private readonly AudioLibrary _library;

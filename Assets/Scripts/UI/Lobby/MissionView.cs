@@ -9,8 +9,6 @@ using SplitRun.Mission;
 
 namespace SplitRun.UI.Lobby
 {
-    // Renders the daily mission set and routes claims. Rebuilds when the panel opens and after a claim;
-    // progress itself only changes during runs, when this view is not present.
     public class MissionView : MonoBehaviour
     {
         [Header("Grid")]
@@ -36,7 +34,6 @@ namespace SplitRun.UI.Lobby
                 _rows[i].Bind(missions[i]);
         }
 
-        // Grows the pool as needed, activates the first count rows, and hides the rest.
         private void SetRowCount(int count)
         {
             while (_rows.Count < count)

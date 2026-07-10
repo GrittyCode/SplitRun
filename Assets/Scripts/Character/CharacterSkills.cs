@@ -19,12 +19,12 @@ namespace SplitRun.Character
 
     public sealed class ShieldSkill : ICharacterSkill
     {
-        private readonly CharacterCore _core;
+        private readonly CharacterRules _rules;
 
         private SkillState _state = SkillState.Ready;
         private float      _cooldownRemaining;
 
-        public ShieldSkill(CharacterCore core) => _core = core;
+        public ShieldSkill(CharacterRules rules) => _rules = rules;
 
         public SkillType  Type  => SkillType.Shield;
         public SkillState State => _state;
@@ -34,7 +34,7 @@ namespace SplitRun.Character
             if (_state != SkillState.Ready) return;
 
             _state = SkillState.Active;
-            _core.SetInvincible(true);
+            _rules.SetInvincible(true);
         }
 
         public void Tick(float deltaTime)
@@ -50,7 +50,7 @@ namespace SplitRun.Character
         {
             if (_state != SkillState.Active) return;
 
-            _core.SetInvincible(false);
+            _rules.SetInvincible(false);
             _state             = SkillState.Cooldown;
             _cooldownRemaining = CharacterConstants.k_ShieldCooldownDuration;
         }
@@ -58,12 +58,12 @@ namespace SplitRun.Character
 
     public sealed class DashSkill : ICharacterSkill
     {
-        private readonly CharacterCore _core;
+        private readonly CharacterRules _rules;
 
         private SkillState _state = SkillState.Ready;
         private float      _timeRemaining;
 
-        public DashSkill(CharacterCore core) => _core = core;
+        public DashSkill(CharacterRules rules) => _rules = rules;
 
         public SkillType  Type  => SkillType.Dash;
         public SkillState State => _state;
@@ -74,8 +74,8 @@ namespace SplitRun.Character
 
             _state         = SkillState.Active;
             _timeRemaining = CharacterConstants.k_DashDuration;
-            _core.SetInvincible(true);
-            _core.SetSpeedMultiplier(CharacterConstants.k_DashSpeedMultiplier);
+            _rules.SetInvincible(true);
+            _rules.SetSpeedMultiplier(CharacterConstants.k_DashSpeedMultiplier);
         }
 
         public void Tick(float deltaTime)
@@ -94,8 +94,8 @@ namespace SplitRun.Character
             switch (_state)
             {
                 case SkillState.Active:
-                    _core.SetInvincible(false);
-                    _core.SetSpeedMultiplier(1f);
+                    _rules.SetInvincible(false);
+                    _rules.SetSpeedMultiplier(1f);
                     _state         = SkillState.Cooldown;
                     _timeRemaining = CharacterConstants.k_DashCooldownDuration;
                     break;
@@ -106,7 +106,7 @@ namespace SplitRun.Character
         }
     }
 
-    // Removes the null branch from CharacterCore's per-frame Tick.
+    // Removes the null branch from the per-frame Tick.
     public sealed class NullSkill : ICharacterSkill
     {
         public SkillType  Type  => SkillType.None;

@@ -10,6 +10,15 @@ using SplitRun.Mission;
 
 namespace SplitRun.Game
 {
+    public enum GamePhase
+    {
+        Lobby,
+        Intro,
+        Running,
+        Paused,
+        GameOver,
+    }
+
     public class GameService : IStartable, IDisposable
     {
         private readonly GameSession       _gameSession;
@@ -98,6 +107,9 @@ namespace SplitRun.Game
         /// <summary>Transitions phase to GameOver. CurrentDistance already holds the final value.</summary>
         public void EndRun()
         {
+            // The client mirror trails the synced value — the record is taken from the authoritative one.
+            if (_character != null) _currentDistance.Value = _character.Distance;
+
             int finalDistance = (int)_currentDistance.Value;
 
             // Captured before the write — UpdateBestDistance overwrites the prior record in place.

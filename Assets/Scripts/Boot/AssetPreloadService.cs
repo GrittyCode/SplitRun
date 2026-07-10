@@ -13,7 +13,6 @@ using SplitRun.Obstacle;
 
 namespace SplitRun.Boot
 {
-    // Handles stay resident for the whole session so the Game scene builds its pools synchronously.
     public sealed class AssetPreloadService : IDisposable
     {
         private readonly WorldThemeProfile _theme;
@@ -65,8 +64,7 @@ namespace SplitRun.Boot
             _obstaclePrefabs.Clear();
         }
 
-        // Loads run in parallel but registration follows the theme's declared order, so the
-        // seed-derived variant index resolves to the same prefab on every client.
+        // Registration follows the theme's declared order, so the seed-derived variant index resolves identically everywhere.
         private async UniTask LoadObstaclePrefabsAsync(CancellationToken ct)
         {
             var footprints = new List<ObstacleFootprint>();
@@ -80,8 +78,7 @@ namespace SplitRun.Boot
                 {
                     if (reference == null || !reference.RuntimeKeyIsValid()) continue;
 
-                    // Loaded through Addressables, not the reference's cached handle, so the shared
-                    // theme SO never owns the session-scoped handles this service must release.
+                    // Loaded through Addressables, not the reference's cached handle, so the shared theme SO never owns these handles.
                     AsyncOperationHandle<GameObject> handle = Addressables.LoadAssetAsync<GameObject>(reference);
                     _handles.Add(handle);
                     footprints.Add(footprint);

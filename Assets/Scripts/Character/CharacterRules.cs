@@ -10,8 +10,7 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // All character rules, free of Unity.Netcode — ServerCharacter supplies the ICharacterState storage.
-    public sealed class CharacterCore : IDisposable
+    public sealed class CharacterRules : IDisposable
     {
         private readonly ICharacterState   _state;
         private readonly CancellationToken _cancellationToken;
@@ -29,7 +28,7 @@ namespace SplitRun.Character
         private bool       _isHitStunActive;
         private bool       _isInvincible;
 
-        public CharacterCore(ICharacterState state, CharacterType characterType, CancellationToken cancellationToken)
+        public CharacterRules(ICharacterState state, CharacterType characterType, CancellationToken cancellationToken)
         {
             _state             = state;
             _cancellationToken = cancellationToken;
@@ -65,6 +64,8 @@ namespace SplitRun.Character
 
         public void ChangeLane(int direction)
         {
+            if (_isHitStunActive) return;
+
             _state.Lane = Mathf.Clamp(
                 _state.Lane + direction,
                 GameConstants.k_LaneLeft,
@@ -74,13 +75,13 @@ namespace SplitRun.Character
 
         public void Jump()
         {
-            if (_state.Vertical != VerticalState.Ground) return;
+            if (_isHitStunActive || _state.Vertical != VerticalState.Ground) return;
             SetVerticalStateAsync(VerticalState.Jumping, CharacterConstants.k_JumpDuration).Forget();
         }
 
         public void Slide()
         {
-            if (_state.Vertical != VerticalState.Ground) return;
+            if (_isHitStunActive || _state.Vertical != VerticalState.Ground) return;
             SetVerticalStateAsync(VerticalState.Sliding, CharacterConstants.k_SlideDuration).Forget();
         }
 
@@ -136,7 +137,8 @@ namespace SplitRun.Character
         {
             _hitStunTween?.Kill();
 
-            _preHitSpeed     = _state.Speed;
+            // _state.Speed is already damped when a second hit lands mid-stun — recover to the true run speed.
+            _preHitSpeed     = _baseSpeed * _speedMultiplier;
             _state.Speed     = 0f;
             _isHitStunActive = true;
 

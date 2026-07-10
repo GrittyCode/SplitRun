@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 
 using SplitRun.Constants;
+using SplitRun.Utility;
 
 namespace SplitRun.Item
 {
@@ -15,6 +16,9 @@ namespace SplitRun.Item
     [RequireComponent(typeof(Collider))]
     public sealed class ItemPickup : MonoBehaviour
     {
+        // Physics layer pickups live on; the character HitBox layer x this must be enabled.
+        private const string k_LayerName = "Item";
+
         [SerializeField] private ItemType _type;
 
         private Quaternion _initialRotation;
@@ -45,26 +49,9 @@ namespace SplitRun.Item
         }
 
 #if UNITY_EDITOR
-        private void Reset() => EnforceItemLayer();
+        private void Reset() => LayerGuard.Enforce(gameObject, k_LayerName, nameof(ItemPickup));
 
-        private void OnValidate() => EnforceItemLayer();
-
-        // Enforced at author time so a hand-edited layer cannot silently break trigger collisions.
-        private void EnforceItemLayer()
-        {
-            int layer = LayerMask.NameToLayer(ItemConstants.k_ItemLayerName);
-            if (layer < 0)
-            {
-                Debug.LogWarning(
-                    $"[ItemPickup] Layer '{ItemConstants.k_ItemLayerName}' does not exist. " +
-                    "Add it in Project Settings -> Tags and Layers, then enable Character x " +
-                    $"{ItemConstants.k_ItemLayerName} in the Physics collision matrix.", this);
-                return;
-            }
-
-            if (gameObject.layer != layer)
-                gameObject.layer = layer;
-        }
+        private void OnValidate() => LayerGuard.Enforce(gameObject, k_LayerName, nameof(ItemPickup));
 #endif
     }
 }

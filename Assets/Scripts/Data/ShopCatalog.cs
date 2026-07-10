@@ -7,8 +7,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.Data
 {
-    // Single product database — one authoring point per character (shop data, lobby model, network
-    // prefab) and per hat. The array index is the enum value, so no entry carries its own type.
     [CreateAssetMenu(fileName = "ShopCatalog", menuName = "SplitRun/Shop Catalog")]
     public sealed class ShopCatalog : ScriptableObject
     {
@@ -30,38 +28,38 @@ namespace SplitRun.Data
     }
 
     [Serializable]
-    public sealed class ShopCharacterEntry
+    public abstract class ShopEntry
     {
-        public const string k_IconField        = "_icon";
-        public const string k_ModelPrefabField = "_modelPrefab";
+        public const string k_IconField = "_icon";
 
-        [SerializeField] private string          _displayName;
-        [SerializeField] private int             _price;
-        [SerializeField] private Sprite          _icon;
-        [SerializeField] private CharacterModel  _modelPrefab;
-        [SerializeField] private ServerCharacter _gamePrefab;
+        [SerializeField] private string _displayName;
+        [SerializeField] private int    _price;
+        [SerializeField] private Sprite _icon;
 
-        public string          DisplayName => _displayName;
-        public int             Price       => _price;
-        public Sprite          Icon        => _icon;
-        public CharacterModel  ModelPrefab => _modelPrefab;
-        public ServerCharacter GamePrefab  => _gamePrefab;
+        public string DisplayName => _displayName;
+        public int    Price       => _price;
+        public Sprite Icon        => _icon;
     }
 
     [Serializable]
-    public sealed class ShopHatEntry
+    public sealed class ShopCharacterEntry : ShopEntry
     {
-        public const string k_IconField      = "_icon";
+        public const string k_ModelPrefabField = "_modelPrefab";
+
+        [SerializeField] private CharacterModel   _modelPrefab;
+        [SerializeField] private NetworkCharacter _gamePrefab;
+
+        public CharacterModel   ModelPrefab => _modelPrefab;
+        public NetworkCharacter GamePrefab  => _gamePrefab;
+    }
+
+    [Serializable]
+    public sealed class ShopHatEntry : ShopEntry
+    {
         public const string k_HatPrefabField = "_hatPrefab";
 
-        [SerializeField] private string     _displayName;
-        [SerializeField] private int        _price;
-        [SerializeField] private Sprite     _icon;
         [SerializeField] private GameObject _hatPrefab;
 
-        public string     DisplayName => _displayName;
-        public int        Price       => _price;
-        public Sprite     Icon        => _icon;
-        public GameObject HatPrefab   => _hatPrefab;
+        public GameObject HatPrefab => _hatPrefab;
     }
 }

@@ -2,7 +2,6 @@ using System;
 
 namespace SplitRun.Audio
 {
-    // Bridges raise points outside the DI graph to AudioService.
     public static class AudioEvents
     {
         public static event Action<SfxType> OnSfxRequested;

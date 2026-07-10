@@ -4,7 +4,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.Audio
 {
-    // Separate types so a BGM track cannot be dispatched through PlayOneShot.
     public enum SfxType
     {
         Hit            = 0,
@@ -24,7 +23,6 @@ namespace SplitRun.Audio
         Game  = 1,
     }
 
-    // An unassigned clip plays nothing, so the system ships before the clips do.
     [CreateAssetMenu(fileName = "AudioLibrary", menuName = "SplitRun/Audio Library")]
     public sealed class AudioLibrary : ScriptableObject
     {

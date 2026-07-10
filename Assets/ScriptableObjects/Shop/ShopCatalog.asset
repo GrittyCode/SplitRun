@@ -18,17 +18,17 @@ MonoBehaviour:
       _price: 0
       _icon: {fileID: 21300000, guid: 5d9fd50711bd04c64ac0414d0877aa88, type: 3}
       _modelPrefab: {fileID: 142203759756050935, guid: 25ade518e73794972815ac9b1e280093, type: 3}
-      _gamePrefab: {fileID: 533238763769468148, guid: 9e986942325d3433b986f46ab4e290bd, type: 3}
+      _gamePrefab: {fileID: 5533129087310835482, guid: 9e986942325d3433b986f46ab4e290bd, type: 3}
     - _displayName: Shield Goblin
       _price: 100
       _icon: {fileID: 21300000, guid: 6cf2e8fb6845e4050a1b502be3ba2129, type: 3}
       _modelPrefab: {fileID: 924216131978432981, guid: f775d8e5f1ffd4018a09dbb41f2683ee, type: 3}
-      _gamePrefab: {fileID: 8707825338318615220, guid: 06e690a8407df4021b14b540bba60cbd, type: 3}
+      _gamePrefab: {fileID: 6487723084876927808, guid: 06e690a8407df4021b14b540bba60cbd, type: 3}
     - _displayName: Dash Goblin
       _price: 200
       _icon: {fileID: 21300000, guid: 73bed1baa14564a3ab233bcc8aaac801, type: 3}
       _modelPrefab: {fileID: 2896076778083953189, guid: a6f7355c5de0d4ab790f07329547d985, type: 3}
-      _gamePrefab: {fileID: -6263061098965211464, guid: 616d44ecac66345e39ab5b214eb50a70, type: 3}
+      _gamePrefab: {fileID: 8338366847804944409, guid: 616d44ecac66345e39ab5b214eb50a70, type: 3}
   _hats:
     _values:
     - _displayName: Take off

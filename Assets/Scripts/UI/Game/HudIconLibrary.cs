@@ -6,7 +6,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.UI.Game
 {
-    // Adding an item or skill icon is a data edit here, never a view change.
     [CreateAssetMenu(fileName = "HudIconLibrary", menuName = "SplitRun/HUD Icon Library")]
     public class HudIconLibrary : ScriptableObject
     {

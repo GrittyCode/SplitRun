@@ -9,8 +9,6 @@ using SplitRun.Boot;
 
 namespace SplitRun.UI.Boot
 {
-    // The Boot scene's title/loading screen: reflects BootLoader's preload progress and status,
-    // then the whole scene unloads into the Lobby once boot completes.
     public class BootView : MonoBehaviour
     {
         [SerializeField] private Image    _progressFill;

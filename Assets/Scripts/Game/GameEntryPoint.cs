@@ -139,7 +139,7 @@ namespace SplitRun.Game
                 return;
             }
 
-            ServerCharacter character = UnityEngine.Object.Instantiate(entry.GamePrefab);
+            NetworkCharacter character = UnityEngine.Object.Instantiate(entry.GamePrefab);
             character.SetHat(_playerDataService.SelectedHat.CurrentValue);
 
             // The character's lifetime is one run — a later NGO scene change must take it down.

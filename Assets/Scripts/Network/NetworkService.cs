@@ -18,6 +18,15 @@ using SplitRun.Constants;
 
 namespace SplitRun.Network
 {
+    public enum NetworkConnectionState
+    {
+        Offline,
+        Connecting,
+        Hosting,
+        Joined,
+        Failed,
+    }
+
     public class NetworkService : IDisposable
     {
         private readonly ReactiveProperty<NetworkConnectionState> _connectionState =

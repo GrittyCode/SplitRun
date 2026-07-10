@@ -73,7 +73,7 @@ namespace SplitRun.Boot
             _status.Dispose();
         }
 
-        // The bar holds below full until the assets are resident, and an early preload never cuts the dwell short.
+        // Holding below full until the preload lands means a full bar always reads as ready.
         private async UniTask RunLoadingScreenAsync(CancellationToken ct)
         {
             bool isPreloadDone = false;

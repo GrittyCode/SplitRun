@@ -6,7 +6,7 @@ using SplitRun.Obstacle;
 namespace SplitRun.Character
 {
     [RequireComponent(typeof(Collider))]
-    public class CollisionReporter : MonoBehaviour
+    public class CharacterHitBox : MonoBehaviour
     {
         private ICharacter _character;
 

@@ -9,7 +9,6 @@ using SplitRun.Item;
 
 namespace SplitRun.Game
 {
-    // Keeps every gameplay service free of Audio/ by raising cues from signals that already exist.
     public sealed class GameAudioBinder : IStartable, IDisposable
     {
         private readonly GameService _gameService;

@@ -25,7 +25,6 @@ namespace SplitRun.Mission
         public bool   Claimed;
     }
 
-    // Root-scoped so run progress reported from the Game scene survives the scene transition.
     public sealed class MissionService : IDisposable
     {
         private const string k_SaveFile = "mission_data.json";
@@ -148,7 +147,6 @@ namespace SplitRun.Mission
             Save();
         }
 
-        // Drops entries whose definition no longer exists in the catalog.
         private void Restore(MissionSaveData data)
         {
             _missions.Clear();

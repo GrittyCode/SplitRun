@@ -1105,9 +1105,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8165169479323807468}
+  - component: {fileID: 1670475532018014658}
   - component: {fileID: 4636035576127431792}
   - component: {fileID: 6519772617370158995}
-  - component: {fileID: 5306815766867553443}
   m_Layer: 6
   m_Name: '[HitBox]'
   m_TagString: Untagged
@@ -1130,6 +1130,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6814626468969287922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1670475532018014658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3249754265671327117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5495709cdc5045ffbd9edf4c41a381b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterHitBox
 --- !u!54 &4636035576127431792
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1180,18 +1192,6 @@ CapsuleCollider:
   m_Height: 1.2
   m_Direction: 1
   m_Center: {x: 0, y: 0.6, z: 0}
---- !u!114 &5306815766867553443
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3249754265671327117}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: faf60fbccea0845aa9581b58e20bf94b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CollisionReporter
 --- !u!1 &3251133515997757842
 GameObject:
   m_ObjectHideFlags: 0
@@ -2327,9 +2327,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6814626468969287922}
   - component: {fileID: 2357677448150742872}
+  - component: {fileID: 5533129087310835482}
   - component: {fileID: 5122055614628499934}
   - component: {fileID: 7094754875544141589}
-  - component: {fileID: 533238763769468148}
   m_Layer: 6
   m_Name: CHR_Default
   m_TagString: Untagged
@@ -2380,6 +2380,20 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &5533129087310835482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6186180105037138504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ecfd6be851764e44866cd06df07eb5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.NetworkCharacter
+  ShowTopMostFoldoutHeaderGroup: 1
+  _characterType: 0
 --- !u!114 &5122055614628499934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2404,20 +2418,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d7b2df467d5441a84298e196a4faee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.CharacterMovementDriver
---- !u!114 &533238763769468148
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6186180105037138504}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e7ba52fecd1e4ab49a864fd09860b26, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Character.ServerCharacter
-  ShowTopMostFoldoutHeaderGroup: 1
-  _characterType: 0
 --- !u!1 &6385414518407788732
 GameObject:
   m_ObjectHideFlags: 0

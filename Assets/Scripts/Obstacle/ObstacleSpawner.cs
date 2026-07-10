@@ -15,7 +15,7 @@ using SplitRun.Utility;
 namespace SplitRun.Obstacle
 {
     // Slot contents derive from the server-owned run seed, so every client builds the same track.
-    public class TrackSpawner : MonoBehaviour
+    public class ObstacleSpawner : MonoBehaviour
     {
         // Salt spaces per decision within a slot; variant salts add the lane so coop lanes differ.
         private const int k_SaltObstacleRoll = 0;
@@ -102,10 +102,9 @@ namespace SplitRun.Obstacle
         {
             _isRunning = phase == GamePhase.Running && seed != 0;
 
-            // Build the initial look-ahead once the seed exists — during the intro when there is one —
-            // so the world is already populated before the character moves. Never rebuilt on resume.
+            // The seed ships in GameSession's spawn payload, so the world is built the moment the scene
+            // syncs — never waiting on the ready handshake that gates the run itself.
             if (_prepared || seed == 0) return;
-            if (phase != GamePhase.Intro && phase != GamePhase.Running) return;
 
             _prepared   = true;
             _runSeed    = seed;
@@ -174,9 +173,11 @@ namespace SplitRun.Obstacle
         private float AvailableSingleTotal(ObstacleBand band)
         {
             float total = 0f;
-            foreach (ObstacleFootprintWeight entry in band.SingleWeights)
+            foreach ((ObstacleFootprint footprint, float weight) in band.SingleWeights)
             {
-                if (HasPool(entry.Footprint)) total += Mathf.Max(0f, entry.Weight);
+                if (!IsSingleSpawnable(footprint, weight)) continue;
+
+                total += weight;
             }
 
             return total;
@@ -185,9 +186,11 @@ namespace SplitRun.Obstacle
         private float AvailableCoopTotal(ObstacleBand band)
         {
             float total = 0f;
-            foreach (CoopPatternWeight entry in band.CoopWeights)
+            foreach ((CoopPatternType pattern, float weight) in band.CoopWeights)
             {
-                if (IsPatternSpawnable(entry.Pattern)) total += Mathf.Max(0f, entry.Weight);
+                if (!IsCoopSpawnable(pattern, weight)) continue;
+
+                total += weight;
             }
 
             return total;
@@ -195,28 +198,28 @@ namespace SplitRun.Obstacle
 
         private void SpawnSelectedSingle(ObstacleBand band, float roll, int slotIndex, float spawnZ)
         {
-            foreach (ObstacleFootprintWeight entry in band.SingleWeights)
+            foreach ((ObstacleFootprint footprint, float weight) in band.SingleWeights)
             {
-                if (!HasPool(entry.Footprint)) continue;
+                if (!IsSingleSpawnable(footprint, weight)) continue;
 
-                roll -= Mathf.Max(0f, entry.Weight);
+                roll -= weight;
                 if (roll > 0f) continue;
 
-                SpawnSingle(entry.Footprint, slotIndex, spawnZ);
+                SpawnSingle(footprint, slotIndex, spawnZ);
                 return;
             }
         }
 
         private void SpawnSelectedCoop(ObstacleBand band, float roll, int slotIndex, float spawnZ)
         {
-            foreach (CoopPatternWeight entry in band.CoopWeights)
+            foreach ((CoopPatternType pattern, float weight) in band.CoopWeights)
             {
-                if (!IsPatternSpawnable(entry.Pattern)) continue;
+                if (!IsCoopSpawnable(pattern, weight)) continue;
 
-                roll -= Mathf.Max(0f, entry.Weight);
+                roll -= weight;
                 if (roll > 0f) continue;
 
-                SpawnCoop(entry.Pattern, slotIndex, spawnZ);
+                SpawnCoop(pattern, slotIndex, spawnZ);
                 return;
             }
         }
@@ -323,8 +326,12 @@ namespace SplitRun.Obstacle
         private bool HasPool(ObstacleFootprint footprint) =>
             _pools.TryGetValue(footprint, out List<ComponentPool<TrackObstacle>> pools) && pools.Count > 0;
 
-        private bool IsPatternSpawnable(CoopPatternType pattern) =>
-            HasPool(ObstacleFootprint.Vertical) && HasPool(PassFootprint(pattern));
+        // A zero weight is an unused row of the enum-keyed table, not a spawnable choice.
+        private bool IsSingleSpawnable(ObstacleFootprint footprint, float weight) =>
+            weight > 0f && HasPool(footprint);
+
+        private bool IsCoopSpawnable(CoopPatternType pattern, float weight) =>
+            weight > 0f && HasPool(ObstacleFootprint.Vertical) && HasPool(PassFootprint(pattern));
 
         private ComponentPool<TrackObstacle> PickPoolForFootprint(ObstacleFootprint footprint, int slotIndex, int lane)
         {
@@ -338,7 +345,7 @@ namespace SplitRun.Obstacle
         private static ObstacleFootprint PassFootprint(CoopPatternType pattern) => pattern switch
         {
             CoopPatternType.CoopSlide => ObstacleFootprint.LaneSlide,
-            _ => ObstacleFootprint.LaneJump,
+            _                         => ObstacleFootprint.LaneJump,
         };
 
         private readonly struct ActiveObstacle

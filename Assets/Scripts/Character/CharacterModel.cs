@@ -4,7 +4,6 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    // Shared visual root: nested inside game prefabs and instantiated standalone on the lobby stage.
     public class CharacterModel : MonoBehaviour
     {
         private Transform  _hatSocket;

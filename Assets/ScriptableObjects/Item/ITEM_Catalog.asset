@@ -12,5 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d46d540e52864c0e97ffbc383ac3a390, type: 3}
   m_Name: ITEM_Catalog
   m_EditorClassIdentifier: Assembly-CSharp::SplitRun.Item.ItemCatalog
-  _coinPrefab: {fileID: 6889248467600249860, guid: 8071e7ffbcd1547ae841cb4553503cf8, type: 3}
-  _magnetPrefab: {fileID: 1909699297095394031, guid: 5bfd5bc1ddfcb43408a98f099d208d58, type: 3}
+  _prefabs:
+    _values:
+    - {fileID: 6889248467600249860, guid: 8071e7ffbcd1547ae841cb4553503cf8, type: 3}
+    - {fileID: 1909699297095394031, guid: 5bfd5bc1ddfcb43408a98f099d208d58, type: 3}
+  _poolSizes:
+    _values: 2000000004000000

@@ -1,8 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 
-using SplitRun.Constants;
 using SplitRun.Environment;
+using SplitRun.Game;
 using SplitRun.Utility;
 
 namespace SplitRun.EditorTools
@@ -74,12 +74,12 @@ namespace SplitRun.EditorTools
         {
             camLocal = new Vector3(
                 0f,
-                CameraConstants.k_CameraOffsetY - backdrop.BaselineY,
-                CameraConstants.k_CameraOffsetZ - backdrop.ForwardOffsetZ);
+                CameraFollow.k_OffsetY - backdrop.BaselineY,
+                CameraFollow.k_OffsetZ - backdrop.ForwardOffsetZ);
             corners = new Vector3[4];
 
-            Quaternion camRot = Quaternion.Euler(CameraConstants.k_CameraPitchAngle, 0f, 0f);
-            float tanV = Mathf.Tan(CameraConstants.k_CameraFov * 0.5f * Mathf.Deg2Rad);
+            Quaternion camRot = Quaternion.Euler(CameraFollow.k_PitchAngle, 0f, 0f);
+            float tanV = Mathf.Tan(CameraFollow.k_Fov * 0.5f * Mathf.Deg2Rad);
             float tanH = tanV * k_GizmoAspect;
 
             Vector3[] viewDirs =

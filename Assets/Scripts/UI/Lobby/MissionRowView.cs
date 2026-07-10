@@ -10,7 +10,6 @@ using SplitRun.Mission;
 
 namespace SplitRun.UI.Lobby
 {
-    // Presentation-only row; the owning MissionView binds state and handles the claim.
     public class MissionRowView : MonoBehaviour
     {
         private const string k_RewardFormat   = "+{0}";

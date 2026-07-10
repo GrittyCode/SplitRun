@@ -14,10 +14,10 @@ namespace SplitRun.Game
     public class GameLifetimeScope : LifetimeScope
     {
         [Header("Scene Components")]
-        [SerializeField] private GameSession   _gameSession;
-        [SerializeField] private TrackSpawner  _trackSpawner;
-        [SerializeField] private TrackScroller _trackScroller;
-        [SerializeField] private GameHUDView   _hudView;
+        [SerializeField] private GameSession     _gameSession;
+        [SerializeField] private ObstacleSpawner _obstacleSpawner;
+        [SerializeField] private TrackScroller   _trackScroller;
+        [SerializeField] private GameHudView     _hudView;
 
         [Header("Scriptable Objects")]
         [SerializeField] private LevelDesignProfile _levelProfile;
@@ -33,7 +33,7 @@ namespace SplitRun.Game
             builder.RegisterInstance(_levelProfile);
 
             builder.RegisterComponent(_gameSession);
-            builder.RegisterComponent(_trackSpawner);
+            builder.RegisterComponent(_obstacleSpawner);
             builder.RegisterComponent(_trackScroller);
             builder.RegisterComponent(_hudView);
 

@@ -8,7 +8,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.EditorTools
 {
-    // Renders each catalog prefab front-on into a Sprite and wires it onto its ShopCatalog entry.
     public static class ShopIconBaker
     {
         public const string k_DefaultIconFolder = "Assets/ScriptableObjects/Shop/Icons";
@@ -33,11 +32,11 @@ namespace SplitRun.EditorTools
 
             baked += BakeArray(serialized, outputFolder,
                 ValuesPath(ShopCatalog.k_CharactersField),
-                ShopCharacterEntry.k_ModelPrefabField, ShopCharacterEntry.k_IconField, "CHR");
+                ShopCharacterEntry.k_ModelPrefabField, ShopEntry.k_IconField, "CHR");
 
             baked += BakeArray(serialized, outputFolder,
                 ValuesPath(ShopCatalog.k_HatsField),
-                ShopHatEntry.k_HatPrefabField, ShopHatEntry.k_IconField, "HAT");
+                ShopHatEntry.k_HatPrefabField, ShopEntry.k_IconField, "HAT");
 
             serialized.ApplyModifiedProperties();
             AssetDatabase.SaveAssets();

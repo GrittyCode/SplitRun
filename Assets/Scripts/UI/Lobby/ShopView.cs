@@ -13,7 +13,6 @@ using SplitRun.Data;
 
 namespace SplitRun.UI.Lobby
 {
-    // Sells only unowned items; owned content is equipped from Storage.
     public class ShopView : CustomizationGridView
     {
         [Header("Purchase Popup")]

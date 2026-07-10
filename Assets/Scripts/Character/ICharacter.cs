@@ -12,7 +12,10 @@ namespace SplitRun.Character
         ReadOnlyReactiveProperty<VerticalState> VerticalStateReactive { get; }
         ReadOnlyReactiveProperty<float>         DistanceReactive      { get; }
 
-        // True once the run goes live; drives the idle->run animation, mirrored per client from phase.
+        /// <summary>The authoritative synced distance. DistanceReactive is a per-client smoothed mirror of it.</summary>
+        float Distance { get; }
+
+        /// <summary>True once the run goes live. A local per-client mirror of the run phase, never networked.</summary>
         ReadOnlyReactiveProperty<bool> RunningReactive { get; }
 
         Transform CharacterTransform { get; }
@@ -38,14 +41,13 @@ namespace SplitRun.Character
         /// <summary>Requests skill activation. No-op unless the skill is Ready.</summary>
         void ActivateSkill();
 
-        /// <summary>Reports a physics collision with an obstacle. Called by CollisionReporter, never by player input.</summary>
+        /// <summary>Reports a physics collision with an obstacle. Called by CharacterHitBox, never by player input.</summary>
         void ReportCollision();
 
         /// <summary>Starts or stops forward distance accumulation. Called by GameService on run start/end.</summary>
         void SetRunning(bool isRunning);
     }
 
-    // The write surface CharacterCore mutates; ServerCharacter backs it with NetworkVariables.
     public interface ICharacterState
     {
         int           Lane     { get; set; }

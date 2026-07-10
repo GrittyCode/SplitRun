@@ -3,6 +3,7 @@ using UnityEngine;
 using DG.Tweening;
 
 using SplitRun.Constants;
+using SplitRun.Utility;
 
 namespace SplitRun.Obstacle
 {
@@ -98,11 +99,11 @@ namespace SplitRun.Obstacle
         }
 
 #if UNITY_EDITOR
-        private void Reset() => EnforceObstacleLayer();
+        private void Reset() => LayerGuard.Enforce(gameObject, ObstacleConstants.k_LayerName, nameof(TrackObstacle));
 
         private void OnValidate()
         {
-            EnforceObstacleLayer();
+            LayerGuard.Enforce(gameObject, ObstacleConstants.k_LayerName, nameof(TrackObstacle));
 
             if (!TryGetComponent(out BoxCollider box)) return;
 
@@ -111,23 +112,6 @@ namespace SplitRun.Obstacle
             box.size      = size;
             box.center    = new Vector3(0f, centerY, 0f);
             box.isTrigger = true;
-        }
-
-        // Enforced at author time so a hand-edited layer cannot silently break trigger collisions.
-        private void EnforceObstacleLayer()
-        {
-            int layer = LayerMask.NameToLayer(ObstacleConstants.k_LayerName);
-            if (layer < 0)
-            {
-                Debug.LogWarning(
-                    $"[TrackObstacle] Layer '{ObstacleConstants.k_LayerName}' does not exist. " +
-                    "Add it in Project Settings -> Tags and Layers, then enable Character x " +
-                    $"{ObstacleConstants.k_LayerName} in the Physics collision matrix.", this);
-                return;
-            }
-
-            if (gameObject.layer != layer)
-                gameObject.layer = layer;
         }
 #endif
     }

@@ -13,7 +13,6 @@ namespace SplitRun.UI.Lobby
         Hat,
     }
 
-    // Shared plumbing for the customization sheets: type tabs and a reusable card pool.
     public abstract class CustomizationGridView : MonoBehaviour
     {
         [Header("Type Tabs")]
@@ -54,7 +53,6 @@ namespace SplitRun.UI.Lobby
             Rebuild();
         }
 
-        // Grows the pool as needed, activates the first count cards, and hides the rest.
         protected void SetCardCount(int count)
         {
             while (_cards.Count < count)

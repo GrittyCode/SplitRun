@@ -2,7 +2,6 @@ using System;
 
 namespace SplitRun.Character
 {
-    // Bridges runtime-spawned characters (outside the DI graph) to injected services.
     public static class CharacterEvents
     {
         private static Action<ICharacter> s_onSpawned;

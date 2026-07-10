@@ -16,8 +16,6 @@ namespace SplitRun.Mission
         LaneChangesTotal = 4,
     }
 
-    // Adding a mission of an existing goal type is one entry; a new goal type is one enum value
-    // plus one report call.
     [CreateAssetMenu(fileName = "MissionCatalog", menuName = "SplitRun/Mission Catalog")]
     public sealed class MissionCatalog : ScriptableObject
     {

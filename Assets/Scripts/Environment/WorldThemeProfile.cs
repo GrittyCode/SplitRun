@@ -9,7 +9,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.Environment
 {
-    // Maps abstract gameplay data to concrete art for one theme.
     [CreateAssetMenu(fileName = "WTP_New", menuName = "SplitRun/World Theme Profile")]
     public class WorldThemeProfile : ScriptableObject
     {

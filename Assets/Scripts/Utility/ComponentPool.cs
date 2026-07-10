@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace SplitRun.Utility
 {
-    // One pooling implementation for every recycled prefab instance in the project.
     public sealed class ComponentPool<T> : IDisposable where T : Component
     {
         private readonly T           _prefab;

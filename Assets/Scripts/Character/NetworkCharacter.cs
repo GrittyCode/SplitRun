@@ -7,15 +7,17 @@ using SplitRun.Constants;
 
 namespace SplitRun.Character
 {
-    public class ServerCharacter : NetworkBehaviour, ICharacter, ICharacterState
+    public class NetworkCharacter : NetworkBehaviour, ICharacter, ICharacterState
     {
         // Prefab identity is the type sync — NGO instantiates the same registered prefab on every client.
         [SerializeField] private CharacterType _characterType = CharacterType.Default;
 
         // Read Everyone / write Server are the NGO defaults — stated nowhere, relied on everywhere.
         private readonly NetworkVariable<int>           _currentLane   = new NetworkVariable<int>(GameConstants.k_LaneCenter);
-        private readonly NetworkVariable<int>           _hp            = new NetworkVariable<int>(GameConstants.k_MaxHp);
+
+        // Declared before _hp so its delta applies first — EndRun reads the final distance on the hp-zero callback.
         private readonly NetworkVariable<float>         _distance      = new NetworkVariable<float>(0f);
+        private readonly NetworkVariable<int>           _hp            = new NetworkVariable<int>(GameConstants.k_MaxHp);
         private readonly NetworkVariable<float>         _speed         = new NetworkVariable<float>(CharacterConstants.k_BaseRunSpeed);
         private readonly NetworkVariable<SkillState>    _skillState    = new NetworkVariable<SkillState>(SkillState.Ready);
         private readonly NetworkVariable<VerticalState> _verticalState = new NetworkVariable<VerticalState>(VerticalState.Ground);
@@ -30,8 +32,9 @@ namespace SplitRun.Character
         // Local presentation state derived per client from the run phase — never networked.
         private readonly ReactiveProperty<bool> _runningReactive = new ReactiveProperty<bool>(false);
 
-        private CharacterCore  _core;
+        private CharacterRules _rules;
         private CharacterModel _model;
+        private double         _lastDistanceTickTime;
 
         public ReadOnlyReactiveProperty<int>           LaneReactive          => _laneReactive;
         public ReadOnlyReactiveProperty<int>           HpReactive            => _hpReactive;
@@ -40,7 +43,10 @@ namespace SplitRun.Character
         public ReadOnlyReactiveProperty<float>         DistanceReactive      => _distanceReactive;
         public ReadOnlyReactiveProperty<bool>          RunningReactive       => _runningReactive;
         public Transform                               CharacterTransform    => transform;
-        public SkillType                               ActiveSkill           => _core != null ? _core.ActiveSkill : SkillType.None;
+        public SkillType                               ActiveSkill           => _rules != null ? _rules.ActiveSkill : SkillType.None;
+
+        // The synced value, free of client smoothing — the run record and the result screen read this.
+        public float Distance => _distance.Value;
 
         // Set once before Spawn and never written again — one synchronous reader, so no reactive mirror.
         public HatType Hat => _hat.Value;
@@ -68,8 +74,9 @@ namespace SplitRun.Character
             _skillStateReactive.Value    = _skillState.Value;
             _verticalStateReactive.Value = _verticalState.Value;
             _distanceReactive.Value      = _distance.Value;
+            _lastDistanceTickTime        = NetworkManager.LocalTime.Time;
 
-            _core = new CharacterCore(this, _characterType, destroyCancellationToken);
+            _rules = new CharacterRules(this, _characterType, destroyCancellationToken);
 
             CharacterEvents.NotifySpawned(this);
         }
@@ -78,8 +85,8 @@ namespace SplitRun.Character
         {
             CharacterEvents.NotifyDespawned(this);
 
-            _core?.Dispose();
-            _core = null;
+            _rules?.Dispose();
+            _rules = null;
 
             _hp.OnValueChanged            -= OnHpChanged;
             _currentLane.OnValueChanged   -= OnLaneChanged;
@@ -97,16 +104,19 @@ namespace SplitRun.Character
 
         private void Update()
         {
+            // A frame can land between Instantiate and OnNetworkSpawn, where NetworkManager is not yet reachable.
+            if (!IsSpawned) return;
+
             if (!IsServer)
             {
                 InterpolateDistance(Time.deltaTime);
                 return;
             }
 
-            // A frame can land between Instantiate and OnNetworkSpawn, before the core exists.
-            if (_core == null) return;
+            // A frame can land between Instantiate and OnNetworkSpawn, before the rules exist.
+            if (_rules == null) return;
 
-            _core.Tick(Time.deltaTime);
+            _rules.Tick(Time.deltaTime);
         }
 
         public void RequestLaneChange(int direction) => ChangeLaneServerRpc(direction);
@@ -116,7 +126,7 @@ namespace SplitRun.Character
 
         public void SetRunning(bool isRunning)
         {
-            _core?.SetRunning(isRunning);
+            _rules?.SetRunning(isRunning);
             _runningReactive.Value = isRunning;
         }
 
@@ -128,39 +138,37 @@ namespace SplitRun.Character
         {
             if (!_model)
             {
-                Debug.LogWarning("[ServerCharacter] Prefab has no CharacterModel child — hat skipped.");
+                Debug.LogWarning("[NetworkCharacter] Prefab has no CharacterModel child — hat skipped.");
                 return;
             }
 
             _model.AttachHat(hatPrefab);
         }
 
-        // Layout is server-authoritative and identical everywhere — only the server's own trigger
-        // may damage; a client report would land after hit-stun and double the same hit.
+        // Only the server's own trigger may damage; a client report would land after hit-stun and double the same hit.
         public void ReportCollision()
         {
             if (!IsServer) return;
 
-            _core?.ReportCollision();
+            _rules?.ReportCollision();
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void ChangeLaneServerRpc(int direction) => _core?.ChangeLane(direction);
+        private void ChangeLaneServerRpc(int direction) => _rules?.ChangeLane(direction);
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void JumpServerRpc() => _core?.Jump();
+        private void JumpServerRpc() => _rules?.Jump();
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void SlideServerRpc() => _core?.Slide();
+        private void SlideServerRpc() => _rules?.Slide();
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void ActivateSkillServerRpc() => _core?.ActivateSkill();
+        private void ActivateSkillServerRpc() => _rules?.ActivateSkill();
 
-        // NetworkVariable ticks arrive stepped — the client chases them at run speed so
-        // everything downstream (camera, track, HUD) reads a smooth distance.
+        // NetworkVariable ticks arrive stepped — the client chases them so everything downstream reads a smooth distance.
         private void InterpolateDistance(float deltaTime)
         {
-            float target  = _distance.Value;
+            float target  = ExtrapolatedTarget();
             float current = _distanceReactive.Value;
 
             if (Mathf.Abs(target - current) > CharacterConstants.k_DistanceSnapThreshold)
@@ -169,12 +177,20 @@ namespace SplitRun.Character
                 return;
             }
 
-            // Hit-stun zeroes the synced speed — without a floor the client stalls short of the
-            // obstacle and its late local trigger desyncs the impact visuals.
+            // Hit-stun zeroes the synced speed — without a floor the client stalls short of the obstacle and desyncs the impact.
             float chaseSpeed = Mathf.Max(_speed.Value, CharacterConstants.k_BaseRunSpeed);
             float maxStep    = chaseSpeed * CharacterConstants.k_DistanceCatchUpMultiplier * deltaTime;
 
             _distanceReactive.Value = Mathf.MoveTowards(current, target, maxStep);
+        }
+
+        // Every tick is already one tick old on arrival; leading it by its own age cancels that lag.
+        private float ExtrapolatedTarget()
+        {
+            if (!_runningReactive.Value) return _distance.Value;
+
+            float age = (float)(NetworkManager.LocalTime.Time - _lastDistanceTickTime);
+            return _distance.Value + _speed.Value * Mathf.Min(age, CharacterConstants.k_DistanceExtrapolationCap);
         }
 
         private void OnHpChanged(int prev, int next)                                => _hpReactive.Value = next;
@@ -185,7 +201,13 @@ namespace SplitRun.Character
         private void OnDistanceChanged(float prev, float next)
         {
             // Clients smooth distance in Update — mirroring raw ticks here would reintroduce stepping.
-            if (IsServer) _distanceReactive.Value = next;
+            if (IsServer)
+            {
+                _distanceReactive.Value = next;
+                return;
+            }
+
+            _lastDistanceTickTime = NetworkManager.LocalTime.Time;
         }
     }
 }

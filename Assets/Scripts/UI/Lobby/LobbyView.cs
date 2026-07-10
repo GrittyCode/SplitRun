@@ -132,8 +132,6 @@ namespace SplitRun.UI.Lobby
             _playMenu.SetActive(true);
         }
 
-        // ---- Multiplayer panel (join / create / status) ----
-
         private void BindMultiplayer()
         {
             _networkService.ConnectionState

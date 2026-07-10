@@ -59,8 +59,8 @@ namespace SplitRun.Item
         {
             _root = new GameObject("[Items]").transform;
 
-            BuildPool(ItemType.Coin,   _catalog.CoinPrefab,   ItemConstants.k_CoinPoolSize);
-            BuildPool(ItemType.Magnet, _catalog.MagnetPrefab, ItemConstants.k_MagnetPoolSize);
+            foreach ((ItemType type, ItemPickup prefab) in _catalog.Prefabs)
+                BuildPool(type, prefab, _catalog.PoolSizeFor(type));
 
             CharacterEvents.OnSpawned   += OnCharacterSpawned;
             CharacterEvents.OnDespawned += OnCharacterDespawned;

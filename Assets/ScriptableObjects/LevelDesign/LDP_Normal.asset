@@ -16,34 +16,26 @@ MonoBehaviour:
   _obstacleBands:
   - _startDistance: 0
     _singleWeights:
-    - _footprint: 0
-      _weight: 3
-    - _footprint: 1
-      _weight: 2
-    - _footprint: 2
-      _weight: 2
-    - _footprint: 3
-      _weight: 1
-    - _footprint: 4
-      _weight: 1
-    _coopWeights: []
+      _values:
+      - 5
+      - 3
+      - 2
+      - 1
+      - 1
+    _coopWeights:
+      _values:
+      - 0
+      - 0
   - _startDistance: 300
     _singleWeights:
-    - _footprint: 0
-      _weight: 3
-    - _footprint: 1
-      _weight: 2
-    - _footprint: 2
-      _weight: 2
-    - _footprint: 3
-      _weight: 1
-    - _footprint: 4
-      _weight: 1
+      _values:
+      - 4
+      - 3
+      - 3
+      - 2
+      - 2
     _coopWeights:
-    - _pattern:
-        _name: SideWalls_CenterJump
-        _leftLane: 0
-        _centerLane: 1
-        _rightLane: 0
-      _weight: 2
+      _values:
+      - 2
+      - 2
   _coinSpawnMultiplier: 1

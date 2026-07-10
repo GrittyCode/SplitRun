@@ -9,8 +9,6 @@ using SplitRun.Data;
 
 namespace SplitRun.UI.Lobby
 {
-    // Renders the persisted selection; the shop temporarily overrides it for a try-on.
-    // The stage runs a presentation-only controller, never the gameplay AC_Character.
     public class CharacterStageView : MonoBehaviour
     {
         [SerializeField] private Transform                 _stageRoot;

@@ -10,7 +10,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.Environment
 {
-    // Cosmetic endless ground — no gameplay rules live here.
     public class TrackScroller : MonoBehaviour
     {
         private const float k_FillAheadDistance     = 80f;
@@ -39,12 +38,7 @@ namespace SplitRun.Environment
 
             if (!TryMeasureSegment()) return;
 
-            // Ground is laid during the intro (when there is one) so it is visible before the run begins.
-            _gameService.Phase
-                .Where(phase => phase == GamePhase.Intro || phase == GamePhase.Running)
-                .Take(1)
-                .Subscribe(_ => OnRunStarted())
-                .AddTo(this);
+            LayInitialGround();
 
             _gameService.CurrentDistance
                 .Skip(1)
@@ -95,7 +89,7 @@ namespace SplitRun.Environment
             return true;
         }
 
-        private void OnRunStarted()
+        private void LayInitialGround()
         {
             _nextSegmentZ = SnapToBoundary(-k_RecycleBehindDistance);
             FillAhead(0f);

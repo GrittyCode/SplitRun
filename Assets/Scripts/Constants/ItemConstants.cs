@@ -21,12 +21,6 @@ namespace SplitRun.Constants
         // Above k_MaxRunSpeed so a pulled coin always catches the character.
         public const float k_MagnetPullSpeed = 24f;
 
-        public const int k_CoinPoolSize   = 32;
-        public const int k_MagnetPoolSize = 4;
-
         public const float k_ItemDespawnBehindDistance = 20f;
-
-        // Physics layer pickups live on; the character HitBox layer × this must be enabled.
-        public const string k_ItemLayerName = "Item";
     }
 }

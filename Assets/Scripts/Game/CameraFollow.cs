@@ -5,7 +5,6 @@ using UnityEngine;
 using R3;
 
 using SplitRun.Character;
-using SplitRun.Constants;
 
 namespace SplitRun.Game
 {
@@ -13,12 +12,21 @@ namespace SplitRun.Game
     [RequireComponent(typeof(Camera))]
     public class CameraFollow : MonoBehaviour
     {
+        public const float k_OffsetY = 6.0f;
+        public const float k_OffsetZ = -3.5f;
+
+        // Lower = more horizontal = stronger perspective convergence. Higher = flatter view.
+        public const float k_PitchAngle = 30f;
+
+        // Narrower FOV keeps ceiling (slide) and floor (jump) bars vertically separated.
+        public const float k_Fov = 80f;
+
         private float       _trackedDistance;
         private IDisposable _distanceSubscription;
 
         private void Awake()
         {
-            GetComponent<Camera>().fieldOfView = CameraConstants.k_CameraFov;
+            GetComponent<Camera>().fieldOfView = k_Fov;
         }
 
         private void OnEnable()
@@ -39,14 +47,10 @@ namespace SplitRun.Game
         private void LateUpdate()
         {
             // X and Y fixed — lane changes and jumps never sway the camera.
-            transform.position = new Vector3(
-                0f,
-                CameraConstants.k_CameraOffsetY,
-                _trackedDistance + CameraConstants.k_CameraOffsetZ
-            );
+            transform.position = new Vector3(0f, k_OffsetY, _trackedDistance + k_OffsetZ);
 
             // Direct pitch instead of LookAt — tuning offsets never changes the viewing angle.
-            transform.rotation = Quaternion.Euler(CameraConstants.k_CameraPitchAngle, 0f, 0f);
+            transform.rotation = Quaternion.Euler(k_PitchAngle, 0f, 0f);
         }
 
         // Disposed per despawn — AddTo(this) would stack one live subscription per respawn.

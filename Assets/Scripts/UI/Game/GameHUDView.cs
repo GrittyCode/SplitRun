@@ -18,10 +18,7 @@ using SplitRun.Network;
 
 namespace SplitRun.UI.Game
 {
-    // The whole in-game HUD on one always-active canvas: readouts, item/skill indicators,
-    // the pause overlay, the game-over result, and the multiplayer control-guide intro.
-    // Child panels toggle; this root does not.
-    public class GameHUDView : MonoBehaviour
+    public class GameHudView : MonoBehaviour
     {
         [Header("Readouts")]
         [SerializeField] private TMP_Text _distanceLabel;
@@ -139,8 +136,6 @@ namespace SplitRun.UI.Game
                 _hearts[i].sprite = i < hp ? _fullHeart : _emptyHeart;
         }
 
-        // ---- Item buff (bottom-left) ----
-
         private void BindItemBuff()
         {
             _itemService.MagnetRemaining
@@ -165,8 +160,6 @@ namespace SplitRun.UI.Game
             _magnetIndicator.SetVisible(true);
             _magnetIndicator.SetFill(remaining / ItemConstants.k_MagnetDuration);
         }
-
-        // ---- Skill gauge (bottom-right) ----
 
         private void BindSkillGauge()
         {
@@ -250,8 +243,6 @@ namespace SplitRun.UI.Game
                 ? CharacterConstants.k_DashCooldownDuration
                 : CharacterConstants.k_ShieldCooldownDuration;
 
-        // ---- Pause overlay ----
-
         private void BindPauseOverlay()
         {
             _gameSession.PauseStateReactive
@@ -330,8 +321,6 @@ namespace SplitRun.UI.Game
             _countdownCts?.Dispose();
             _countdownCts = null;
         }
-
-        // ---- Game over result ----
 
         private void BindGameOver()
         {
@@ -436,8 +425,6 @@ namespace SplitRun.UI.Game
             _resultRollCts?.Dispose();
             _resultRollCts = null;
         }
-
-        // ---- Intro guide (multiplayer only) ----
 
         private void BindIntroGuide()
         {

@@ -7,7 +7,6 @@ namespace SplitRun.Character
         Dash    = 2,
     }
 
-    // Values mirror Mg3D_Hats asset names — adding a hat is one value here plus one ShopCatalog entry.
     public enum HatType
     {
         None        = 0,

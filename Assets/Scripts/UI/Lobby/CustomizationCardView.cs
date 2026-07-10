@@ -8,7 +8,6 @@ using R3;
 
 namespace SplitRun.UI.Lobby
 {
-    // Presentation-only card shared by ShopView and StorageView; the owning view decides its state.
     public class CustomizationCardView : MonoBehaviour
     {
         private const string k_EquippedLabel = "EQUIPPED";

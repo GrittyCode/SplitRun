@@ -4,7 +4,6 @@ using SplitRun.Utility;
 
 namespace SplitRun.Environment
 {
-    // The Floor child is the tiling unit TrackScroller measures, so decoration may overhang it freely.
     public class TrackSegment : MonoBehaviour
     {
         [SerializeField] private Transform _floor;

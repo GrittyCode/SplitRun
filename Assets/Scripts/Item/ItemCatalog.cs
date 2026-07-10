@@ -1,15 +1,20 @@
 using UnityEngine;
 
+using SplitRun.Utility;
+
 namespace SplitRun.Item
 {
-    // Single point that hands pickup prefabs into the DI graph, so no scene object holds them.
     [CreateAssetMenu(fileName = "ITEM_Catalog", menuName = "SplitRun/Item Catalog")]
     public sealed class ItemCatalog : ScriptableObject
     {
-        [SerializeField] private ItemPickup _coinPrefab;
-        [SerializeField] private ItemPickup _magnetPrefab;
+        [SerializeField] private EnumKeyedArray<ItemType, ItemPickup> _prefabs =
+            new EnumKeyedArray<ItemType, ItemPickup>();
 
-        public ItemPickup CoinPrefab   => _coinPrefab;
-        public ItemPickup MagnetPrefab => _magnetPrefab;
+        [SerializeField] private EnumKeyedArray<ItemType, int> _poolSizes =
+            new EnumKeyedArray<ItemType, int>();
+
+        public EnumKeyedArray<ItemType, ItemPickup> Prefabs => _prefabs;
+
+        public int PoolSizeFor(ItemType type) => _poolSizes[type];
     }
 }

@@ -39,8 +39,7 @@ namespace SplitRun.Character
                 .Subscribe(OnVerticalStateChanged)
                 .AddTo(this);
 
-            // ReactiveProperty skips re-emission when the value is unchanged, so HP
-            // staying at 0 across multiple writes never re-triggers Lose on its own.
+            // ReactiveProperty skips re-emission of an unchanged value, so HP held at 0 never re-triggers Lose.
             _character.HpReactive
                 .Skip(1)
                 .Subscribe(OnHpChanged)
@@ -68,8 +67,6 @@ namespace SplitRun.Character
         private void OnHpChanged(int hp) =>
             _animator.SetTrigger(hp <= 0 ? CharacterConstants.k_TriggerLose : CharacterConstants.k_TriggerHit);
 
-        // Reads the per-skin clip off the AnimatorOverrideController so the override stays the
-        // single source of truth for which clip plays.
         private AnimationClip ResolveOverrideClip(string clipName)
         {
             if (_animator.runtimeAnimatorController is not AnimatorOverrideController overrideController)

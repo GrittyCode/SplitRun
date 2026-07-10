@@ -4,7 +4,6 @@ using R3;
 
 namespace SplitRun.Character
 {
-    // Lives on the Shield/Dash prefabs only; Default carries neither this driver nor a VFX child.
     public class CharacterSkillVfxDriver : MonoBehaviour
     {
         [SerializeField] private GameObject _skillVfx;

@@ -4,7 +4,6 @@ using SplitRun.Character;
 
 namespace SplitRun.Environment
 {
-    // Rides the character's Z at a fixed gap; rotation stays identity so camera-pitch tuning never tilts it.
     public class BackdropFollower : MonoBehaviour
     {
         [Tooltip("Forward gap from the character to the silhouette group. Far beyond the ground " +
