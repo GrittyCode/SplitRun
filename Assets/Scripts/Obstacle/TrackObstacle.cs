@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 using DG.Tweening;
 
@@ -7,7 +8,7 @@ using SplitRun.Utility;
 
 namespace SplitRun.Obstacle
 {
-    public enum ObstacleFootprint
+    public enum ObstacleType
     {
         Vertical  = 0,
         LaneJump  = 1,
@@ -16,49 +17,49 @@ namespace SplitRun.Obstacle
         WideSlide = 4,
     }
 
-    public static class ObstacleFootprintExtensions
+    public static class ObstacleTypeExtensions
     {
-        /// <summary>Returns the stamped BoxCollider size and center Y. Every footprint is floor-based.</summary>
-        public static (Vector3 size, float centerY) ToColliderBox(this ObstacleFootprint footprint) => footprint switch
+        /// <summary>Returns the stamped BoxCollider size and center Y. Every obstacle type is floor-based.</summary>
+        public static (Vector3 size, float centerY) ToColliderBox(this ObstacleType type) => type switch
         {
-            ObstacleFootprint.Vertical => (
+            ObstacleType.Vertical => (
                 new Vector3(ObstacleConstants.k_LaneWidth, ObstacleConstants.k_VerticalHeight, ObstacleConstants.k_Depth),
                 ObstacleConstants.k_VerticalHeight * 0.5f),
 
-            ObstacleFootprint.LaneJump => (
+            ObstacleType.LaneJump => (
                 new Vector3(ObstacleConstants.k_LaneWidth, ObstacleConstants.k_JumpBarHeight, ObstacleConstants.k_Depth),
                 ObstacleConstants.k_JumpBarHeight * 0.5f),
 
-            ObstacleFootprint.LaneSlide => (
+            ObstacleType.LaneSlide => (
                 new Vector3(ObstacleConstants.k_LaneWidth, ObstacleConstants.k_SlideBarHeight, ObstacleConstants.k_Depth),
                 ObstacleConstants.k_SlideClearanceHeight + ObstacleConstants.k_SlideBarHeight * 0.5f),
 
-            ObstacleFootprint.WideJump => (
+            ObstacleType.WideJump => (
                 new Vector3(ObstacleConstants.k_WideWidth, ObstacleConstants.k_JumpBarHeight, ObstacleConstants.k_Depth),
                 ObstacleConstants.k_JumpBarHeight * 0.5f),
 
-            ObstacleFootprint.WideSlide => (
+            ObstacleType.WideSlide => (
                 new Vector3(ObstacleConstants.k_WideWidth, ObstacleConstants.k_SlideBarHeight, ObstacleConstants.k_Depth),
                 ObstacleConstants.k_SlideClearanceHeight + ObstacleConstants.k_SlideBarHeight * 0.5f),
 
             _ => (Vector3.one, 0.5f),
         };
 
-        public static bool IsFullWidth(this ObstacleFootprint footprint) =>
-            footprint == ObstacleFootprint.WideJump || footprint == ObstacleFootprint.WideSlide;
+        public static bool IsFullWidth(this ObstacleType type) =>
+            type == ObstacleType.WideJump || type == ObstacleType.WideSlide;
     }
 
     [RequireComponent(typeof(BoxCollider))]
     public class TrackObstacle : MonoBehaviour
     {
-        [SerializeField] private ObstacleFootprint _footprint;
+        [SerializeField, FormerlySerializedAs("_footprint")] private ObstacleType _type;
 
         private BoxCollider _collider;
         private Vector3     _initialScale;
         private Quaternion  _initialRotation;
         private Tween       _impactTween;
 
-        public ObstacleFootprint Footprint => _footprint;
+        public ObstacleType Type => _type;
 
         private void Awake()
         {
@@ -107,7 +108,7 @@ namespace SplitRun.Obstacle
 
             if (!TryGetComponent(out BoxCollider box)) return;
 
-            (Vector3 size, float centerY) = _footprint.ToColliderBox();
+            (Vector3 size, float centerY) = _type.ToColliderBox();
 
             box.size      = size;
             box.center    = new Vector3(0f, centerY, 0f);

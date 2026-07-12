@@ -11,15 +11,15 @@ using SplitRun.Obstacle;
 
 namespace SplitRun.EditorTools
 {
-    public readonly struct ThemeFootprintMismatch
+    public readonly struct ThemeObstacleTypeMismatch
     {
         public WorldThemeProfile Profile     { get; }
-        public ObstacleFootprint Slot        { get; }
+        public ObstacleType      Slot        { get; }
         public int               PrefabIndex { get; }
         public TrackObstacle     Prefab      { get; }
 
-        public ThemeFootprintMismatch(
-            WorldThemeProfile profile, ObstacleFootprint slot, int prefabIndex, TrackObstacle prefab)
+        public ThemeObstacleTypeMismatch(
+            WorldThemeProfile profile, ObstacleType slot, int prefabIndex, TrackObstacle prefab)
         {
             Profile     = profile;
             Slot        = slot;
@@ -28,7 +28,7 @@ namespace SplitRun.EditorTools
         }
     }
 
-    // A prefab in the wrong slot would spawn under another footprint's selection weight.
+    // A prefab in the wrong slot would spawn under another obstacle type's selection weight.
     [InitializeOnLoad]
     public class WorldThemeProfileValidator : IPreprocessBuildWithReport
     {
@@ -36,7 +36,7 @@ namespace SplitRun.EditorTools
 
         static WorldThemeProfileValidator()
         {
-            PlayModeBuildGuard.Register<ThemeFootprintMismatch>(
+            PlayModeBuildGuard.Register<ThemeObstacleTypeMismatch>(
                 CollectMismatches, WorldThemeValidationWindow.ShowFor, blocksPlay: true);
         }
 
@@ -45,18 +45,18 @@ namespace SplitRun.EditorTools
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            List<ThemeFootprintMismatch> mismatches = CollectMismatches();
+            List<ThemeObstacleTypeMismatch> mismatches = CollectMismatches();
             if (mismatches.Count == 0) return;
 
             WorldThemeValidationWindow.ShowFor(mismatches);
             PlayModeBuildGuard.FailBuild(mismatches.Count,
-                "World Theme Profile slot(s) hold a prefab with a mismatched footprint",
+                "World Theme Profile slot(s) hold a prefab with a mismatched obstacle type",
                 "World Theme Validation window");
         }
 
-        public static List<ThemeFootprintMismatch> CollectMismatches()
+        public static List<ThemeObstacleTypeMismatch> CollectMismatches()
         {
-            var mismatches = new List<ThemeFootprintMismatch>();
+            var mismatches = new List<ThemeObstacleTypeMismatch>();
 
             foreach (string guid in AssetDatabase.FindAssets("t:WorldThemeProfile"))
             {
@@ -70,9 +70,9 @@ namespace SplitRun.EditorTools
             return mismatches;
         }
 
-        private static void CollectProfileMismatches(WorldThemeProfile profile, List<ThemeFootprintMismatch> into)
+        private static void CollectProfileMismatches(WorldThemeProfile profile, List<ThemeObstacleTypeMismatch> into)
         {
-            foreach ((ObstacleFootprint slot, ObstacleVariants variants) in profile.ObstaclePrefabs)
+            foreach ((ObstacleType slot, ObstacleVariants variants) in profile.ObstaclePrefabs)
             {
                 if (variants?.Prefabs == null) continue;
 
@@ -83,31 +83,31 @@ namespace SplitRun.EditorTools
 
                     GameObject asset = reference.editorAsset;
                     if (!asset || !asset.TryGetComponent(out TrackObstacle prefab)) continue;
-                    if (prefab.Footprint == slot) continue;
+                    if (prefab.Type == slot) continue;
 
-                    into.Add(new ThemeFootprintMismatch(profile, slot, prefabIndex, prefab));
+                    into.Add(new ThemeObstacleTypeMismatch(profile, slot, prefabIndex, prefab));
                 }
             }
         }
     }
 
-    public class WorldThemeValidationWindow : ValidationWindow<WorldThemeValidationWindow, ThemeFootprintMismatch>
+    public class WorldThemeValidationWindow : ValidationWindow<WorldThemeValidationWindow, ThemeObstacleTypeMismatch>
     {
         private WorldThemeProfile _currentGroup;
 
         protected override string  WindowTitle   => "World Theme Validation";
         protected override Vector2 WindowMinSize => new Vector2(620f, 280f);
-        protected override string  EmptyMessage  => "All World Theme Profile slots match their prefab footprints.";
+        protected override string  EmptyMessage  => "All World Theme Profile slots match their prefab obstacle types.";
 
         protected override string ProblemMessage =>
-            "These elements hold a prefab whose footprint differs from its slot, so it would spawn " +
+            "These elements hold a prefab whose obstacle type differs from its slot, so it would spawn " +
             "under the wrong selection weight. Ping the SO, then move each listed element to the matching slot.";
 
-        public static void ShowFor(List<ThemeFootprintMismatch> mismatches) => ShowWith(mismatches);
+        public static void ShowFor(List<ThemeObstacleTypeMismatch> mismatches) => ShowWith(mismatches);
 
-        protected override List<ThemeFootprintMismatch> Collect() => WorldThemeProfileValidator.CollectMismatches();
+        protected override List<ThemeObstacleTypeMismatch> Collect() => WorldThemeProfileValidator.CollectMismatches();
 
-        protected override bool IsAlive(ThemeFootprintMismatch item)
+        protected override bool IsAlive(ThemeObstacleTypeMismatch item)
         {
             if (!item.Profile) return false;
             return item.Prefab;
@@ -116,7 +116,7 @@ namespace SplitRun.EditorTools
         protected override void OnBeforeRows() => _currentGroup = null;
 
         // A serialized array element cannot be pinged, so the profile header carries the Ping button.
-        protected override void DrawRow(ThemeFootprintMismatch mismatch)
+        protected override void DrawRow(ThemeObstacleTypeMismatch mismatch)
         {
             if (!ReferenceEquals(mismatch.Profile, _currentGroup))
             {
@@ -127,7 +127,7 @@ namespace SplitRun.EditorTools
             EditorGUI.indentLevel = 1;
             EditorGUILayout.LabelField(
                 $"{mismatch.Slot}  ->  Prefabs[{mismatch.PrefabIndex}] = " +
-                $"{mismatch.Prefab.name} ({mismatch.Prefab.Footprint})");
+                $"{mismatch.Prefab.name} ({mismatch.Prefab.Type})");
             EditorGUI.indentLevel = 0;
         }
 

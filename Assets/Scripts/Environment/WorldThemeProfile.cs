@@ -16,13 +16,13 @@ namespace SplitRun.Environment
         [SerializeField] private Transform        _segmentPrefab;
         [SerializeField] private BackdropFollower _backdropPrefab;
 
-        [SerializeField] private EnumKeyedArray<ObstacleFootprint, ObstacleVariants> _obstaclePrefabs =
-            new EnumKeyedArray<ObstacleFootprint, ObstacleVariants>();
+        [SerializeField] private EnumKeyedArray<ObstacleType, ObstacleVariants> _obstaclePrefabs =
+            new EnumKeyedArray<ObstacleType, ObstacleVariants>();
 
-        public string                                              ThemeName       => _themeName;
-        public Transform                                           SegmentPrefab   => _segmentPrefab;
-        public BackdropFollower                                    BackdropPrefab  => _backdropPrefab;
-        public EnumKeyedArray<ObstacleFootprint, ObstacleVariants> ObstaclePrefabs => _obstaclePrefabs;
+        public string                                          ThemeName       => _themeName;
+        public Transform                                       SegmentPrefab   => _segmentPrefab;
+        public BackdropFollower                                BackdropPrefab  => _backdropPrefab;
+        public EnumKeyedArray<ObstacleType, ObstacleVariants> ObstaclePrefabs => _obstaclePrefabs;
     }
 
     // Unity cannot serialize a jagged array, so the variant list needs one wrapper level.

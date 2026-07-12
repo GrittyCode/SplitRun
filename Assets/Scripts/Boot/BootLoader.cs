@@ -46,6 +46,9 @@ namespace SplitRun.Boot
 
         public async UniTask StartAsync(CancellationToken ct)
         {
+            // Mobile defaults to 30 fps to save battery; nothing else raises it.
+            Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
+
             _playerDataService.Load();
             _missionService.Load();
 

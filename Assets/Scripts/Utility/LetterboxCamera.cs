@@ -3,7 +3,7 @@ using UnityEngine;
 namespace SplitRun.Utility
 {
     [RequireComponent(typeof(Camera))]
-    public sealed class AspectRatioEnforcer : MonoBehaviour
+    public sealed class LetterboxCamera : MonoBehaviour
     {
         private const float k_DesignAspect = 1080f / 1920f;
 

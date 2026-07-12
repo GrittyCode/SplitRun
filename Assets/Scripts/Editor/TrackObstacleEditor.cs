@@ -35,7 +35,7 @@ namespace SplitRun.EditorTools
 
         // Guides stay visible while the author resizes the child Model:
         //   green  — floor plane (Y=0)
-        //   cyan   — stamped collider, labelled with the footprint
+        //   cyan   — stamped collider, labelled with the obstacle type
         //   yellow — current model bounds
         [DrawGizmo(GizmoType.Selected | GizmoType.InSelectionHierarchy)]
         private static void DrawGuides(TrackObstacle obstacle, GizmoType gizmoType)
@@ -81,7 +81,7 @@ namespace SplitRun.EditorTools
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireCube(center, box.size);
             Handles.color = Color.cyan;
-            Handles.Label(center + Vector3.up * (box.size.y * 0.5f), $"  Hitbox: {obstacle.Footprint}");
+            Handles.Label(center + Vector3.up * (box.size.y * 0.5f), $"  Hitbox: {obstacle.Type}");
         }
 
         private static void DrawModelGuide(TrackObstacle obstacle)

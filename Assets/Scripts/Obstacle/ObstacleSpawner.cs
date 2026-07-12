@@ -31,8 +31,8 @@ namespace SplitRun.Obstacle
         [Inject] private AssetPreloadService _preload;
         [Inject] private ItemService         _itemService;
 
-        private readonly Dictionary<ObstacleFootprint, List<ComponentPool<TrackObstacle>>> _pools =
-            new Dictionary<ObstacleFootprint, List<ComponentPool<TrackObstacle>>>();
+        private readonly Dictionary<ObstacleType, List<ComponentPool<TrackObstacle>>> _pools =
+            new Dictionary<ObstacleType, List<ComponentPool<TrackObstacle>>>();
 
         private readonly Queue<ActiveObstacle> _active = new Queue<ActiveObstacle>();
 
@@ -59,26 +59,26 @@ namespace SplitRun.Obstacle
             }
         }
 
-        // Prefabs are preloaded at boot and resolved by footprint, so the level profile stays theme-agnostic.
+        // Prefabs are preloaded at boot and resolved by obstacle type, so the level profile stays theme-agnostic.
         private void InitializePools()
         {
-            foreach (ObstacleFootprint footprint in _preload.Footprints)
+            foreach (ObstacleType type in _preload.ObstacleTypes)
             {
-                foreach (TrackObstacle prefab in _preload.GetObstaclePrefabs(footprint))
+                foreach (TrackObstacle prefab in _preload.GetObstaclePrefabs(type))
                 {
                     if (!prefab) continue;
 
-                    AddPool(footprint, prefab);
+                    AddPool(type, prefab);
                 }
             }
         }
 
-        private void AddPool(ObstacleFootprint footprint, TrackObstacle prefab)
+        private void AddPool(ObstacleType type, TrackObstacle prefab)
         {
-            if (!_pools.TryGetValue(footprint, out List<ComponentPool<TrackObstacle>> pools))
+            if (!_pools.TryGetValue(type, out List<ComponentPool<TrackObstacle>> pools))
             {
                 pools = new List<ComponentPool<TrackObstacle>>();
-                _pools[footprint] = pools;
+                _pools[type] = pools;
             }
 
             pools.Add(new ComponentPool<TrackObstacle>(
@@ -173,9 +173,9 @@ namespace SplitRun.Obstacle
         private float AvailableSingleTotal(ObstacleBand band)
         {
             float total = 0f;
-            foreach ((ObstacleFootprint footprint, float weight) in band.SingleWeights)
+            foreach ((ObstacleType type, float weight) in band.SingleWeights)
             {
-                if (!IsSingleSpawnable(footprint, weight)) continue;
+                if (!IsSingleSpawnable(type, weight)) continue;
 
                 total += weight;
             }
@@ -198,14 +198,14 @@ namespace SplitRun.Obstacle
 
         private void SpawnSelectedSingle(ObstacleBand band, float roll, int slotIndex, float spawnZ)
         {
-            foreach ((ObstacleFootprint footprint, float weight) in band.SingleWeights)
+            foreach ((ObstacleType type, float weight) in band.SingleWeights)
             {
-                if (!IsSingleSpawnable(footprint, weight)) continue;
+                if (!IsSingleSpawnable(type, weight)) continue;
 
                 roll -= weight;
                 if (roll > 0f) continue;
 
-                SpawnSingle(footprint, slotIndex, spawnZ);
+                SpawnSingle(type, slotIndex, spawnZ);
                 return;
             }
         }
@@ -224,14 +224,14 @@ namespace SplitRun.Obstacle
             }
         }
 
-        private void SpawnSingle(ObstacleFootprint footprint, int slotIndex, float spawnZ)
+        private void SpawnSingle(ObstacleType type, int slotIndex, float spawnZ)
         {
-            int lane = footprint.IsFullWidth()
+            int lane = type.IsFullWidth()
                 ? GameConstants.k_LaneCenter
                 : DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltLane,
                     GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
 
-            SpawnAt(footprint, lane, slotIndex, spawnZ);
+            SpawnAt(type, lane, slotIndex, spawnZ);
         }
 
         // One random pass lane is clearable; the other two are Vertical walls, forcing both players to act.
@@ -239,26 +239,26 @@ namespace SplitRun.Obstacle
         {
             int passLane = DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltLane,
                 GameConstants.k_LaneLeft, GameConstants.k_LaneCount);
-            ObstacleFootprint passFootprint = PassFootprint(pattern);
+            ObstacleType passType = PassObstacleType(pattern);
 
             for (int lane = GameConstants.k_LaneLeft; lane <= GameConstants.k_LaneRight; lane++)
             {
-                ObstacleFootprint footprint = lane == passLane ? passFootprint : ObstacleFootprint.Vertical;
-                SpawnAt(footprint, lane, slotIndex, spawnZ);
+                ObstacleType type = lane == passLane ? passType : ObstacleType.Vertical;
+                SpawnAt(type, lane, slotIndex, spawnZ);
             }
         }
 
-        // Y stays 0 — the footprint's stamped collider center bakes the height anchor.
-        private void SpawnAt(ObstacleFootprint footprint, int lane, int slotIndex, float spawnZ)
+        // Y stays 0 — the obstacle type's stamped collider center bakes the height anchor.
+        private void SpawnAt(ObstacleType type, int lane, int slotIndex, float spawnZ)
         {
-            ComponentPool<TrackObstacle> pool = PickPoolForFootprint(footprint, slotIndex, lane);
+            ComponentPool<TrackObstacle> pool = PickPoolForType(type, slotIndex, lane);
             if (pool == null) return;
 
             TrackObstacle instance = pool.Rent();
             instance.transform.position = new Vector3(GameConstants.GetLaneX(lane), 0f, spawnZ);
 
             _active.Enqueue(new ActiveObstacle(instance, pool, spawnZ));
-            MarkOccupied(footprint, lane);
+            MarkOccupied(type, lane);
         }
 
         private void PlaceItems(int slotIndex, float spawnZ)
@@ -311,9 +311,9 @@ namespace SplitRun.Obstacle
                 _laneOccupied[i] = false;
         }
 
-        private void MarkOccupied(ObstacleFootprint footprint, int lane)
+        private void MarkOccupied(ObstacleType type, int lane)
         {
-            if (footprint.IsFullWidth())
+            if (type.IsFullWidth())
             {
                 for (int i = 0; i < _laneOccupied.Length; i++)
                     _laneOccupied[i] = true;
@@ -323,29 +323,29 @@ namespace SplitRun.Obstacle
             _laneOccupied[lane] = true;
         }
 
-        private bool HasPool(ObstacleFootprint footprint) =>
-            _pools.TryGetValue(footprint, out List<ComponentPool<TrackObstacle>> pools) && pools.Count > 0;
+        private bool HasPool(ObstacleType type) =>
+            _pools.TryGetValue(type, out List<ComponentPool<TrackObstacle>> pools) && pools.Count > 0;
 
         // A zero weight is an unused row of the enum-keyed table, not a spawnable choice.
-        private bool IsSingleSpawnable(ObstacleFootprint footprint, float weight) =>
-            weight > 0f && HasPool(footprint);
+        private bool IsSingleSpawnable(ObstacleType type, float weight) =>
+            weight > 0f && HasPool(type);
 
         private bool IsCoopSpawnable(CoopPatternType pattern, float weight) =>
-            weight > 0f && HasPool(ObstacleFootprint.Vertical) && HasPool(PassFootprint(pattern));
+            weight > 0f && HasPool(ObstacleType.Vertical) && HasPool(PassObstacleType(pattern));
 
-        private ComponentPool<TrackObstacle> PickPoolForFootprint(ObstacleFootprint footprint, int slotIndex, int lane)
+        private ComponentPool<TrackObstacle> PickPoolForType(ObstacleType type, int slotIndex, int lane)
         {
-            if (!_pools.TryGetValue(footprint, out List<ComponentPool<TrackObstacle>> pools) || pools.Count == 0)
+            if (!_pools.TryGetValue(type, out List<ComponentPool<TrackObstacle>> pools) || pools.Count == 0)
                 return null;
 
             int variant = DeterministicRandom.NextInt(_runSeed, slotIndex, k_SaltVariantBase + lane, 0, pools.Count);
             return pools[variant];
         }
 
-        private static ObstacleFootprint PassFootprint(CoopPatternType pattern) => pattern switch
+        private static ObstacleType PassObstacleType(CoopPatternType pattern) => pattern switch
         {
-            CoopPatternType.CoopSlide => ObstacleFootprint.LaneSlide,
-            _                         => ObstacleFootprint.LaneJump,
+            CoopPatternType.CoopSlide => ObstacleType.LaneSlide,
+            _                         => ObstacleType.LaneJump,
         };
 
         private readonly struct ActiveObstacle

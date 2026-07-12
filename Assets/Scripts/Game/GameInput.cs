@@ -33,7 +33,8 @@ namespace SplitRun.Game
 
         public void Start()
         {
-#if UNITY_EDITOR
+            // Desktop has no touchscreen, so EnhancedTouch stays silent unless a mouse is bridged to it.
+#if UNITY_EDITOR || UNITY_STANDALONE
             TouchSimulation.Enable();
 #endif
             EnhancedTouchSupport.Enable();
@@ -46,7 +47,7 @@ namespace SplitRun.Game
             Touch.onFingerDown -= OnFingerDown;
             Touch.onFingerUp   -= OnFingerUp;
             EnhancedTouchSupport.Disable();
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE
             TouchSimulation.Disable();
 #endif
         }
