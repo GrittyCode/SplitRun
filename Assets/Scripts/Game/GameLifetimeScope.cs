@@ -24,7 +24,6 @@ namespace SplitRun.Game
 
         protected override void Configure(IContainerBuilder builder)
         {
-            // AsSelf() so consumers resolve these by concrete type.
             builder.RegisterEntryPoint<GameService>().AsSelf();
             builder.RegisterEntryPoint<ItemService>().AsSelf();
             builder.RegisterEntryPoint<GameInput>();

@@ -2991,7 +2991,7 @@
     "m_Title": "CURVED PROPERTY",
     "m_Position": {
         "x": -1459.0,
-        "y": 315.9999694824219
+        "y": 316.0000915527344
     }
 }
 
@@ -3575,7 +3575,7 @@
     "m_Hidden": false,
     "m_PerRendererData": false,
     "m_customAttributes": [],
-    "m_Value": 0.0,
+    "m_Value": 1.0,
     "m_FloatType": 0,
     "m_LiteralFloatMode": false,
     "m_RangeValues": {

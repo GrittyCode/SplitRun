@@ -15,6 +15,7 @@ namespace SplitRun.EditorTools
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
         }
 
+        // Only the Scene view flattens for authoring — every other camera (Game view included) keeps the curve.
         private static void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             Shader.SetGlobalFloat(s_curveDisabledId, camera.cameraType == CameraType.SceneView ? 1f : 0f);

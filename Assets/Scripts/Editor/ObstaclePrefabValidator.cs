@@ -90,7 +90,7 @@ namespace SplitRun.EditorTools
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(prefab));
-                DrawPingSelect(prefab);
+                DrawPing(prefab);
             }
         }
     }

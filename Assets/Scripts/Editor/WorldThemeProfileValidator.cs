@@ -136,7 +136,7 @@ namespace SplitRun.EditorTools
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 EditorGUILayout.LabelField(profile.name, EditorStyles.boldLabel);
-                DrawPingSelect(profile);
+                DrawPing(profile);
             }
         }
     }

@@ -2,7 +2,6 @@ using System;
 
 using UnityEngine;
 
-using SplitRun.Constants;
 using SplitRun.Utility;
 
 namespace SplitRun.Item
@@ -30,11 +29,6 @@ namespace SplitRun.Item
         public static event Action<ItemPickup> OnCollected;
 
         private void Awake() => _initialRotation = transform.localRotation;
-
-        private void Update()
-        {
-            transform.Rotate(0f, ItemConstants.k_SpinSpeed * Time.deltaTime, 0f, Space.World);
-        }
 
         /// <summary>Assigns the deterministic per-run id shared by every client's copy of this pickup.</summary>
         public void Initialize(int spawnId) => SpawnId = spawnId;

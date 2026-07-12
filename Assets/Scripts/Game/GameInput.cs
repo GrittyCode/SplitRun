@@ -25,9 +25,8 @@ namespace SplitRun.Game
     {
         private readonly GameService _gameService;
 
-        private Vector2 _touchStartPosition;
-        private float   _lastTapTime = float.NegativeInfinity;
-        private float   _nextLaneInputTime;
+        private float _lastTapTime = float.NegativeInfinity;
+        private float _nextLaneInputTime;
 
         public GameInput(GameService gameService) => _gameService = gameService;
 
@@ -38,27 +37,24 @@ namespace SplitRun.Game
             TouchSimulation.Enable();
 #endif
             EnhancedTouchSupport.Enable();
-            Touch.onFingerDown += OnFingerDown;
-            Touch.onFingerUp   += OnFingerUp;
+            Touch.onFingerUp += OnFingerUp;
         }
 
         public void Dispose()
         {
-            Touch.onFingerDown -= OnFingerDown;
-            Touch.onFingerUp   -= OnFingerUp;
+            Touch.onFingerUp -= OnFingerUp;
             EnhancedTouchSupport.Disable();
 #if UNITY_EDITOR || UNITY_STANDALONE
             TouchSimulation.Disable();
 #endif
         }
 
-        private void OnFingerDown(Finger finger) => _touchStartPosition = finger.currentTouch.screenPosition;
-
         private void OnFingerUp(Finger finger)
         {
             if (!IsRunning()) return;
 
-            Vector2 delta = finger.currentTouch.screenPosition - _touchStartPosition;
+            // startScreenPosition is tracked per finger, so an overlapping second touch cannot corrupt the swipe origin.
+            Vector2 delta = finger.currentTouch.screenPosition - finger.currentTouch.startScreenPosition;
 
             if (delta.magnitude < GameConstants.k_SwipeMinDistancePx)
             {

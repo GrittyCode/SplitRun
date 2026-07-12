@@ -40,7 +40,6 @@ namespace SplitRun.Item
         private ICharacter    _character;
         private float         _magnetSeconds;
         private int           _nextSpawnId;
-        private GamePhase     _lastPhase = GamePhase.Lobby;
 
         public ItemService(ItemCatalog catalog, GameService gameService, GameSession gameSession,
             PlayerDataService playerDataService, MissionService missionService)
@@ -77,6 +76,8 @@ namespace SplitRun.Item
 
         public void Tick()
         {
+            SpinActiveItems();
+
             if (_character == null) return;
             if (_gameService.Phase.CurrentValue != GamePhase.Running) return;
 
@@ -112,37 +113,19 @@ namespace SplitRun.Item
             _active.Add(pickup);
         }
 
+        // The service is scene-scoped, so a run starts from a fresh instance — no reset path exists,
+        // and pre-run look-ahead items must survive into Running.
         private void OnPhaseChanged(GamePhase phase)
         {
-            // Resuming from pause must not wipe live pickups — only a fresh run resets.
-            if (phase == GamePhase.Running && _lastPhase != GamePhase.Paused)
-                ResetForRun();
-
             // GameOver is entered once per run, so the merge never double-applies.
             if (phase == GamePhase.GameOver)
                 MergeCoins();
-
-            _lastPhase = phase;
         }
 
         private void MergeCoins()
         {
             _playerDataService.AddCoins(_coins.Value);
             _missionService.ReportRunCoins(_coins.Value);
-        }
-
-        private void ResetForRun()
-        {
-            _coins.Value           = 0;
-            _magnetSeconds         = 0f;
-            _magnetRemaining.Value = 0f;
-            _nextSpawnId           = 0;
-
-            for (int i = _active.Count - 1; i >= 0; i--)
-                Recycle(_active[i]);
-
-            _active.Clear();
-            _pulled.Clear();
         }
 
         private void OnCharacterSpawned(ICharacter character) => _character = character;
@@ -191,6 +174,15 @@ namespace SplitRun.Item
             }
 
             return null;
+        }
+
+        // Driven here instead of a per-pickup Update — dozens of live coins would each pay the per-MonoBehaviour call cost.
+        private void SpinActiveItems()
+        {
+            float step = ItemConstants.k_SpinSpeed * Time.deltaTime;
+
+            for (int i = 0; i < _active.Count; i++)
+                _active[i].transform.Rotate(0f, step, 0f, Space.World);
         }
 
         private void UpdateMagnet(float deltaTime)

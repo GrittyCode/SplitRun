@@ -92,7 +92,7 @@ namespace SplitRun.Character
         {
             if (!clip) return;
 
-            // Speed = clip length / desired duration — the clip finishes exactly when desiredDuration expires.
+            // The clip finishes exactly when desiredDuration expires, regardless of the skin's clip length.
             _animator.SetFloat(CharacterConstants.k_ParamSpeed, clip.length / desiredDuration);
         }
     }

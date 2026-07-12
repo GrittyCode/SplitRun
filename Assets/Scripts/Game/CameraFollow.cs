@@ -27,6 +27,9 @@ namespace SplitRun.Game
         private void Awake()
         {
             GetComponent<Camera>().fieldOfView = k_Fov;
+
+            // Direct pitch instead of LookAt — tuning offsets never changes the viewing angle.
+            transform.rotation = Quaternion.Euler(k_PitchAngle, 0f, 0f);
         }
 
         private void OnEnable()
@@ -48,9 +51,6 @@ namespace SplitRun.Game
         {
             // X and Y fixed — lane changes and jumps never sway the camera.
             transform.position = new Vector3(0f, k_OffsetY, _trackedDistance + k_OffsetZ);
-
-            // Direct pitch instead of LookAt — tuning offsets never changes the viewing angle.
-            transform.rotation = Quaternion.Euler(k_PitchAngle, 0f, 0f);
         }
 
         // Disposed per despawn — AddTo(this) would stack one live subscription per respawn.

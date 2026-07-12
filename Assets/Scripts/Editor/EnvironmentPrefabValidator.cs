@@ -135,7 +135,7 @@ namespace SplitRun.EditorTools
             {
                 EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(segment.gameObject));
                 DrawLengthLabel(measured ? $"{lengthZ:F2}m" : "no floor", isMismatched);
-                DrawPingSelect(segment.gameObject);
+                DrawPing(segment.gameObject);
             }
         }
 

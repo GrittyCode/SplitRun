@@ -93,18 +93,24 @@ namespace SplitRun.Character
             _skillState.OnValueChanged    -= OnSkillStateChanged;
             _verticalState.OnValueChanged -= OnVerticalStateChanged;
             _distance.OnValueChanged      -= OnDistanceChanged;
+        }
 
+        // Despawn and destroy are separate NGO events — sources outlive despawn and die with the object.
+        public override void OnDestroy()
+        {
             _laneReactive.Dispose();
             _hpReactive.Dispose();
             _skillStateReactive.Dispose();
             _verticalStateReactive.Dispose();
             _distanceReactive.Dispose();
             _runningReactive.Dispose();
+
+            base.OnDestroy();
         }
 
         private void Update()
         {
-            // A frame can land between Instantiate and OnNetworkSpawn, where NetworkManager is not yet reachable.
+            // A frame can land between Instantiate and OnNetworkSpawn — NetworkManager and the rules are both unreachable there.
             if (!IsSpawned) return;
 
             if (!IsServer)
@@ -113,7 +119,6 @@ namespace SplitRun.Character
                 return;
             }
 
-            // A frame can land between Instantiate and OnNetworkSpawn, before the rules exist.
             if (_rules == null) return;
 
             _rules.Tick(Time.deltaTime);
@@ -130,10 +135,8 @@ namespace SplitRun.Character
             _runningReactive.Value = isRunning;
         }
 
-        /// <summary>Server-only, called before Spawn — the hat rides the spawn payload to every client.</summary>
         public void SetHat(HatType hat) => _hat.Value = hat;
 
-        /// <summary>Instantiates the hat prefab on the nested model's hat socket. Pass null to remove the hat.</summary>
         public void AttachHat(GameObject hatPrefab)
         {
             if (!_model)

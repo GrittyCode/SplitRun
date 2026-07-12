@@ -187,7 +187,8 @@ namespace SplitRun.Game
                 return;
             }
 
-            if (_runStartState.Value != RunStartState.Intro) return;
+            // An in-scene object can despawn without being destroyed mid-timer — never write a NetworkVariable then.
+            if (!IsSpawned || _runStartState.Value != RunStartState.Intro) return;
 
             _runStartState.Value = RunStartState.Live;
         }
@@ -204,7 +205,8 @@ namespace SplitRun.Game
                 return;
             }
 
-            if (_pauseState.Value != PauseState.Countdown) return;
+            // An in-scene object can despawn without being destroyed mid-timer — never write a NetworkVariable then.
+            if (!IsSpawned || _pauseState.Value != PauseState.Countdown) return;
 
             _pauseState.Value = PauseState.None;
         }

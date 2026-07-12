@@ -73,13 +73,10 @@ namespace SplitRun.EditorTools
             }
         }
 
-        protected static void DrawPingSelect(Object target)
+        protected static void DrawPing(Object target)
         {
             if (GUILayout.Button("Ping", GUILayout.Width(50f)))
                 EditorGUIUtility.PingObject(target);
-
-            if (GUILayout.Button("Select", GUILayout.Width(60f)))
-                Selection.activeObject = target;
         }
     }
 }

@@ -18,11 +18,9 @@ namespace SplitRun.Constants
 
         public const float k_SwipeMinDistancePx = 50f;
 
-        // Two taps within this window count as a double tap (skill activation).
         public const float k_DoubleTapWindow = 0.3f;
 
-        // Both players must reach the game screen before the run starts; each then sees their
-        // control guide for this long. Server-driven — clients react to the Intro→Live transition.
+        // Both players must reach the game screen before the run starts
         public const float k_RunIntroSeconds = 5f;
 
         // Server delay between accepting a resume and unpausing; clients render 3-2-1 locally.
